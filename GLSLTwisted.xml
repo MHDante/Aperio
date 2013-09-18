@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Material name="Twisted">
+
+  <Shader scope="Vertex" name="GLSLTwisted" location="Twisted.glsl" 
+	language="GLSL" entry="main">
+  </Shader>
+  <Shader scope="Fragment" name="GLSLTwisted" location="TwistedFrag.glsl" 
+	language="GLSL" entry="main">
+	 <ApplicationUniform name="mouse" > </ApplicationUniform> 
+	 <ApplicationUniform name="translucency" > </ApplicationUniform> 
+	 <ApplicationUniform name="mouseSize" > </ApplicationUniform> 
+	 <ApplicationUniform name="peerInside" > </ApplicationUniform> 
+	 <ApplicationUniform name="selected" > </ApplicationUniform> 
+	 <ApplicationUniform name="toon" > </ApplicationUniform> 
+	</Shader>
+
+</Material>

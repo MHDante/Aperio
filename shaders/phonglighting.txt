@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Material name="Twisted">
+
+
+  <Shader scope="Vertex" name="GLSLTwisted" location="Twisted.glsl" 
+	language="GLSL" entry="main">
+  </Shader>
+  <Shader scope="Fragment" name="GLSLTwisted" location="TwistedFrag.glsl" 
+	language="GLSL" entry="main">
+	 <ApplicationUniform name="lightDirs" value="lightDirs"> </ApplicationUniform> 
+	 <ApplicationUniform name="myColor" value="myColor"> </ApplicationUniform> 
+	</Shader>
+
+</Material>
+--------------
+
+varying vec3 normal, lightDir, eyeVec;
+
+void main (void)
+{
+	vec4 final_color = 
+	(gl_FrontLightModelProduct.sceneColor * gl_FrontMaterial.ambient) + 
+	(gl_LightSource[0].ambient * gl_FrontMaterial.ambient);
+							
+	vec3 L = normalize(lightDir);
+	vec3 D = normalize(gl_LightSource[0].spotDirection);
+	
+	if (dot(-L, D) > gl_LightSource[0].spotCosCutoff) 
+	{
+		vec3 N = normalize(normal);
+	
+		float lambertTerm = max( dot(N,L), 0.0);
+		if(lambertTerm > 0.0)
+		{
+			final_color += gl_LightSource[0].diffuse * 
+			gl_FrontMaterial.diffuse * 
+			lambertTerm;	
+		
+			vec3 E = normalize(eyeVec);
+			vec3 R = reflect(-L, N);
+			
+			float specular = pow( max(dot(R, E), 0.0), 
+			gl_FrontMaterial.shininess );
+			
+			final_color += gl_LightSource[0].specular * 
+			gl_FrontMaterial.specular * specular;	
+		}
+	}
+
+	gl_FragColor = final_color+.1;			
+}
+--------------
+
+varying vec3 normal, lightDir, eyeVec;
+
+void main()
+{	
+	normal = gl_NormalMatrix * gl_Normal;
+
+	vec3 vVertex = vec3(gl_ModelViewMatrix * gl_Vertex);
+
+	lightDir = vec3(gl_LightSource[0].position.xyz - vVertex);
+	eyeVec = -vVertex;
+
+	gl_Position = ftransform();		
+}

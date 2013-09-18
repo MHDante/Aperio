@@ -1,0 +1,78 @@
+# change shininess to 0 and see toon shader
+
+varying vec3 position;
+varying vec3 normal;
+
+uniform sampler2D tex;
+uniform vec3 lightPos;
+ 
+uniform vec3 mambient;  //gl_FrontMaterial
+uniform vec3 mdiffuse;
+uniform vec3 mspecular;
+uniform float shininess;
+ 
+uniform vec3 lambient;  //gl_LightSource[0]
+uniform vec3 ldiffuse;
+uniform vec3 lspecular;
+ 
+void main()
+{
+    vec4 color = texture2D(tex,gl_TexCoord[0].st);
+    
+	
+	        float dist=length(position-lightPos);   //distance from light-source to surface
+        float att=1.0/(1.0+0.1*dist+0.01*dist*dist);    //attenuation (constant,linear,quadric)
+        vec3 ambient=mambient*lambient; //the ambient light
+       
+        vec3 surf2light=normalize(lightPos-position);
+        vec3 norm=normalize(normal);
+        float dcont=max(0.0,dot(norm,surf2light));
+        vec3 diffuse=dcont*(mdiffuse*ldiffuse);
+       
+        vec3 surf2view=normalize(-position);
+        vec3 reflection=reflect(-surf2light,norm);
+       
+        float scont=pow(max(0.0,dot(surf2view,reflection)),shininess);
+        vec3 specular=scont*lspecular*mspecular;
+       
+        gl_FragColor=vec4((ambient+diffuse+specular)*att,1.0)+color;  //<- don't forget the paranthesis (ambient+diffuse+specular)
+}
+
+-------------
+
+varying vec3 position;
+varying vec3 normal;
+
+void main() {
+ 
+    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+    gl_Position = ftransform();
+	
+	//output position with projection
+        position=vec3(gl_ModelViewMatrix*gl_Vertex);    //get the position of the vertex after translation, rotation, scaling
+        normal=gl_NormalMatrix*gl_Normal;       //get the normal direction, after translation, rotation, scaling
+}
+
+---------------
+<?xml version="1.0" encoding="UTF-8"?>
+<Material name="Twisted">
+
+
+  <Shader scope="Vertex" name="GLSLTwisted" location="Twisted.glsl" 
+	language="GLSL" entry="main">
+  </Shader>
+  <Shader scope="Fragment" name="GLSLTwisted" location="TwistedFrag.glsl" 
+	language="GLSL" entry="main">
+	     <ApplicationUniform name="mambient" value="mambient"> </ApplicationUniform> 
+     <ApplicationUniform name="mdiffuse" value="mdiffuse"> </ApplicationUniform> 
+     <ApplicationUniform name="mspecular" value="mspecular"> </ApplicationUniform> 
+
+	 <ApplicationUniform name="lambient" value="lambient"> </ApplicationUniform> 
+     <ApplicationUniform name="ldiffuse" value="ldiffuse"> </ApplicationUniform> 
+     <ApplicationUniform name="lspecular" value="lspecular"> </ApplicationUniform> 
+
+	 <ApplicationUniform name="shininess" value="shininess"> </ApplicationUniform> 
+     <ApplicationUniform name="lightPos" value="lightPos"> </ApplicationUniform> 
+	</Shader>
+
+</Material>

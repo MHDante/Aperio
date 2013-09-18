@@ -1,0 +1,64 @@
+uniform float mouseSize;
+uniform vec3 mouse;
+
+varying vec3 vertexCoord;
+
+void calculateTerrainCircle(inout vec4 pixelColor)
+{
+	float xDist = vertexCoord.x - mouse.x;
+	float yDist = vertexCoord.y - mouse.y;
+
+	float dist = xDist * xDist + yDist * yDist;
+	float radius2 = mouseSize * mouseSize;
+
+	if (dist < radius2 * 1.44 && dist > radius2 * 0.64)
+	{
+		vec4 temp = pixelColor;
+
+		float diff;
+		if (dist < radius2)
+			diff = (radius2 - dist) / (0.36 * radius2);
+		else
+			diff = (dist - radius2) / (0.44 * radius2);
+
+		pixelColor = vec4(1, 0, 0, 1.0) * (1 - diff) + pixelColor * diff;	
+
+		pixelColor = mix(pixelColor, temp, diff);
+	}		 		
+}
+
+void main()
+{
+	vec4 pixelColor = vec4(1, 1, 1, 1);
+	calculateTerrainCircle(pixelColor);
+	
+	gl_FragColor = pixelColor;
+}
+
+----------------
+
+varying vec3 vertexCoord;
+
+void main()
+{
+    gl_Position = ftransform();
+
+	vertexCoord = vec3(gl_Vertex);
+}
+---------
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Material name="Twisted">
+
+
+  <Shader scope="Vertex" name="GLSLTwisted" location="Twisted.glsl" 
+	language="GLSL" entry="main">
+  </Shader>
+  <Shader scope="Fragment" name="GLSLTwisted" location="TwistedFrag.glsl" 
+	language="GLSL" entry="main">
+	 <ApplicationUniform name="mouse" > </ApplicationUniform> 
+	 <ApplicationUniform name="translucency" > </ApplicationUniform> 
+	 <ApplicationUniform name="mouseSize" > </ApplicationUniform> 
+	</Shader>
+
+</Material>
