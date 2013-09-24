@@ -163,7 +163,10 @@
     <ClInclude Include="myOBJReader_Exp.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StdDefines.h" />
+    <ClInclude Include="Superquadrics.h" />
     <ClInclude Include="Utility.h" />
+    <ClInclude Include="Vectors.h" />
     <ClInclude Include="vtkMyShaderPass.h" />
   </ItemGroup>
   <ItemGroup>
