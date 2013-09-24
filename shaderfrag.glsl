@@ -10,6 +10,8 @@ uniform int selected;
 uniform vec3 pos1;
 uniform vec3 pos2;
 
+uniform float myexp;
+
 float evaluate(vec3 planeNorm, vec3 planeOrigin, vec3 v)
 {
 	return 	planeNorm.x * (v.x - planeOrigin.x) + 
@@ -46,7 +48,13 @@ void main (void)
 	
 	vec4 mouseV2 = gl_ModelViewMatrix * vec4(vec3(mouse) + vec3(1,0,0), 1);
 	
-	float d = (v.y - mouseV.y)*(v.y - mouseV.y) + (v.x - mouseV.x)*(v.x - mouseV.x) + (v.z - mouseV.z)*(v.z - mouseV.z);	
+	//int p = 1000;
+	
+	float d = pow(abs((v.y - mouseV.y) / 1), myexp) + pow(abs((v.x - mouseV.x) / 2), myexp) + pow(abs((v.z - mouseV.z) / 1), myexp);	
+
+	//float d = pow(abs(v.y - mouseV.y), p) + pow(abs(v.x - mouseV.x), p) + pow(abs(v.z - mouseV.z), p);	
+
+
 	//float d = sqrt((v.y - mouseV.y)*(v.y - mouseV.y) + (v.x - mouseV.x)*(v.x - mouseV.x) );	
 	
 	if (selected == 1)	// if selected
@@ -84,6 +92,12 @@ void main (void)
 
 		float pResultB = evaluate(pPlaneNormN, planeOrigin - pPlaneNormN*lineLength/2.0, v);	
 		
+		// Mystuff
+		//if (d < mouseSize*mouseSize*mouseSize*0.8)
+		if (d < mouseSize)
+		{
+			discard;
+		}
 		//if (d <= mouseSize*mouseSize)
 		//if (resultt < 0)
 		if (pResultF < 0 && pResultB > 0 && resultF < 0 && resultB > 0)

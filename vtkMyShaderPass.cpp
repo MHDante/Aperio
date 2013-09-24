@@ -138,6 +138,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	uniforms->SetUniformf("mouse", 3, moo);
 	uniforms->SetUniformf("mouseSize", 1, &a->mouseSize);
 	uniforms->SetUniformi("peerInside", 1, &a->peerInside);
+	uniforms->SetUniformf("myexp", 1, &a->myexp);
 
 	uniforms->SetUniformf("pos1", 3, a->pos1);
 	uniforms->SetUniformf("pos2", 3, a->pos2);

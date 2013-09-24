@@ -149,6 +149,10 @@ void additive::slot_afterShowWindow()
 	brushDivide = 15.0; 
 	peerInside = 0;
 
+	// set up variables
+
+	myexp = 2;
+
 	status_label = new QLabel("Ready", this); 
 	status_label->setStyleSheet("background-color: rgba(0,0,0,0);");
 	ui.statusBar->addWidget(status_label);

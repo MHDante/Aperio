@@ -174,9 +174,11 @@ public:
 	float brushDivide;
 	int peerInside;
 	int toon;
+	float myexp ;
 
 	float pos1[3];
 	float pos2[3];
+
 
 	/// <summary> Selected Widget Actor </summary>
 	vtkSmartPointer<vtkActor> selectedWidgetActor;

@@ -226,6 +226,20 @@ public:
 			creation = !creation;
 
 		}
+		if (this->Interactor->GetKeyCode() == 'z')
+		{
+			float change = 0.2;
+
+			if (a->myexp - change >= 0)
+				a->myexp -= change;
+		}
+		if (this->Interactor->GetKeyCode() == 'x')
+		{
+			float change = 0.2;
+
+			if (a->myexp + change <= 10)
+				a->myexp += change ;
+		}
 		if (this->Interactor->GetKeyCode() == 'b')
 		{
 			this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0], 
