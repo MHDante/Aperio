@@ -1,3 +1,5 @@
+# Slider
+
 Slider is a 3D anatomical or other mesh browser allowing slidable elements to be stretched 
 and placed onto surfaces as a way of marking up areas to be transformed; the marked areas can then
 be cut, peeled, split or act as hinges or constraints for exploders etc. Additionally, elements can 
