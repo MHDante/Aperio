@@ -83,6 +83,9 @@
     <ClCompile Include="vtkMyShaderPass.cpp">
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="MySuperquadric.cpp">
+      <Filter>Source Files\Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="additive.h">
@@ -130,6 +133,9 @@
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="StdDefines.h">
+      <Filter>Header Files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="MySuperquadric.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>

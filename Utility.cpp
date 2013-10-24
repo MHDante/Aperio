@@ -28,6 +28,10 @@ void Utility::start_clock(char clockname)
 void Utility::end_clock(char clockname)
 {
 	std::cout << "--- Ended Clock: " << clockname << ", (elapsed: "<< float (clock() - clocks[clockname]) / CLOCKS_PER_SEC << ") ---" << std::endl;
+
+	
+	
+
 }
 
 /// ---------------------------------------------------------------------------------------------
