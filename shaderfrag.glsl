@@ -8,14 +8,16 @@ uniform int peerInside;
 
 uniform float myexp;
 
+uniform sampler2D mytext;
+
 // Global variables
 vec4 final_color;
 
 // ---------------- Phong lighting ----------------------//
 void phongLighting()
 {
-	vec3 L = normalize(gl_LightSource[0].position.xyz - v);   
 	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0)  
+	vec3 L = normalize(gl_LightSource[0].position.xyz - v);   
 	vec3 R = normalize(-reflect(L,n));  
 
 	//calculate Ambient Term:  
@@ -29,8 +31,10 @@ void phongLighting()
 	vec4 Ispec = gl_FrontLightProduct[0].specular * pow(max(dot(R,E),0.0),0.3*gl_FrontMaterial.shininess);
 	Ispec = clamp(Ispec, 0.0, 1.0); 
 
-	// Calculate final color
-	final_color = gl_FrontLightModelProduct.sceneColor + Iamb + Idiff + Ispec;
+	vec4 texelColor = texture2D(mytext, gl_TexCoord[0].st);
+	
+	// Calculate final color:
+	final_color  = gl_FrontLightModelProduct.sceneColor + Iamb + Idiff * texelColor + Ispec;
 }
 
 // ---------------- Main function ----------------------//
@@ -54,12 +58,16 @@ void main (void)
 		}
 		else
 		{
-			vec4 new_color = vec4(final_color) + vec4(.4, 0, 0, 0);
-			gl_FragColor = vec4(vec3(new_color), gl_Color.a);     
+			//vec4 new_color = vec4(final_color) + vec4(.4, 0, 0, 0);
+			//gl_FragColor = vec4(vec3(new_color), gl_Color.a);     
+			gl_FragColor = final_color;
+
 		}
 	}
 	else
 	{
-		gl_FragColor = vec4(vec3(final_color), gl_Color.a);     
+		//gl_FragColor = vec4(vec3(final_color), gl_Color.a);     
+			gl_FragColor = final_color;
 	}
+	//gl_FragColor = texture2D(mytext, gl_TexCoord[0].st) *.8 + final_color*.2; 
 }

@@ -177,12 +177,12 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 			
 				if (it2 != a->widgets[i].end())	// found
 				{
-					currentProgram = this->shaderProgram2;
+					//currentProgram = this->shaderProgram2;
 				}
 			}
 			// Not found the CustomMesh object, must be extra objects
 			//none = true;
-			currentProgram = this->shaderProgram3;
+			//currentProgram = this->shaderProgram3;
 			//int silhouette = 1;
 			//uniforms->SetUniformi("silhouette", 1, &silhouette);
 			

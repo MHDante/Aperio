@@ -333,8 +333,8 @@ void additive::readFile(char * filename)
 
 
 	// the readers
-	//vtkSmartPointer<myOBJReader_Exp> s = vtkSmartPointer<myOBJReader_Exp>::New();	
-	vtkSmartPointer<myOBJReader> s = vtkSmartPointer<myOBJReader>::New();	
+	//vtkSmartPointer<myOBJReader> s = vtkSmartPointer<myOBJReader>::New();	
+	vtkSmartPointer<myOBJReader_Exp> s = vtkSmartPointer<myOBJReader_Exp>::New();	
 	s->SetFileName(filename);
 	s->Update();
 	Utility::end_clock('a');
@@ -342,13 +342,13 @@ void additive::readFile(char * filename)
 	//s->GetOutput()->GlobalReleaseDataFlagOn();
 
 	//read jpeg, instant
-	//vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New(); 
-	//jpgReader->SetFileName("luigi.jpg"); 
-	//jpgReader->Update(); 
+	vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New(); 
+	jpgReader->SetFileName("luigi.jpg"); 
+	jpgReader->Update(); 
 
-	//vtkSmartPointer<vtkTexture> colorTexture = vtkSmartPointer<vtkTexture>::New(); 
-	//colorTexture->SetInputConnection(jpgReader->GetOutputPort());
-	//colorTexture->InterpolateOn();
+	vtkSmartPointer<vtkTexture> colorTexture = vtkSmartPointer<vtkTexture>::New(); 
+	colorTexture->SetInputConnection(jpgReader->GetOutputPort());
+	colorTexture->InterpolateOn();
 
 	qDebug() << "Init read meshes\n";
 	
@@ -396,13 +396,20 @@ void additive::readFile(char * filename)
 		//CommonData::objectOBBTrees.push_back(objectOBBTree);
 
 		// Compute normals/toggle on/off
+		
+		//std::cout << nextMesh->GetNumberOfPoints() << std::endl;
+		//std::cout << "..." << std::endl;
+
 		vtkPolyDataNormals *dataset = vtkPolyDataNormals::New();
-		dataset->SetInputData(nextMesh);
-		dataset->ComputePointNormalsOn();
-		dataset->FlipNormalsOff();
-		//dataset->SetNonManifoldTraversal(1);
-		//dataset->SetFeatureAngle(0.1);
+		dataset->SetInputData(nextMesh);		
+		dataset->ComputePointNormalsOn();	
+		dataset->ComputeCellNormalsOff();	
+		//dataset->FlipNormalsOff();
+		dataset->SplittingOn();
+		dataset->SetFeatureAngle(60);
 		dataset->Update();
+
+		//std::cout << dataset->GetOutput()->GetNumberOfPoints() << std::endl;
 
 		//if (z == 0)
 		//{
@@ -490,7 +497,7 @@ void additive::readFile(char * filename)
 		meshes[z].actor->GetProperty()->SetDiffuseColor(r, g, b);
 		//meshes[z].actor->GetProperty()->SetDiffuse(1.0);
 		//meshes[z].actor->GetProperty()->FrontfaceCullingOn();	// culling on
-		//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture); 
+		meshes[z].actor->GetProperty()->SetTexture(0, colorTexture); 
 
 		//vtkObject::GlobalWarningDisplayOff();	// dangerous (keep on for most part)
 
