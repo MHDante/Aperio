@@ -117,14 +117,23 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 {
 	assert("pre: s_exists" && s!=0);
 
-	if (!BuildShader(this->shaderProgram, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader.glsl", "shaderfrag.glsl"))
-		return;
+	if (passType == ShaderPassType::PASS_OPAQUE)
+	{
+		if (!BuildShader(this->shaderProgram, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader.glsl", "shaderfrag.glsl"))
+			return;
+	}
 
-	if (!BuildShader(this->shaderProgram2, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader2.glsl", "shaderfrag2.glsl"))
-		return;
+	if (passType == ShaderPassType::PASS_TRANSLUCENT)
+	{
+		if (!BuildShader(this->shaderProgram, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader.glsl", "shaderfrag.glsl"))
+			return;
+	}
 
-	if (!BuildShader(this->shaderProgram3, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader3.glsl", "shaderfrag3.glsl"))
-		return;
+	//if (!BuildShader(this->shaderProgram2, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader2.glsl", "shaderfrag2.glsl"))
+		//return;
+
+	//if (!BuildShader(this->shaderProgram3, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader3.glsl", "shaderfrag3.glsl"))
+//		return;
 
 	int c=s->GetPropArrayCount();
 	int i=0;
@@ -159,7 +168,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 		
 		if (it != a->meshes.end())
 		{			
-			currentProgram = this->shaderProgram;
+			//currentProgram = this->shaderProgram;
 			// Found the CustomMesh object mapped to this actor (actor is a subclass of prop)
 			uniforms->SetUniformi("selected", 1, &it->selected);
 
@@ -206,16 +215,34 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 
 		if(p->HasKeys(s->GetRequiredKeys()))
 		{
-			currentProgram->Use();
+			//currentProgram->Use();
 			int rendered;
 
 			if (passType == ShaderPassType::PASS_TRANSLUCENT )
+			{
+				//if (!currentProgram->IsUsed())
+					//currentProgram->Use();
+
 				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(),s->GetRequiredKeys());
+				
+				//if (currentProgram->IsUsed())
+					//currentProgram->Restore();
+			}
 			else
+			{
+				//currentProgram->Use();
+				if (!currentProgram->IsUsed())
+					currentProgram->Use();
+
 				rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(),s->GetRequiredKeys());
 
+				if (currentProgram->IsUsed())
+					currentProgram->Restore();
+				//currentProgram->Restore();
+			}
+
 			this->NumberOfRenderedProps+=rendered;
-			currentProgram->Restore();
+			//currentProgram->Restore();
 		}
 		++i;
 	}

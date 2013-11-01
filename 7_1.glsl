@@ -1,3 +1,25 @@
+
+[Vertex Shader]
+// Shader OpenGL ID 2
+varying vec3 n;
+varying vec3 v;
+
+void main(void)  
+{     
+   v = vec3(gl_ModelViewMatrix * gl_Vertex);       
+   n = normalize(gl_NormalMatrix * gl_Normal);
+
+   //original_v = vec3(gl_Vertex);         
+   
+   gl_FrontColor = gl_Color;
+   gl_BackColor = gl_Color;
+
+   gl_TexCoord[0] = gl_MultiTexCoord0;   
+	
+   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;  
+}
+[Fragment Shader]
+// Shader OpenGL ID 3
 varying vec3 n;
 varying vec3 v;    
 
@@ -70,5 +92,7 @@ void main (void)
 			gl_FragColor = final_color;
 	}
 	
+  if (gl_FragCoord.x > 290)
+    gl_FragColor = vec4(1, 1, 1, 1);
 	//gl_FragColor = texture2D(mytext, gl_TexCoord[0].st) *.8 + final_color*.2; 
 }

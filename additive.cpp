@@ -195,30 +195,34 @@ void additive::slot_afterShowWindow()
 	vtkSequencePass *seq=vtkSequencePass::New();
 	
 	vtkLightsPass *lightsP=vtkLightsPass::New();
+
 	vtkMyShaderPass *opaqueP = vtkMyShaderPass::New();
 	opaqueP->initialize(this, ShaderPassType::PASS_OPAQUE);
 	
 	vtkMyShaderPass *transP = vtkMyShaderPass::New();
 	transP->initialize(this, ShaderPassType::PASS_TRANSLUCENT);
 
-	vtkMyShaderPass *silhP = vtkMyShaderPass::New();
-	silhP->initialize(this, ShaderPassType::PASS_SILHOUETTE);
 
+	//vtkOpaquePass *opaqueP = vtkOpaquePass::New();
+	//vtkTranslucentPass *transP = vtkTranslucentPass::New();
+
+
+	//vtkMyShaderPass *silhP = vtkMyShaderPass::New();
+	//silhP->initialize(this, ShaderPassType::PASS_SILHOUETTE);
 	//transP->SettranslucentPass(true);
 
-	//vtkDepthPeelingPass *peelP = vtkDepthPeelingPass::New();
-	//peelP->SetMaximumNumberOfPeels(2);
-	//peelP->SetOcclusionRatio(1.0);	
-	//Peeling pass needs translucent pass
-	//peelP->SetTranslucentPass(transP);
+	vtkDepthPeelingPass *peelP = vtkDepthPeelingPass::New();
+	peelP->SetMaximumNumberOfPeels(10);
+	peelP->SetOcclusionRatio(0.05);	
+	peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
 
 	// Put all passes into a collection then into a sequence.
 	vtkRenderPassCollection *passes=vtkRenderPassCollection::New();
 	passes->AddItem(lightsP);
 	//passes->AddItem(silhP);
 	passes->AddItem(opaqueP);
-	//passes->AddItem(peelP);
-	passes->AddItem(transP);
+	passes->AddItem(peelP);
+	//passes->AddItem(transP);
 	//passes->AddItem(vtkDefaultPass::New());
 
 	seq->SetPasses(passes);
@@ -397,12 +401,12 @@ void additive::readFile(char * filename)
 
 		// Compute normals/toggle on/off
 		
-		//std::cout << nextMesh->GetNumberOfPoints() << std::endl;
 		//std::cout << "..." << std::endl;
+		//std::cout << nextMesh->GetNumberOfPoints() << std::endl;
 
 		vtkPolyDataNormals *dataset = vtkPolyDataNormals::New();
 		dataset->SetInputData(nextMesh);		
-		dataset->ComputePointNormalsOn();	
+		dataset->ComputePointNormalsOff();	
 		dataset->ComputeCellNormalsOff();	
 		//dataset->FlipNormalsOff();
 		dataset->SplittingOn();

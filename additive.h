@@ -374,7 +374,7 @@ private:
 			float actualopacity = i / 100.0f;
 			float opacity;
 
-			opacity = actualopacity * 0.4f;
+			opacity = actualopacity ;//* 0.4f;
 			if (i >= 100)
 				opacity = 1;
 
