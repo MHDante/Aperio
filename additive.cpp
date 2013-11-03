@@ -337,8 +337,8 @@ void additive::readFile(char * filename)
 
 
 	// the readers
-	//vtkSmartPointer<myOBJReader> s = vtkSmartPointer<myOBJReader>::New();	
-	vtkSmartPointer<myOBJReader_Exp> s = vtkSmartPointer<myOBJReader_Exp>::New();	
+	vtkSmartPointer<myOBJReader> s = vtkSmartPointer<myOBJReader>::New();	
+	//vtkSmartPointer<myOBJReader_Exp> s = vtkSmartPointer<myOBJReader_Exp>::New();	
 	s->SetFileName(filename);
 	s->Update();
 	Utility::end_clock('a');
@@ -501,7 +501,7 @@ void additive::readFile(char * filename)
 		meshes[z].actor->GetProperty()->SetDiffuseColor(r, g, b);
 		//meshes[z].actor->GetProperty()->SetDiffuse(1.0);
 		//meshes[z].actor->GetProperty()->FrontfaceCullingOn();	// culling on
-		meshes[z].actor->GetProperty()->SetTexture(0, colorTexture); 
+		//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture); 
 
 		//vtkObject::GlobalWarningDisplayOff();	// dangerous (keep on for most part)
 
