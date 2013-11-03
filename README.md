@@ -19,3 +19,4 @@ These pages document the use of the application.
 Visualization Toolkit 6.0.0 (algorithms and rendering), [http://www.vtk.org/](http://www.vtk.org/) <br />
 Qt 4.85 (GUI), [http://qt-project.org/](http://qt-project.org/) <br />
 Carve CSG 1.40 (Boolean operations), [http://carve-csg.com/](http://carve-csg.com/) <br />
+Graphics card with GLSL (Shader support)
