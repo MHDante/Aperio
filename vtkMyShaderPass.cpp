@@ -226,7 +226,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(),s->GetRequiredKeys());
 				
 				//if (currentProgram->IsUsed())
-					//currentProgram->Restore();
+//					currentProgram->Restore();
 			}
 			else
 			{

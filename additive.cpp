@@ -143,7 +143,7 @@ void additive::slot_timeout2()
 /// </summary>
 void additive::slot_afterShowWindow()
 {
-	strcpy(fname, "heart 256k.obj");
+	strcpy(fname, "heartsmall.obj");
 	QApplication::processEvents();
 
 	brushDivide = 15.0; 
