@@ -1,18 +1,18 @@
 #include "stdafx.h"		// Precompiled header files
 #include "additive.h"
 
-// Additional includes 
+// Additional includes
 #include <vtkSphereSource.h>
 #include <vtkPointPicker.h>
-#include <vtkPolyDataNormals.h> 
+#include <vtkPolyDataNormals.h>
 
-// Custom 
+// Custom
 #include "myOBJReader.h"
 #include "myOBJReader_Exp.h"
 #include "MyInteractor.h"
 #include "vtkMyShaderPass.h"
 
-#include "CheckForMemoryLeaks.h"	// MUST be Last include  
+#include "CheckForMemoryLeaks.h"	// MUST be Last include
 
 #include <QtGui/QLayout>
 
@@ -73,7 +73,7 @@ using namespace std;
 /// <param name="t">A transformation matrix </param>
 /// <returns>Cube in Carve's MeshSet format</returns>
 unique_ptr<carve::mesh::MeshSet<3> > makeCube
-	(float size, const carve::math::Matrix &t = carve::math::Matrix()) 
+(float size, const carve::math::Matrix &t = carve::math::Matrix())
 {
 	vector<carve::geom3d::Vector> vertices;
 
@@ -89,7 +89,7 @@ unique_ptr<carve::mesh::MeshSet<3> > makeCube
 	vector<int> f;
 	int numfaces = 0;
 
-	f.push_back(4); 
+	f.push_back(4);
 	f.push_back(0); f.push_back(1); f.push_back(2); f.push_back(3);
 	numfaces++;
 	f.push_back(4);
@@ -116,11 +116,11 @@ unique_ptr<carve::mesh::MeshSet<3> > makeCube
 /// <summary> The constructor (Fires a timer that starts slot_afterShowWindow which has all initialization code)
 /// </summary>
 additive::additive(QWidget *parent, Qt::WFlags flags)
-	: QMainWindow(parent, flags)
+: QMainWindow(parent, flags)
 {
 	ui.setupUi(this);
 
-	QTimer::singleShot(0, this, SLOT(slot_afterShowWindow()));	
+	QTimer::singleShot(0, this, SLOT(slot_afterShowWindow()));
 }
 
 /// ---------------------------------------------------------------------------------------
@@ -132,9 +132,7 @@ additive::~additive()
 
 void additive::slot_timeout2()
 {
-	
 	return;
-
 }
 
 /// ---------------------------------------------------------------------------------------
@@ -143,20 +141,20 @@ void additive::slot_timeout2()
 /// </summary>
 void additive::slot_afterShowWindow()
 {
-	strcpy(fname, "heartsmall.obj");
+	strcpy(fname, "heart 256k.obj");
 	QApplication::processEvents();
 
-	brushDivide = 15.0; 
+	brushDivide = 15.0;
 	peerInside = 0;
 
 	// set up variables
 
 	myexp = 2;
 
-	status_label = new QLabel("Ready", this); 
+	status_label = new QLabel("Ready", this);
 	status_label->setStyleSheet("background-color: rgba(0,0,0,0);");
 	ui.statusBar->addWidget(status_label);
-	 
+
 	QTimer *timer = new QTimer(this);
 	timer->setInterval(1);
 	timer->start();
@@ -173,7 +171,7 @@ void additive::slot_afterShowWindow()
 	vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
 	renderer = vtkSmartPointer<vtkRenderer>::New();
 	//renderer->SetBackground(1.0,1.0,1.0);
-	renderer->SetBackground(.37,.63,.80);
+	renderer->SetBackground(.37, .63, .80);
 	//renderer->SetBackground(0.3203, 0.3398, 0.4297);
 
 	renderWindow->AddRenderer(renderer);
@@ -189,23 +187,21 @@ void additive::slot_afterShowWindow()
 	renderer->GetRenderWindow()->SetAlphaBitPlanes(1);
 	renderer->GetRenderWindow()->SetMultiSamples(0);
 
-	// Prepare all the rendering passes for vtkMyShaderPass	
-	vtkCameraPass *cameraP=vtkCameraPass::New();
+	// Prepare all the rendering passes for vtkMyShaderPass
+	vtkCameraPass *cameraP = vtkCameraPass::New();
 
-	vtkSequencePass *seq=vtkSequencePass::New();
-	
-	vtkLightsPass *lightsP=vtkLightsPass::New();
+	vtkSequencePass *seq = vtkSequencePass::New();
+
+	vtkLightsPass *lightsP = vtkLightsPass::New();
 
 	vtkMyShaderPass *opaqueP = vtkMyShaderPass::New();
 	opaqueP->initialize(this, ShaderPassType::PASS_OPAQUE);
-	
+
 	vtkMyShaderPass *transP = vtkMyShaderPass::New();
 	transP->initialize(this, ShaderPassType::PASS_TRANSLUCENT);
 
-
 	//vtkOpaquePass *opaqueP = vtkOpaquePass::New();
 	//vtkTranslucentPass *transP = vtkTranslucentPass::New();
-
 
 	//vtkMyShaderPass *silhP = vtkMyShaderPass::New();
 	//silhP->initialize(this, ShaderPassType::PASS_SILHOUETTE);
@@ -213,11 +209,11 @@ void additive::slot_afterShowWindow()
 
 	vtkDepthPeelingPass *peelP = vtkDepthPeelingPass::New();
 	peelP->SetMaximumNumberOfPeels(10);
-	peelP->SetOcclusionRatio(0.05);	
+	peelP->SetOcclusionRatio(0.05);
 	peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
 
 	// Put all passes into a collection then into a sequence.
-	vtkRenderPassCollection *passes=vtkRenderPassCollection::New();
+	vtkRenderPassCollection *passes = vtkRenderPassCollection::New();
 	passes->AddItem(lightsP);
 	//passes->AddItem(silhP);
 	passes->AddItem(opaqueP);
@@ -233,7 +229,7 @@ void additive::slot_afterShowWindow()
 	//vtkGaussianBlurPass* blurP = vtkGaussianBlurPass::New();
 	//blurP->SetDelegatePass(cameraP);
 
-	( static_cast<vtkOpenGLRenderer *>(renderer.GetPointer()) )->SetPass(cameraP);
+	(static_cast<vtkOpenGLRenderer *>(renderer.GetPointer()))->SetPass(cameraP);
 
 	qv->show();
 	qv->update();
@@ -242,13 +238,13 @@ void additive::slot_afterShowWindow()
 	vtkSmartPointer<QVTKInteractor> renderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
 	renderWindowInteractor->SetRenderWindow(qv->GetRenderWindow());
 
-	estyle =  vtkSmartPointer<MouseInteractorStylePP>::New();
-	renderWindowInteractor->SetInteractorStyle( estyle );
+	estyle = vtkSmartPointer<MouseInteractorStylePP>::New();
+	renderWindowInteractor->SetInteractorStyle(estyle);
 	estyle->initialize(this);
 
 	renderWindowInteractor->Initialize();
 
-	// Connect all signals to slots 
+	// Connect all signals to slots
 	connect(ui.btnHello, SIGNAL(clicked()), this, SLOT(slot_buttonclicked()));
 	connect(ui.actionNew_Window, SIGNAL(triggered()), this, SLOT(slot_newwindow()));
 	connect(timer, SIGNAL(timeout()), this, SLOT(slot_timeout()));
@@ -256,12 +252,12 @@ void additive::slot_afterShowWindow()
 	connect(ui.actionOpen, SIGNAL(triggered()), this, SLOT(slot_open()));
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(slot_exit()));
 
-	connect( ui.horizontalSlider, SIGNAL(valueChanged(int)),  this, SLOT(slot_valueChanged(int)) );
+	connect(ui.horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(slot_valueChanged(int)));
 
-	connect( ui.listWidget, SIGNAL(itemEntered(QListWidgetItem *)), this, SLOT(slot_listitementered(QListWidgetItem *)));
-	connect( ui.listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(slot_listitemclicked(int)));
+	connect(ui.listWidget, SIGNAL(itemEntered(QListWidgetItem *)), this, SLOT(slot_listitementered(QListWidgetItem *)));
+	connect(ui.listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(slot_listitemclicked(int)));
 	//throw std::exception("The method or operation is not implemented.");
-	readFile(fname);  
+	readFile(fname);
 
 	//vtkScenePicker * picker = vtkScenePicker::New();
 	//picker->SetRenderer(renderer);
@@ -272,7 +268,7 @@ void additive::slot_afterShowWindow()
 	//command->m_Picker = picker;
 	//command->SetActorDescription( meshes[0].actor, "Head"   );
 	//command->SetActorDescription( meshes[1].actor, "Sphere" );
-	
+
 	//renderer->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::MouseMoveEvent, command);
 
 	//picker->EnableVertexPickingOff();
@@ -284,9 +280,9 @@ void additive::slot_afterShowWindow()
 /// <summary> Event called when window resized (resizes qvtkwidget)
 /// </summary>
 /// <param name="event">Event object (Qt-based)</param>
-void additive::resizeEvent( QResizeEvent * event) 
+void additive::resizeEvent(QResizeEvent * event)
 {
-	QSize newSize = event->size(); 
+	QSize newSize = event->size();
 
 	int margin = 20;
 	int extra = 2;	// extra border-width margin of qframe
@@ -296,22 +292,21 @@ void additive::resizeEvent( QResizeEvent * event)
 	QRect newRect;
 	newRect.setCoords(central.topLeft().x(), central.topLeft().y(), newSize.width() - margin, newSize.height() - margin * 3);
 
-	ui.centralWidget2->setGeometry(newRect); 
+	ui.centralWidget2->setGeometry(newRect);
 }
 
 /// ---------------------------------------------------------------------------------------
 /// <summary> Event called when mouse moves over window
 /// </summary>
 /// <param name="">Event object (Qt-based)</param>
-void additive::mouseMoveEvent( QMouseEvent * )
+void additive::mouseMoveEvent(QMouseEvent *)
 {
-
 	//for (int j = 0; j < meshes.size(); j++)
 	//{
-		//cout << "hi";
-		//meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("lightDirs",  0.0, 0.0, 10.0);
-		//meshes[j].actor->GetProperty()->EdgeVisibilityOff();
-		//meshes[j].actor->GetProperty()->SetOpacity(meshes[j].opacity);
+	//cout << "hi";
+	//meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("lightDirs",  0.0, 0.0, 10.0);
+	//meshes[j].actor->GetProperty()->EdgeVisibilityOff();
+	//meshes[j].actor->GetProperty()->SetOpacity(meshes[j].opacity);
 	//}
 }
 
@@ -324,21 +319,20 @@ void additive::readFile(char * filename)
 	toon = 0;
 
 	qDebug() << "started\n";
-	
+
 	selectedIndex = 0;
 	hoveredIndex = 0;
 
 	renderer->RemoveAllViewProps();
 	ui.listWidget->clear();
 	meshes.clear();
-	
+
 	Utility::start_clock('a');
 	qDebug() << "reading file\n";
 
-
 	// the readers
-	vtkSmartPointer<myOBJReader> s = vtkSmartPointer<myOBJReader>::New();	
-	//vtkSmartPointer<myOBJReader_Exp> s = vtkSmartPointer<myOBJReader_Exp>::New();	
+	vtkSmartPointer<myOBJReader> s = vtkSmartPointer<myOBJReader>::New();
+	//vtkSmartPointer<myOBJReader_Exp> s = vtkSmartPointer<myOBJReader_Exp>::New();
 	s->SetFileName(filename);
 	s->Update();
 	Utility::end_clock('a');
@@ -346,42 +340,42 @@ void additive::readFile(char * filename)
 	//s->GetOutput()->GlobalReleaseDataFlagOn();
 
 	//read jpeg, instant
-	vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New(); 
-	jpgReader->SetFileName("luigi.jpg"); 
-	jpgReader->Update(); 
+	vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New();
+	jpgReader->SetFileName("luigi.jpg");
+	jpgReader->Update();
 
-	vtkSmartPointer<vtkTexture> colorTexture = vtkSmartPointer<vtkTexture>::New(); 
+	vtkSmartPointer<vtkTexture> colorTexture = vtkSmartPointer<vtkTexture>::New();
 	colorTexture->SetInputConnection(jpgReader->GetOutputPort());
 	colorTexture->InterpolateOn();
 
 	qDebug() << "Init read meshes\n";
-	
+
 	vtkSmartPointer<vtkPolyDataCollection> objectMeshCollection = s->getPolyDataCollection();
 	objectMeshCollection->InitTraversal();
 	int numMeshes = objectMeshCollection->GetNumberOfItems();
-	
+
 	// lighting colors
-	Utility::myColor mambient= {0.2, 0.2, 0.2};
-	Utility::myColor mdiffuse= {0.6, 0.5, 0.5};
-	Utility::myColor mspecular= {1.0, 1.0, 1.0};
+	Utility::myColor mambient = { 0.2, 0.2, 0.2 };
+	Utility::myColor mdiffuse = { 0.6, 0.5, 0.5 };
+	Utility::myColor mspecular = { 1.0, 1.0, 1.0 };
 
-	Utility::myColor lambient= {0.2, 0.2, 0.2};
-	Utility::myColor ldiffuse= {0.6, 0.5, 0.5};
-	Utility::myColor lspecular= {1.0, 1.0, 1.0};
+	Utility::myColor lambient = { 0.2, 0.2, 0.2 };
+	Utility::myColor ldiffuse = { 0.6, 0.5, 0.5 };
+	Utility::myColor lspecular = { 1.0, 1.0, 1.0 };
 
-	float lightPos[3] = {0, 0, 0};
+	float lightPos[3] = { 0, 0, 0 };
 	float shininess = 1;
 
 	float r, g, b;
-	srand (time(nullptr));
+	srand(time(nullptr));
 
-	for(int z=0; z<numMeshes; z++)
+	for (int z = 0; z<numMeshes; z++)
 	{
-		if(numMeshes > 1) // assign a random colour if there's more than one object
+		if (numMeshes > 1) // assign a random colour if there's more than one object
 		{
-			r = ( (rand() % 177 + 80) / 270.0) ;
-			g = ( (rand() % 177 + 80) / 270.0) ;
-			b = ( (rand() % 177 + 80) / 270.0) ;
+			r = ((rand() % 177 + 80) / 270.0);
+			g = ((rand() % 177 + 80) / 270.0);
+			b = ((rand() % 177 + 80) / 270.0);
 		}
 		else
 		{
@@ -400,14 +394,14 @@ void additive::readFile(char * filename)
 		//CommonData::objectOBBTrees.push_back(objectOBBTree);
 
 		// Compute normals/toggle on/off
-		
+
 		//std::cout << "..." << std::endl;
 		//std::cout << nextMesh->GetNumberOfPoints() << std::endl;
 
 		vtkPolyDataNormals *dataset = vtkPolyDataNormals::New();
-		dataset->SetInputData(nextMesh);		
-		dataset->ComputePointNormalsOff();	
-		dataset->ComputeCellNormalsOff();	
+		dataset->SetInputData(nextMesh);
+		dataset->ComputePointNormalsOff();
+		dataset->ComputeCellNormalsOff();
 		//dataset->FlipNormalsOff();
 		dataset->SplittingOn();
 		dataset->SetFeatureAngle(60);
@@ -441,7 +435,7 @@ void additive::readFile(char * filename)
 
 		//contour = tfilter1->GetOutput();
 
-		//vtkSmartPointer<vtkDepthSortPolyData> depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New();  
+		//vtkSmartPointer<vtkDepthSortPolyData> depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New();
 		//depthSort->SetInputData(dataset->GetOutput());
 		//depthSort->SetDirectionToBackToFront();
 		//depthSort->SetVector(1, 1, 1);
@@ -453,13 +447,12 @@ void additive::readFile(char * filename)
 		meshes.push_back(CustomMesh());
 
 		meshes[z].cellLocator = vtkSmartPointer<vtkCellLocator>::New();
-		meshes[z].cellLocator ->SetDataSet(dataset->GetOutput());
-		meshes[z].cellLocator ->BuildLocator();
-		meshes[z].cellLocator ->LazyEvaluationOn();
+		meshes[z].cellLocator->SetDataSet(dataset->GetOutput());
+		meshes[z].cellLocator->BuildLocator();
+		meshes[z].cellLocator->LazyEvaluationOn();
 
 		//estyle->worldPicker->AddLocator(meshes[z].cellLocator);
 		estyle->cellPicker->AddLocator(meshes[z].cellLocator);
-		
 
 		vtkSmartPointer<vtkPolyDataMapper> const mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		//mapper->SetInputData(nextMesh);
@@ -481,14 +474,14 @@ void additive::readFile(char * filename)
 		meshes[z].color.g = g;
 		meshes[z].color.b = b;
 
-		strcpy(meshes[z].name , s->getGroupNames()[z].c_str());
+		strcpy(meshes[z].name, s->getGroupNames()[z].c_str());
 
 		meshes[z].actor = vtkSmartPointer<vtkActor>::New();
 		meshes[z].actor->SetMapper(mapper);
 		meshes[z].actor->GetProperty()->SetInterpolationToPhong();
 
 		meshes[z].actor->GetProperty()->BackfaceCullingOff();
-		
+
 		//meshes[z].actor->GetProperty()->EdgeVisibilityOn();
 		meshes[z].actor->GetProperty()->SetSpecular(.3);
 		meshes[z].actor->GetProperty()->SetSpecularColor(0.5, 0.5, 0.5);
@@ -496,12 +489,12 @@ void additive::readFile(char * filename)
 
 		//meshes[z].actor->GetProperty()->SetAmbientColor(1.0, 1.0, 1.0);
 		//meshes[z].actor->GetProperty()->SetAmbient(0.1);
-		
+
 		meshes[z].actor->GetProperty()->SetOpacity(1.0);	// myopacity
 		meshes[z].actor->GetProperty()->SetDiffuseColor(r, g, b);
 		//meshes[z].actor->GetProperty()->SetDiffuse(1.0);
 		//meshes[z].actor->GetProperty()->FrontfaceCullingOn();	// culling on
-		//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture); 
+		//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture);
 
 		//vtkObject::GlobalWarningDisplayOff();	// dangerous (keep on for most part)
 
@@ -519,27 +512,27 @@ void additive::readFile(char * filename)
 		//		 //elems[index] = (float) mat->GetElement(i, j);
 		//		elems[index] = 1.0f;
 		//		index++;
-		//	} 
-		
-//		meshes[z].actor->GetProperty()->
-		meshes[z].actor->GetProperty()->AddShaderVariable("mouse",  mouse[0], mouse[1], mouse[2]);
-		meshes[z].actor->GetProperty()->AddShaderVariable("translucency",  meshes[z].opacity);
-		meshes[z].actor->GetProperty()->AddShaderVariable("peerInside",  peerInside);
+		//	}
+
+		//		meshes[z].actor->GetProperty()->
+		meshes[z].actor->GetProperty()->AddShaderVariable("mouse", mouse[0], mouse[1], mouse[2]);
+		meshes[z].actor->GetProperty()->AddShaderVariable("translucency", meshes[z].opacity);
+		meshes[z].actor->GetProperty()->AddShaderVariable("peerInside", peerInside);
 
 		//meshes[z].actor->GetProperty()->AddShaderVariable("mat", 1, elems);
 
 		//meshes[z].actor->GetProperty()->AddShaderVariable()
 
-		meshes[z].actor->GetProperty()->AddShaderVariable("toon",  toon);
-		meshes[z].actor->GetProperty()->AddShaderVariable("selected",  0);
-		meshes[z].actor->GetProperty()->AddShaderVariable("mouseSize",  mouseSize);
-		
+		meshes[z].actor->GetProperty()->AddShaderVariable("toon", toon);
+		meshes[z].actor->GetProperty()->AddShaderVariable("selected", 0);
+		meshes[z].actor->GetProperty()->AddShaderVariable("mouseSize", mouseSize);
+
 		meshes[z].selected = 0;
 
 		//((vtkPolydata*)meshes[z].actor->GetMapper()->GetInput())->SetFieldData(fieldData);
 		//( (vtkPolyData *) (meshes[z].actor->GetMapper()->GetInput()) )->SetFieldData(fieldData);
 		//meshes[z].actor->GetProperty()->AddShaderVariable("mat", 4, elems);
-		
+
 		updateMat(z);
 
 		//updateMouseShader();
@@ -554,7 +547,6 @@ void additive::readFile(char * filename)
 
 		//if (z == 0)
 		//{
-
 		//	}
 
 		//meshes[z].actor->GetProperty()->AddShaderVariable("mambient",  mambient.r, mambient.g, mambient.b);
@@ -570,7 +562,7 @@ void additive::readFile(char * filename)
 		//meshes[z].actor->GetProperty()->AddShaderVariable("width", 1.0);
 
 		//
-		////float lightDirs[] = {1.0f, 1.0f, 1.0f}; 
+		////float lightDirs[] = {1.0f, 1.0f, 1.0f};
 		//meshes[z].actor->GetProperty()->AddShaderVariable("image", 0);
 
 		// Read vector stuff (and new obj person)
@@ -597,9 +589,9 @@ void additive::readFile(char * filename)
 		//{
 		//	double p[3];
 		//	thepolydata->GetPoint(i,p);
-		//	
+		//
 		//	//cout << p[0] << "," << p[1] << ", " << p[2] << endl;
-		//	
+		//
 		//}
 		//cout  << aa << "hehe";
 		////cout <<" seh" << endl;
@@ -662,7 +654,6 @@ void additive::readFile(char * filename)
 	//
 	//renderer->AddActor(actorrr);
 
-	
 	// get all stuff
 	renderer->AutomaticLightCreationOff();
 	renderer->RemoveAllLights();
@@ -672,7 +663,7 @@ void additive::readFile(char * filename)
 	light->SetLightTypeToCameraLight();
 	//light->SetLightTypeToCameraLight();
 	light->SetPosition(0, 0, 1);
-	
+
 	light->SetPositional(true);
 	//light->SetIntensity(5);
 	light->SetFocalPoint(0, 0, 0);
@@ -689,7 +680,6 @@ void additive::readFile(char * filename)
 	//renderer->GetLights()->InitTraversal();
 	//vtkLight * x = renderer->GetLights()->GetNextItem();
 	//x->SetPosition(100, 0, 0);
-	
 
 	//vtkSmartPointer<vtkCleanPolyData> cleanFilter = vtkSmartPointer<vtkCleanPolyData>::New();
 	//cleanFilter->SetInputConnection(app->GetOutputPort());
@@ -697,16 +687,15 @@ void additive::readFile(char * filename)
 
 	//vtkSmartPointer<vtkPolyDataMapper> mappers = vtkSmartPointer<vtkPolyDataMapper>::New();
 	//mappers->SetInputData(cleanFilter->GetOutput());
-	
+
 	//vtkSmartPointer<vtkActor> actors = vtkSmartPointer<vtkActor>::New();
 	//actors->SetMapper(mappers);
 
 	//actors->GetProperty()->LoadMaterial("Phong.xml");
-//		actors->GetProperty()->ShadingOn();
+	//		actors->GetProperty()->ShadingOn();
 
 	//renderer->AddActor(actors);
 	//renderer->ResetCamera();
-
 
 	cout << "end" << endl;
 
@@ -717,7 +706,6 @@ void additive::readFile(char * filename)
 
 	//QApplication::exec();
 	//renderWindowInteractor->Start();
-
 
 	// add meshes groupnames to listbox
 	for (int i = 0; i < meshes.size(); i++)
@@ -788,7 +776,7 @@ void additive::readFile(char * filename)
 	//// faces - 0.006 seconds
 	//Utility::start_clock('a');
 
-	//qDebug() << "start faces #" << thepolydata->GetPolys()->GetNumberOfCells() << "\n";	
+	//qDebug() << "start faces #" << thepolydata->GetPolys()->GetNumberOfCells() << "\n";
 
 	//vtkSmartPointer<vtkCellArray> polys = thepolydata->GetPolys();
 	//polys->InitTraversal();
@@ -839,11 +827,11 @@ void additive::readFile(char * filename)
 	//	vector<int> f;
 	//	int numfaces = 0;
 
-	//	f.push_back(4); 
+	//	f.push_back(4);
 	//	f.push_back(0); f.push_back(1); f.push_back(2); f.push_back(3);
 	//	numfaces++;
 	//	f.push_back(4);
-	//	f.push_back(7); f.push_back(6); f.push_back(5); f.push_back(4); 
+	//	f.push_back(7); f.push_back(6); f.push_back(5); f.push_back(4);
 	//	numfaces++;
 	//	f.push_back(4);
 	//	f.push_back(0); f.push_back(4); f.push_back(5); f.push_back(1);
@@ -864,18 +852,17 @@ void additive::readFile(char * filename)
 	//	return poly;
 	//};
 
-
 	//qDebug() << "start cube \n";
 	//unique_ptr<carve::mesh::MeshSet<3> > second = makecubef(1.2, carve::math::Matrix::ROT(0.0, .2, .3, .4));
 	//qDebug() << "end cube\n";
-	// 
+	//
 	//Utility::start_clock('a');
 	//qDebug() << "start compute\n";		// 11 secs (on luigi in Debug, 0.8 release)
 	//carve::csg::CSG csg;
 	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT); // slow but accurate
 	//unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(first.get(), second.get(), carve::csg::CSG::A_MINUS_B, nullptr, carve::csg::CSG::CLASSIFY_EDGE));
 	//qDebug() << "end compute\n";
-	//Utility::end_clock('a'); 
+	//Utility::end_clock('a');
 	//
 	//
 	//Utility::start_clock('a');
@@ -889,7 +876,7 @@ void additive::readFile(char * filename)
 
 	//auto iter = begin(c->vertex_storage);
 	//for (int k = 0; iter != end(c->vertex_storage); ++k, ++iter) {
-	//	
+	//
 	//	carve::mesh::MeshSet<3>::vertex_t *vertex = &(*iter);
 
 	//	points->SetPoint(k, vertex->v.x, vertex->v.y, vertex->v.z);
@@ -907,21 +894,20 @@ void additive::readFile(char * filename)
 	//vtkSmartPointer<vtkPolygon> polygon = vtkSmartPointer<vtkPolygon>::New();
 
 	//for (auto face_iter = c->faceBegin(); face_iter != c->faceEnd(); ++face_iter) {
-
 	//	carve::mesh::MeshSet<3>::face_t *f = *face_iter;
 	//	polygon->GetPointIds()->SetNumberOfIds(f->nVertices());
 
-	//	// nVertices = nEdges since half edge	
+	//	// nVertices = nEdges since half edge
 	//	int j = 0;
 	//	for (auto e_iter = f->begin(); e_iter != f->end(); ++e_iter) {
-	//		polygon->GetPointIds()->SetId (j++, vertexToIndex_map.at(e_iter->vert) ); 
+	//		polygon->GetPointIds()->SetId (j++, vertexToIndex_map.at(e_iter->vert) );
 	//	}
 	//	polygons->InsertNextCell(polygon);
-	//	
+	//
 	//}
 	//cout << polygons->GetNumberOfCells() << endl;
 
-	//qDebug() << "end adding faces\n"; 
+	//qDebug() << "end adding faces\n";
 
 	//Utility::end_clock('a');
 
@@ -976,11 +962,9 @@ void additive::readFile(char * filename)
 	Utility::end_clock('z');
 }
 
-
-
 //------------------
 
-void additive::slot_listitemclicked(int i )
+void additive::slot_listitemclicked(int i)
 {
 	//estyle->setPickList(i);
 
@@ -989,17 +973,16 @@ void additive::slot_listitemclicked(int i )
 
 	if (selectedIndex > -1 && selectedIndex < meshes.size())
 	{
-		meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("selected",  0);
+		meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("selected", 0);
 		meshes[selectedIndex].selected = 0;
 		//((vtkUniformVariables *) meshes[selectedIndex].actor->GetPropertyKeys()->Get(vtkMyShaderPass::UNIFORMS()))->SetUniformi("selected", 1, 0);
-
 	}
 
 	selectedIndex = i;
 
 	if (selectedIndex > -1 && selectedIndex < meshes.size())
 	{
-		meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("selected",  1);
+		meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("selected", 1);
 		meshes[selectedIndex].selected = 1;
 	}
 	updateOpacitySliderAndList();

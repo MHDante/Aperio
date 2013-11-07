@@ -45,51 +45,50 @@ struct ShaderPassType
 class VTK_EXPORT vtkMyShaderPass : public vtkDefaultPass
 {
 public:
-  static vtkMyShaderPass *New(); 
-  vtkTypeMacro(vtkMyShaderPass,vtkDefaultPass);
-  void PrintSelf(ostream& os, vtkIndent indent);
+	static vtkMyShaderPass *New();
+	vtkTypeMacro(vtkMyShaderPass, vtkDefaultPass);
+	void PrintSelf(ostream& os, vtkIndent indent);
 
-  //BTX
-  // Description:
-  // Perform rendering according to a render state \p s.
-  // \pre s_exists: s!=0
-  virtual void Render(const vtkRenderState *s);
+	//BTX
+	// Description:
+	// Perform rendering according to a render state \p s.
+	// \pre s_exists: s!=0
+	virtual void Render(const vtkRenderState *s);
 
-  // My Custom methods
-  virtual void RenderGeometry(const vtkRenderState *s);	// modified RenderFilteredOpaqueGeometry from vtkDefaultPass
-  bool BuildShader(vtkSmartPointer<vtkShaderProgram2> & shaderProgram, vtkOpenGLRenderWindow* glContext, char * vs, char * fs);
+	// My Custom methods
+	virtual void RenderGeometry(const vtkRenderState *s);	// modified RenderFilteredOpaqueGeometry from vtkDefaultPass
+	bool BuildShader(vtkSmartPointer<vtkShaderProgram2> & shaderProgram, vtkOpenGLRenderWindow* glContext, char * vs, char * fs);
 
-  //vtkGetMacro(translucentPass, bool);
-  //vtkSetMacro(translucentPass, bool);
+	//vtkGetMacro(translucentPass, bool);
+	//vtkSetMacro(translucentPass, bool);
 
-  // The main variables initializer since constructors are not used (additive class to access uniforms)
-  void initialize(additive * window, ShaderPassType::T passType);
+	// The main variables initializer since constructors are not used (additive class to access uniforms)
+	void initialize(additive * window, ShaderPassType::T passType);
 
-  
-  // My Custom variables
-  vtkSmartPointer<vtkShaderProgram2> shaderProgram;
-  vtkSmartPointer<vtkShaderProgram2> shaderProgram2;
-  vtkSmartPointer<vtkShaderProgram2> shaderProgram3;
-  vtkSmartPointer<vtkUniformVariables> uniforms;
-  ShaderPassType::T passType;
-  //bool isCompiled;
+	// My Custom variables
+	vtkSmartPointer<vtkShaderProgram2> shaderProgram;
+	vtkSmartPointer<vtkShaderProgram2> shaderProgram2;
+	vtkSmartPointer<vtkShaderProgram2> shaderProgram3;
+	vtkSmartPointer<vtkUniformVariables> uniforms;
+	ShaderPassType::T passType;
+	//bool isCompiled;
 
-  additive *a;
+	additive *a;
 
-  //ETX
+	//ETX
 
- protected:
-  // Description:
-  // Default constructor.
-  vtkMyShaderPass();
+protected:
+	// Description:
+	// Default constructor.
+	vtkMyShaderPass();
 
-  // Description:
-  // Destructor.
-  virtual ~vtkMyShaderPass();
+	// Description:
+	// Destructor.
+	virtual ~vtkMyShaderPass();
 
- private:
-  vtkMyShaderPass(const vtkMyShaderPass&);  // Not implemented.
-  void operator=(const vtkMyShaderPass&);  // Not implemented.
+private:
+	vtkMyShaderPass(const vtkMyShaderPass&);  // Not implemented.
+	void operator=(const vtkMyShaderPass&);  // Not implemented.
 };
 
 #endif

@@ -38,7 +38,7 @@ namespace Utility
 
 	/// Functions ---------------------------------------------------------------------------------
 
-	/// <summary> 
+	/// <summary>
 	/// Adds a clock to the map of clocks, linking clockname->clock_t
 	/// and prints the start time of the clock
 	/// </summary>
@@ -57,4 +57,3 @@ namespace Utility
 }
 
 #endif
-

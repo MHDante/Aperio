@@ -24,7 +24,7 @@ static double VTK_MIN_SUPERQUADRIC_ROUNDNESS = 1e-24;
 
 void MySuperquadric::SetThetaRoundness(double e)
 {
-	if(e < VTK_MIN_SUPERQUADRIC_ROUNDNESS)
+	if (e < VTK_MIN_SUPERQUADRIC_ROUNDNESS)
 	{
 		e = VTK_MIN_SUPERQUADRIC_ROUNDNESS;
 	}
@@ -38,7 +38,7 @@ void MySuperquadric::SetThetaRoundness(double e)
 
 void MySuperquadric::SetPhiRoundness(double e)
 {
-	if(e < VTK_MIN_SUPERQUADRIC_ROUNDNESS)
+	if (e < VTK_MIN_SUPERQUADRIC_ROUNDNESS)
 	{
 		e = VTK_MIN_SUPERQUADRIC_ROUNDNESS;
 	}
@@ -62,7 +62,7 @@ double MySuperquadric::EvaluateFunction(double xyz[3])
 	s[1] = this->Scale[1] * this->Size;
 	s[2] = this->Scale[2] * this->Size;
 
-	if(this->Toroidal) {
+	if (this->Toroidal) {
 		double tval;
 		double alpha;
 
@@ -75,22 +75,22 @@ double MySuperquadric::EvaluateFunction(double xyz[3])
 		p[1] = (xyz[1] - this->Center[1]) / s[1];
 		p[2] = (xyz[2] - this->Center[2]) / s[2];
 
-		tval = pow((pow(fabs(p[2]), 2.0/e) + pow(fabs(p[0]), 2.0/e)), e/2.0);
-		val  = pow(fabs(tval - alpha), 2.0/n) + pow(fabs(p[1]), 2.0/n) - 1.0;
+		tval = pow((pow(fabs(p[2]), 2.0 / e) + pow(fabs(p[0]), 2.0 / e)), e / 2.0);
+		val = pow(fabs(tval - alpha), 2.0 / n) + pow(fabs(p[1]), 2.0 / n) - 1.0;
 	}
 	else { // Ellipsoidal
 		p[0] = (xyz[0] - this->Center[0]) / s[0];
 		p[1] = (xyz[1] - this->Center[1]) / s[1];
 		p[2] = (xyz[2] - this->Center[2]) / s[2];
 
-		val = pow((pow(fabs(p[2]), 2.0/e) + pow(fabs(p[0]), 2.0/e)), e/n) +
-			pow(fabs(p[1]),2.0/n) - 1.0;
+		val = pow((pow(fabs(p[2]), 2.0 / e) + pow(fabs(p[0]), 2.0 / e)), e / n) +
+			pow(fabs(p[1]), 2.0 / n) - 1.0;
 	}
 
-	if(val > MAX_FVAL){
+	if (val > MAX_FVAL){
 		val = MAX_FVAL;
 	}
-	else if(val < -MAX_FVAL){
+	else if (val < -MAX_FVAL){
 		val = -MAX_FVAL;
 	}
 
@@ -101,11 +101,10 @@ double MySuperquadric::EvaluateFunction(double xyz[3])
 // Evaluate Superquadric function gradient.
 //void MySuperquadric::EvaluateGradient(double vtkNotUsed(xyz)[3], double g[3])
 //{
-	// bogus! lazy!
-	// if someone wants to figure these out, they are each the
-	// partial of x, then y, then z with respect to f as shown above.
-	// Careful for the fabs().
+// bogus! lazy!
+// if someone wants to figure these out, they are each the
+// partial of x, then y, then z with respect to f as shown above.
+// Careful for the fabs().
 
-	//g[0] = g[1] = g[2] = 0.0;
+//g[0] = g[1] = g[2] = 0.0;
 //}
-

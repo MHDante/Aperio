@@ -17,7 +17,7 @@
 #include "vtkMyShaderPass.h"
 #include "vtkObjectFactory.h"
 
-// Custom 
+// Custom
 #include "vtkRenderState.h"
 #include "vtkShader2.h"
 #include "vtkShaderProgram2.h"
@@ -47,7 +47,7 @@ vtkMyShaderPass::~vtkMyShaderPass()
 //// ----------------------------------------------------------------------------
 void vtkMyShaderPass::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
+	this->Superclass::PrintSelf(os, indent);
 }
 
 // ----------------------------------------------------------------------------
@@ -56,11 +56,11 @@ void vtkMyShaderPass::PrintSelf(ostream& os, vtkIndent indent)
 // \pre s_exists: s!=0
 void vtkMyShaderPass::Render(const vtkRenderState *s)
 {
-  assert("pre: s_exists" && s!=0);
-  
-  this->NumberOfRenderedProps=0;
+	assert("pre: s_exists" && s != 0);
 
-  this->RenderGeometry(s);
+	this->NumberOfRenderedProps = 0;
+
+	this->RenderGeometry(s);
 }
 
 bool vtkMyShaderPass::BuildShader(vtkSmartPointer<vtkShaderProgram2> & shaderProgram, vtkOpenGLRenderWindow* glContext, char * vs, char * fs)
@@ -70,7 +70,7 @@ bool vtkMyShaderPass::BuildShader(vtkSmartPointer<vtkShaderProgram2> & shaderPro
 
 	//std::cout << "BUILDING" ;
 	shaderProgram = vtkSmartPointer<vtkShaderProgram2>::New();
-	
+
 	vtkSmartPointer<vtkShader2> shader = vtkSmartPointer<vtkShader2>::New();
 	vtkSmartPointer<vtkShader2> shader2 = vtkSmartPointer<vtkShader2>::New();
 
@@ -97,7 +97,7 @@ bool vtkMyShaderPass::BuildShader(vtkSmartPointer<vtkShaderProgram2> & shaderPro
 	shader2->SetContext(shaderProgram->GetContext());
 
 	shaderProgram->Build();
-	
+
 	if (shaderProgram->GetLastBuildStatus() == VTK_SHADER_PROGRAM2_LINK_SUCCEEDED)
 	{
 		//isCompiled = true;
@@ -115,28 +115,28 @@ bool vtkMyShaderPass::BuildShader(vtkSmartPointer<vtkShaderProgram2> & shaderPro
 // \pre s_exists: s!=0
 void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 {
-	assert("pre: s_exists" && s!=0);
+	assert("pre: s_exists" && s != 0);
 
 	if (passType == ShaderPassType::PASS_OPAQUE)
 	{
-		if (!BuildShader(this->shaderProgram, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader.glsl", "shaderfrag.glsl"))
+		if (!BuildShader(this->shaderProgram, (vtkOpenGLRenderWindow *)s->GetRenderer()->GetRenderWindow(), "shader.glsl", "shaderfrag.glsl"))
 			return;
 	}
 
 	if (passType == ShaderPassType::PASS_TRANSLUCENT)
 	{
-		if (!BuildShader(this->shaderProgram, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader.glsl", "shaderfrag.glsl"))
+		if (!BuildShader(this->shaderProgram, (vtkOpenGLRenderWindow *)s->GetRenderer()->GetRenderWindow(), "shader.glsl", "shaderfrag.glsl"))
 			return;
 	}
 
 	//if (!BuildShader(this->shaderProgram2, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader2.glsl", "shaderfrag2.glsl"))
-		//return;
+	//return;
 
 	//if (!BuildShader(this->shaderProgram3, (vtkOpenGLRenderWindow *) s->GetRenderer()->GetRenderWindow(), "shader3.glsl", "shaderfrag3.glsl"))
-//		return;
+	//		return;
 
-	int c=s->GetPropArrayCount();
-	int i=0;
+	int c = s->GetPropArrayCount();
+	int i = 0;
 
 	// Set global uniforms
 	float moo[3];
@@ -155,19 +155,19 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	//std::cout << "------" << std::endl;
 	vtkShaderProgram2 *currentProgram = this->shaderProgram;
 
-//	bool none = false;
+	//	bool none = false;
 
-	while(i<c)
-	{		
-		vtkProp *p=s->GetPropArray()[i];
-		
+	while (i < c)
+	{
+		vtkProp *p = s->GetPropArray()[i];
+
 		// Set actor-specific uniforms and send them to shader program to use
 
 		// Find actor inside CustomMesh vector (I overrided the == operator for CustomMesh to compare with vtkActors)
 		std::vector<CustomMesh>::iterator it = std::find(a->meshes.begin(), a->meshes.end(), ((vtkActor *)p));
-		
+
 		if (it != a->meshes.end())
-		{			
+		{
 			//currentProgram = this->shaderProgram;
 			// Found the CustomMesh object mapped to this actor (actor is a subclass of prop)
 			uniforms->SetUniformi("selected", 1, &it->selected);
@@ -183,7 +183,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 			for (int i = 0; i < a->widgets.size(); i++)
 			{
 				std::vector<WidgetElem>::iterator it2 = std::find(a->widgets[i].begin(), a->widgets[i].end(), ((vtkActor *)p));
-			
+
 				if (it2 != a->widgets[i].end())	// found
 				{
 					//currentProgram = this->shaderProgram2;
@@ -194,7 +194,6 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 			//currentProgram = this->shaderProgram3;
 			//int silhouette = 1;
 			//uniforms->SetUniformi("silhouette", 1, &silhouette);
-			
 		}
 		currentProgram->SetUniformVariables(uniforms);
 
@@ -207,26 +206,24 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 		}
 		else
 		{
-
-		
-		//{((vtkActor*)p)->GetProperty()->FrontfaceCullingOff();
-			//((vtkActor*)p)->GetProperty()->BackfaceCullingOff();			
+			//{((vtkActor*)p)->GetProperty()->FrontfaceCullingOff();
+			//((vtkActor*)p)->GetProperty()->BackfaceCullingOff();
 		}
 
-		if(p->HasKeys(s->GetRequiredKeys()))
+		if (p->HasKeys(s->GetRequiredKeys()))
 		{
 			//currentProgram->Use();
 			int rendered;
 
-			if (passType == ShaderPassType::PASS_TRANSLUCENT )
+			if (passType == ShaderPassType::PASS_TRANSLUCENT)
 			{
 				//if (!currentProgram->IsUsed())
-					//currentProgram->Use();
+				//currentProgram->Use();
 
-				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(),s->GetRequiredKeys());
-				
+				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
+
 				//if (currentProgram->IsUsed())
-//					currentProgram->Restore();
+				//					currentProgram->Restore();
 			}
 			else
 			{
@@ -234,14 +231,14 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				if (!currentProgram->IsUsed())
 					currentProgram->Use();
 
-				rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(),s->GetRequiredKeys());
+				rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
 
 				if (currentProgram->IsUsed())
 					currentProgram->Restore();
 				//currentProgram->Restore();
 			}
 
-			this->NumberOfRenderedProps+=rendered;
+			this->NumberOfRenderedProps += rendered;
 			//currentProgram->Restore();
 		}
 		++i;
@@ -251,7 +248,5 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 void vtkMyShaderPass::initialize(additive * window, ShaderPassType::T passType)
 {
 	this->a = window;
-	this->passType = passType;	
+	this->passType = passType;
 }
-
-

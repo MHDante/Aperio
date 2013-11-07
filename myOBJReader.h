@@ -39,7 +39,7 @@ PURPOSE.  See the above copyright notice for more information.
 /// <summary>
 /// Modified version of vtkOBJReader that reads in .OBJ files (added feature: reads groups, removed: textures)
 /// </summary>
-class VTK_EXPORT myOBJReader : public vtkPolyDataAlgorithm 
+class VTK_EXPORT myOBJReader : public vtkPolyDataAlgorithm
 {
 	/// ---------------------------------------------------------------------------------------------
 public:
@@ -48,7 +48,7 @@ public:
 	/// <returns>myOBJReader *.</returns>
 	static myOBJReader *New();
 
-	vtkTypeMacro(myOBJReader,vtkPolyDataAlgorithm);
+	vtkTypeMacro(myOBJReader, vtkPolyDataAlgorithm);
 	void PrintSelf(ostream& os, vtkIndent indent);
 	void CreatePolyData();
 	std::vector<std::string> getGroupNames();

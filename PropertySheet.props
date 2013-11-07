@@ -3,7 +3,7 @@
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <IncludePath>C:\Qt\4.8.4\include;C:\Program Files (x86)\VTK\include\vtk-5.10;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Qt\4.8.5\include;C:\Program Files (x86)\VTK\include\vtk-6.0;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup />
   <ItemGroup />

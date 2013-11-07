@@ -17,16 +17,16 @@ PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
 #include "stdafx.h"		// Precompiled header files
-#include "myOBJReader_Exp.h" 
+#include "myOBJReader_Exp.h"
 
-vtkStandardNewMacro(myOBJReader_Exp); 
+vtkStandardNewMacro(myOBJReader_Exp);
 
 // Additional includes
 #include <vtkCleanPolyData.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 
-#include "CheckForMemoryLeaks.h"	// MUST be Last include 
+#include "CheckForMemoryLeaks.h"	// MUST be Last include
 
 /// ---------------------------------------------------------------------------------------------
 /// <summary> Instantiate object with NULL filename.
@@ -48,7 +48,7 @@ myOBJReader_Exp::~myOBJReader_Exp()
 {
 	if (this->FileName)
 	{
-		delete [] this->FileName;
+		delete[] this->FileName;
 		this->FileName = nullptr;
 	}
 }
@@ -119,7 +119,6 @@ indices into the vertex list
 
 \*---------------------------------------------------------------------------*/
 
-
 /// <summary> Requests data (overridden method)
 /// </summary>
 /// <returns>int.</returns>
@@ -141,7 +140,7 @@ int myOBJReader_Exp::RequestData(
 		return 0;
 	}
 
-	FILE *in = fopen(this->FileName,"r");
+	FILE *in = fopen(this->FileName, "r");
 
 	if (in == nullptr)
 	{
@@ -149,7 +148,7 @@ int myOBJReader_Exp::RequestData(
 		return 0;
 	}
 
-	vtkDebugMacro(<<"Reading file");
+	vtkDebugMacro(<< "Reading file");
 
 	// intialise some structures to store the file contents in
 	vtkPoints *points = vtkPoints::New();
@@ -172,7 +171,6 @@ int myOBJReader_Exp::RequestData(
 	// -- work through the file line by line, assigning into the above 7 structures as appropriate --
 
 	{ // (make a local scope section to emphasise that the variables below are only used here)
-
 		const int MAX_LINE = 1024;
 		char label[MAX_LINE];
 		char prevLabel[MAX_LINE];
@@ -206,46 +204,46 @@ int myOBJReader_Exp::RequestData(
 			if (strcmp(cmd, "v") == 0)
 			{
 				// this is a vertex definition, expect three floats, separated by whitespace:
-				if (sscanf(pLine, "%f %f %f", xyz, xyz+1, xyz+2) == 3)
+				if (sscanf(pLine, "%f %f %f", xyz, xyz + 1, xyz + 2) == 3)
 				{
 					points->InsertNextPoint(xyz);
 				}
 				else
 				{
-					vtkErrorMacro(<<"Error reading 'v' at line " << lineNr);
+					vtkErrorMacro(<< "Error reading 'v' at line " << lineNr);
 					everything_ok = false;
 				}
 			}
 			else if (strcmp(cmd, "vt") == 0)
 			{
 				// this is a tcoord, expect two floats, separated by whitespace:
-				if (sscanf(pLine, "%f %f", xyz, xyz+1) == 2)
+				if (sscanf(pLine, "%f %f", xyz, xyz + 1) == 2)
 				{
 					tcoords->InsertNextTuple(xyz);
 				}
 				else
 				{
-					vtkErrorMacro(<<"Error reading 'vt' at line " << lineNr);
+					vtkErrorMacro(<< "Error reading 'vt' at line " << lineNr);
 					everything_ok = false;
 				}
 			}
 			else if (strcmp(cmd, "vn") == 0)
 			{
 				// this is a normal, expect three floats, separated by whitespace:
-				if (sscanf(pLine, "%f %f %f", xyz, xyz+1, xyz+2) == 3)
+				if (sscanf(pLine, "%f %f %f", xyz, xyz + 1, xyz + 2) == 3)
 				{
 					normals->InsertNextTuple(xyz);
 					hasNormals = true;
 				}
 				else
 				{
-					vtkErrorMacro(<<"Error reading 'vn' at line " << lineNr);
+					vtkErrorMacro(<< "Error reading 'vn' at line " << lineNr);
 					everything_ok = false;
 				}
 			}
 			else if (strcmp(cmd, "g") == 0)
 			{
-				num_g_s++; 
+				num_g_s++;
 				// this is the start of a mesh object
 				if (sscanf(pLine, "%s\n", label) == 1)
 				{
@@ -255,7 +253,7 @@ int myOBJReader_Exp::RequestData(
 
 					if (num_g_s == 1)
 					{
-						strcpy(prevLabel,label);
+						strcpy(prevLabel, label);
 					}
 					else if (num_g_s > 1)
 					{
@@ -271,11 +269,11 @@ int myOBJReader_Exp::RequestData(
 							//vtkSmartPointer<vtkCellArray> normal_polys_n = vtkSmartPointer<vtkCellArray>::New();
 							//normal_polys_n->DeepCopy(normal_polys);
 
-							// -- now turn this lot into a useable vtkPolyData --		
+							// -- now turn this lot into a useable vtkPolyData --
 							mesh = vtkSmartPointer<vtkPolyData>::New();
 
 							//// otherwise we can duplicate the vertices as necessary (a bit slower)
-							vtkDebugMacro(<<"Duplicating vertices so that tcoords and normals are correct");
+							vtkDebugMacro(<< "Duplicating vertices so that tcoords and normals are correct");
 
 							vtkSmartPointer<vtkPoints> new_points = vtkSmartPointer<vtkPoints>::New();
 							vtkSmartPointer<vtkFloatArray> new_tcoords = vtkSmartPointer<vtkFloatArray>::New();
@@ -292,14 +290,14 @@ int myOBJReader_Exp::RequestData(
 							normal_polys->InitTraversal();
 
 							vtkIdType dummy_warning_prevention_mechanism[1];
-							vtkIdType n_pts=-1,*pts=dummy_warning_prevention_mechanism;
-							vtkIdType n_tcoord_pts=-1,*tcoord_pts=dummy_warning_prevention_mechanism;
-							vtkIdType n_normal_pts=-1,*normal_pts=dummy_warning_prevention_mechanism;
-							for (int i=0; i<polys->GetNumberOfCells(); ++i)
+							vtkIdType n_pts = -1, *pts = dummy_warning_prevention_mechanism;
+							vtkIdType n_tcoord_pts = -1, *tcoord_pts = dummy_warning_prevention_mechanism;
+							vtkIdType n_normal_pts = -1, *normal_pts = dummy_warning_prevention_mechanism;
+							for (int i = 0; i < polys->GetNumberOfCells(); ++i)
 							{
-								polys->GetNextCell(n_pts,pts);
-								tcoord_polys->GetNextCell(n_tcoord_pts,tcoord_pts);
-								normal_polys->GetNextCell(n_normal_pts,normal_pts);
+								polys->GetNextCell(n_pts, pts);
+								tcoord_polys->GetNextCell(n_tcoord_pts, tcoord_pts);
+								normal_polys->GetNextCell(n_normal_pts, normal_pts);
 
 								// If some vertices have tcoords and not others (likewise normals)
 								// then we must do something else VTK will complain. (crash on render attempt)
@@ -312,13 +310,13 @@ int myOBJReader_Exp::RequestData(
 								{
 									cout << "skipped";
 									// skip this poly
-									vtkDebugMacro(<<"Skipping poly "<<i+1<<" (1-based index)");
+									vtkDebugMacro(<< "Skipping poly " << i + 1 << " (1-based index)");
 								}
 								else
 								{
 									// copy the corresponding points, tcoords and normals across
 									// copy the corresponding points, tcoords and normals across
-									for (int j=0; j<n_pts; ++j)
+									for (int j = 0; j<n_pts; ++j)
 									{
 										// copy the tcoord for this point across (if there is one)
 										if (n_tcoord_pts>0)
@@ -326,7 +324,7 @@ int myOBJReader_Exp::RequestData(
 											new_tcoords->InsertNextTuple(tcoords->GetTuple(tcoord_pts[j])); ///sss
 										}
 										// copy the normal for this point across (if there is one)
-										if (n_normal_pts>0)
+										if (n_normal_pts > 0)
 										{
 											new_normals->InsertNextTuple(normals->GetTuple(normal_pts[j])); /// sss
 										}
@@ -335,7 +333,7 @@ int myOBJReader_Exp::RequestData(
 										pts[j] = new_points->InsertNextPoint(points->GetPoint(pts[j]));	//sss
 									}
 									// copy this poly (pointing at the new points) into the new polys list
-									new_polys->InsertNextCell(n_pts,pts);
+									new_polys->InsertNextCell(n_pts, pts);
 								}
 							}
 
@@ -369,10 +367,9 @@ int myOBJReader_Exp::RequestData(
 						//}
 						// Add polydata to the collection as well as group name to groupnames vector
 						objectMeshCollection->AddItem(mesh);
-						groupnames.push_back(prevLabel);	
+						groupnames.push_back(prevLabel);
 
-
-						strcpy(prevLabel,label);
+						strcpy(prevLabel, label);
 
 						polys->Delete();
 						tcoord_polys->Delete();
@@ -386,13 +383,13 @@ int myOBJReader_Exp::RequestData(
 						hasNormals = false;
 						tcoords_same_as_verts = true;
 						normals_same_as_verts = true;
-						everything_ok = true; // (use of this flag avoids early 
+						everything_ok = true; // (use of this flag avoids early
 						// end check
 					}
 				}
 				else
 				{
-					vtkErrorMacro(<<"Error reading 'g' at line " << lineNr);
+					vtkErrorMacro(<< "Error reading 'g' at line " << lineNr);
 					everything_ok = false;
 				}
 			}
@@ -404,7 +401,7 @@ int myOBJReader_Exp::RequestData(
 				tcoord_polys->InsertNextCell(0);
 				normal_polys->InsertNextCell(0);
 
-				int nVerts=0, nTCoords=0, nNormals=0; // keep a count of how many of each there are
+				int nVerts = 0, nTCoords = 0, nNormals = 0; // keep a count of how many of each there are
 
 				while (everything_ok && pLine < pEnd)
 				{
@@ -413,14 +410,14 @@ int myOBJReader_Exp::RequestData(
 
 					if (pLine < pEnd)         // there is still data left on this line
 					{
-						int iVert,iTCoord,iNormal;
+						int iVert, iTCoord, iNormal;
 						if (sscanf(pLine, "%d/%d/%d", &iVert, &iTCoord, &iNormal) == 3)
 						{
-							polys->InsertCellPoint(iVert-1); // convert to 0-based index
+							polys->InsertCellPoint(iVert - 1); // convert to 0-based index
 							nVerts++;
-							tcoord_polys->InsertCellPoint(iTCoord-1);
+							tcoord_polys->InsertCellPoint(iTCoord - 1);
 							nTCoords++;
-							normal_polys->InsertCellPoint(iNormal-1);
+							normal_polys->InsertCellPoint(iNormal - 1);
 							nNormals++;
 							if (iTCoord != iVert)
 								tcoords_same_as_verts = false;
@@ -429,25 +426,25 @@ int myOBJReader_Exp::RequestData(
 						}
 						else if (sscanf(pLine, "%d//%d", &iVert, &iNormal) == 2)
 						{
-							polys->InsertCellPoint(iVert-1);
+							polys->InsertCellPoint(iVert - 1);
 							nVerts++;
-							normal_polys->InsertCellPoint(iNormal-1);
+							normal_polys->InsertCellPoint(iNormal - 1);
 							nNormals++;
 							if (iNormal != iVert)
 								normals_same_as_verts = false;
 						}
 						else if (sscanf(pLine, "%d/%d", &iVert, &iTCoord) == 2)
 						{
-							polys->InsertCellPoint(iVert-1);
+							polys->InsertCellPoint(iVert - 1);
 							nVerts++;
-							tcoord_polys->InsertCellPoint(iTCoord-1);
+							tcoord_polys->InsertCellPoint(iTCoord - 1);
 							nTCoords++;
 							if (iTCoord != iVert)
 								tcoords_same_as_verts = false;
 						}
 						else if (sscanf(pLine, "%d", &iVert) == 1)
 						{
-							polys->InsertCellPoint(iVert-1);
+							polys->InsertCellPoint(iVert - 1);
 							nVerts++;
 						}
 						else if (strcmp(pLine, "\\\n") == 0)
@@ -462,13 +459,13 @@ int myOBJReader_Exp::RequestData(
 							}
 							else
 							{
-								vtkErrorMacro(<<"Error reading continuation line at line " << lineNr);
+								vtkErrorMacro(<< "Error reading continuation line at line " << lineNr);
 								everything_ok = false;
 							}
 						}
 						else
 						{
-							vtkErrorMacro(<<"Error reading 'f' at line " << lineNr);
+							vtkErrorMacro(<< "Error reading 'f' at line " << lineNr);
 							everything_ok = false;
 						}
 						// skip over what we just read
@@ -478,14 +475,14 @@ int myOBJReader_Exp::RequestData(
 				}
 
 				// count of tcoords and normals must be equal to number of vertices or zero
-				if ( nVerts < 3 ||
+				if (nVerts < 3 ||
 					(nTCoords > 0 && nTCoords != nVerts) ||
 					(nNormals > 0 && nNormals != nVerts)
 					)
 				{
 					vtkErrorMacro
 						(
-						<<"Error reading file near line " << lineNr
+						<< "Error reading file near line " << lineNr
 						<< " while processing the 'f' command"
 						);
 					everything_ok = false;
@@ -504,9 +501,7 @@ int myOBJReader_Exp::RequestData(
 			{
 				//vtkDebugMacro(<<"Ignoring line: "<<rawLine);
 			}
-
 		} // (end of while loop)
-
 	} // (end of local scope section)
 
 	// we have finished with the file
@@ -526,14 +521,13 @@ int myOBJReader_Exp::RequestData(
 /// <param name="indent"></param>
 void myOBJReader_Exp::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
+	this->Superclass::PrintSelf(os, indent);
 
 	os << indent << "File Name: "
 		<< (this->FileName ? this->FileName : "(none)") << "\n";
-
 }
 /// ---------------------------------------------------------------------------------------------
-/// <summary> Return group names as a vector of strings. 
+/// <summary> Return group names as a vector of strings.
 /// </summary>
 /// <returns>groupnames vector</returns>
 std::vector<std::string> myOBJReader_Exp::getGroupNames()

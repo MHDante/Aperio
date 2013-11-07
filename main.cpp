@@ -12,7 +12,7 @@
 // <summary>Main runner file (Just creates a window, very little code) </summary>
 // ***********************************************************************
 
-/** 
+/**
 \page Todo
 \tableofcontents
 
@@ -20,7 +20,7 @@
 <hr />
 
 \subsection things Things to do
-+ Shaders for drawing widget elements as contour lines 
++ Shaders for drawing widget elements as contour lines
 + vtkPlaneSource for widget elements
 + Undo system?
 + click and drag widget elements
@@ -40,7 +40,6 @@ myOBJReader expects extra dummy group at end as delimiter (just put g nothing at
 <hr />
 + SOLVED, Sometimes crashes on access violation (check myOBJReader for pointer problems)
 
-
 \mainpage notitle
 \tableofcontents
 
@@ -52,13 +51,13 @@ myOBJReader expects extra dummy group at end as delimiter (just put g nothing at
 Additive Widgets is a 3D anatomical or other mesh browser
 allowing widget elements to be stretched and placed onto surfaces as a way
 of marking up areas to be modified; the marked areas can then be cut, peeled, split, exploded,
-or these widget elements can act as hinges, directional constraints for exploders etc. Additionally, widget elements can 
-be placed acting as handles on meshes for moving them out of the way; parts can be transformed in a free-form fashion,  
-constrained like beads on a string, or exploded along a constrained axis, etc. The goal is to develop an intuitive 
+or these widget elements can act as hinges, directional constraints for exploders etc. Additionally, widget elements can
+be placed acting as handles on meshes for moving them out of the way; parts can be transformed in a free-form fashion,
+constrained like beads on a string, or exploded along a constrained axis, etc. The goal is to develop an intuitive
 and immediate exploration system using widget elements that lends itself to visual affordance (i.e. users
 can easily discover ways to combine the elements such that they can perform various actions). It is
-primarily created for users who have little to no prior 3D modeling experience and just 
-want to break apart a complicated system for the goal of better understanding relationships 
+primarily created for users who have little to no prior 3D modeling experience and just
+want to break apart a complicated system for the goal of better understanding relationships
 between parts. It can be used by medical professionals on anatomical data
 or even be extended for use as an immediate rigging tool on other polygonal
 meshes.
@@ -72,12 +71,12 @@ Visualization Toolkit 6.0.0 (algorithms and rendering), http://www.vtk.org/
 <br>Carve CSG 1.40 (Boolean operations), http://carve-csg.com/
 
 */
-#include "stdafx.h"		// Precompiled header files 
-#include "additive.h"  
+#include "stdafx.h"		// Precompiled header files
+#include "additive.h"
 
 //#include <vld.h>					// Visual Leak Detector
 #include "CheckForMemoryLeaks.h"	// MUST be Last include
- 
+
 /// ---------------------------------------------------------------------------------------------
 /// <summary> The main method itself, creates Additive window class and starts it
 /// </summary>
@@ -87,15 +86,15 @@ Visualization Toolkit 6.0.0 (algorithms and rendering), http://www.vtk.org/
 int main(int argc, char *argv[])
 {
 	// For debugging memory leaks (also must uncomment code in CheckForMemoryLeaks.h)
-	//_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );  
+	//_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 
 	// NOTE TO SELF: if .obj file doesn't load, it's because there's only one group; myOBJReader supports multiple groups only
 	// add another "g nothing" line at the end (if more than one, add extra g line)
-	 
+
 	QApplication a(argc, argv);
 	QApplication::setStyle("cleanlooks");
 
-	//Qt::FramelessWindowHint 
+	//Qt::FramelessWindowHint
 	//Qt::WindowFlags flags = windowFlags();
 	//flags &= ~Qt::FramelessWindowHint;
 	//setWindowFlags(flags);

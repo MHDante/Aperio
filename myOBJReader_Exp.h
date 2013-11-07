@@ -16,7 +16,7 @@
 // <copyright file="myOBJReader.h" company="">
 //     Copyright (c) . All rights reserved.
 // </copyright>
-// <summary>Modified vtkOBJReader (experimental) allowing groups to be read AND texture coords 
+// <summary>Modified vtkOBJReader (experimental) allowing groups to be read AND texture coords
 // (but duplicates a lot of vertices; very slow and not useful for carving)</summary>
 // ***********************************************************************
 
@@ -42,12 +42,12 @@ PURPOSE.  See the above copyright notice for more information.
 // vtkOBJImporter
 
 #ifndef __myOBJReader_Exp_h
-#define __myOBJReader_Exp_h 
+#define __myOBJReader_Exp_h
 
 /// <summary>
 /// Modified version of vtkOBJReader that reads in .OBJ files (added feature: reads groups, removed: textures)
 /// </summary>
-class VTK_EXPORT myOBJReader_Exp : public vtkPolyDataAlgorithm 
+class VTK_EXPORT myOBJReader_Exp : public vtkPolyDataAlgorithm
 {
 	/// ---------------------------------------------------------------------------------------------
 public:
@@ -56,7 +56,7 @@ public:
 	/// <returns>myOBJReader *.</returns>
 	static myOBJReader_Exp *New();
 
-	vtkTypeMacro(myOBJReader_Exp,vtkPolyDataAlgorithm);
+	vtkTypeMacro(myOBJReader_Exp, vtkPolyDataAlgorithm);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
 	std::vector<std::string> getGroupNames();

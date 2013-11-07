@@ -42,7 +42,7 @@ myOBJReader::~myOBJReader()
 {
 	if (this->FileName)
 	{
-		delete [] this->FileName;
+		delete[] this->FileName;
 		this->FileName = nullptr;
 	}
 }
@@ -105,7 +105,6 @@ indices into the vertex list
 
 \*---------------------------------------------------------------------------*/
 
-
 /// <summary> Requests data (overridden method)
 /// </summary>
 /// <returns>int.</returns>
@@ -118,13 +117,13 @@ int myOBJReader::RequestData(
 	//vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
 	if (!this->FileName)
-	{ 
+	{
 		cout << "Filename must be specified" << endl;
 		vtkErrorMacro(<< "A FileName must be specified.");
 		return 0;
 	}
 
-	FILE *in = fopen(this->FileName,"r");
+	FILE *in = fopen(this->FileName, "r");
 
 	if (in == nullptr)
 	{
@@ -132,7 +131,7 @@ int myOBJReader::RequestData(
 		return 0;
 	}
 
-	vtkDebugMacro(<<"Reading file");
+	vtkDebugMacro(<< "Reading file");
 
 	// Intialize some structures to store the file contents in
 	points = vtkPoints::New();
@@ -149,14 +148,13 @@ int myOBJReader::RequestData(
 	// -- work through the file line by line, assigning into the above 7 structures as appropriate --
 
 	{ // (make a local scope section to emphasize that the variables below are only used here)
-
 		hasNormals = false;
 		//hasTCoords = false;
 		bool normals_same_as_verts = true;
 		bool tcoords_same_as_verts = true;
 		bool everything_ok = true; // (use of this flag avoids early return and associated memory leak)
 
-		int num_g_s = 0; 
+		int num_g_s = 0;
 		const int MAX_LINE = 1024;
 		char rawLine[MAX_LINE];
 		float xyz[3];
@@ -202,13 +200,13 @@ int myOBJReader::RequestData(
 			if (strcmp(cmd, "v") == 0)
 			{
 				// this is a vertex definition, expect three floats, separated by whitespace:
-				if (sscanf(pLine, "%f %f %f", xyz, xyz+1, xyz+2) == 3)
+				if (sscanf(pLine, "%f %f %f", xyz, xyz + 1, xyz + 2) == 3)
 				{
 					points->InsertNextPoint(xyz);
 				}
 				else
 				{
-					vtkErrorMacro(<<"Error reading 'v' at line " << lineNr);
+					vtkErrorMacro(<< "Error reading 'v' at line " << lineNr);
 					everything_ok = false;
 				}
 			}
@@ -229,14 +227,14 @@ int myOBJReader::RequestData(
 			else if (strcmp(cmd, "vn") == 0)
 			{
 				// this is a normal, expect three floats, separated by whitespace:
-				if (sscanf(pLine, "%f %f %f", xyz, xyz+1, xyz+2) == 3)
+				if (sscanf(pLine, "%f %f %f", xyz, xyz + 1, xyz + 2) == 3)
 				{
 					normals->InsertNextTuple(xyz);
 					//hasNormals = true;
 				}
 				else
 				{
-					vtkErrorMacro(<<"Error reading 'vn' at line " << lineNr);
+					vtkErrorMacro(<< "Error reading 'vn' at line " << lineNr);
 					everything_ok = false;
 				}
 			}
@@ -251,7 +249,7 @@ int myOBJReader::RequestData(
 			}
 			else if (strcmp(cmd, "g") == 0)
 			{
-				num_g_s++; 
+				num_g_s++;
 				if (sscanf(pLine, "%s\n", label) == 1)
 				{
 					strcpy(label, pLine);	// to get full groupname with spaces and without newline
@@ -260,7 +258,7 @@ int myOBJReader::RequestData(
 
 					if (num_g_s == 1)
 					{
-						strcpy(prevLabel,label);
+						strcpy(prevLabel, label);
 					}
 					else if (num_g_s > 1)
 					{
@@ -309,17 +307,17 @@ int myOBJReader::RequestData(
 						groupnames.push_back(prevLabel);
 
 						//faceId = -1;
-						polys        = vtkCellArray::New();
+						polys = vtkCellArray::New();
 						normal_polys = vtkCellArray::New();
 						//tcoord_polys = vtkCellArray::New();
 						hasNormals = false;
 						//hasTCoords = false;
-						strcpy(prevLabel,label);
+						strcpy(prevLabel, label);
 					}
 				}
 				else
 				{
-					vtkErrorMacro(<<"Error reading 'g' at line " << lineNr);
+					vtkErrorMacro(<< "Error reading 'g' at line " << lineNr);
 					everything_ok = false;
 				}
 			}
@@ -331,7 +329,7 @@ int myOBJReader::RequestData(
 				//tcoord_polys->InsertNextCell(0);
 				normal_polys->InsertNextCell(0);
 
-				int nVerts=0, nTCoords=0, nNormals=0; // keep a count of how many of each there are
+				int nVerts = 0, nTCoords = 0, nNormals = 0; // keep a count of how many of each there are
 
 				while (everything_ok && pLine < pEnd)
 				{
@@ -340,14 +338,14 @@ int myOBJReader::RequestData(
 
 					if (pLine < pEnd)         // there is still data left on this line
 					{
-						int iVert,iTCoord,iNormal;
+						int iVert, iTCoord, iNormal;
 						if (sscanf(pLine, "%d/%d/%d", &iVert, &iTCoord, &iNormal) == 3)
 						{
-							polys->InsertCellPoint(iVert-1); // convert to 0-based index
+							polys->InsertCellPoint(iVert - 1); // convert to 0-based index
 							nVerts++;
 							//tcoord_polys->InsertCellPoint(iTCoord-1);
 							//nTCoords++;
-							normal_polys->InsertCellPoint(iNormal-1);
+							normal_polys->InsertCellPoint(iNormal - 1);
 							nNormals++;
 
 							//if (iTCoord != iVert)
@@ -357,16 +355,16 @@ int myOBJReader::RequestData(
 						}
 						else if (sscanf(pLine, "%d//%d", &iVert, &iNormal) == 2)
 						{
-							polys->InsertCellPoint(iVert-1);
+							polys->InsertCellPoint(iVert - 1);
 							nVerts++;
-							normal_polys->InsertCellPoint(iNormal-1);
+							normal_polys->InsertCellPoint(iNormal - 1);
 							nNormals++;
 							if (iNormal != iVert)
 								normals_same_as_verts = false;
 						}
 						else if (sscanf(pLine, "%d/%d", &iVert, &iTCoord) == 2)
 						{
-							polys->InsertCellPoint(iVert-1);
+							polys->InsertCellPoint(iVert - 1);
 							nVerts++;
 							//tcoord_polys->InsertCellPoint(iTCoord-1);
 							//nTCoords++;
@@ -375,7 +373,7 @@ int myOBJReader::RequestData(
 						}
 						else if (sscanf(pLine, "%d", &iVert) == 1)
 						{
-							polys->InsertCellPoint(iVert-1);
+							polys->InsertCellPoint(iVert - 1);
 							nVerts++;
 						}
 						else if (strcmp(pLine, "\\\n") == 0)
@@ -390,30 +388,30 @@ int myOBJReader::RequestData(
 							}
 							else
 							{
-								vtkErrorMacro(<<"Error reading continuation line at line " << lineNr);
+								vtkErrorMacro(<< "Error reading continuation line at line " << lineNr);
 								everything_ok = false;
 							}
 						}
 						else
 						{
-							vtkErrorMacro(<<"Error reading 'f' at line " << lineNr);
+							vtkErrorMacro(<< "Error reading 'f' at line " << lineNr);
 							everything_ok = false;
 						}
 						// skip over what we just read
 						// (find the first whitespace character)
 						while (!isspace(*pLine) && pLine < pEnd) { pLine++; }
 					}
-				} // end face "f" line processing  
+				} // end face "f" line processing
 
 				// count of tcoords and normals must be equal to number of vertices or zero
-				if ( nVerts < 3 ||
+				if (nVerts < 3 ||
 					(nTCoords > 0 && nTCoords != nVerts) ||
 					(nNormals > 0 && nNormals != nVerts)
 					)
 				{
 					vtkErrorMacro
 						(
-						<<"Error reading file near line " << lineNr
+						<< "Error reading file near line " << lineNr
 						<< " while processing the 'f' command"
 						);
 					everything_ok = false;
@@ -432,9 +430,7 @@ int myOBJReader::RequestData(
 			{
 				//vtkDebugMacro(<<"Ignoring line: "<<rawLine);
 			}
-
 		} // (end of while loop)
-
 	} // (end of local scope section)
 
 	// we have finished with the file
@@ -456,7 +452,7 @@ int myOBJReader::RequestData(
 /// </summary>
 void myOBJReader::CreatePolyData()
 {
-	vtkDebugMacro(<<"Duplicating vertices so that tcoords and normals are correct");
+	vtkDebugMacro(<< "Duplicating vertices so that tcoords and normals are correct");
 
 	int numPoints = this->points->GetNumberOfPoints();
 	//	int numNormals = this->normals->GetNumberOfTuples();
@@ -464,7 +460,7 @@ void myOBJReader::CreatePolyData()
 	pointIds->SetNumberOfIds(numPoints);
 	//	int numIds = pointIds->GetNumberOfIds();
 	for (int i = 0; i < numPoints; i++)
-		pointIds->InsertId(i,-1);
+		pointIds->InsertId(i, -1);
 
 	new_points = vtkPoints::New();
 	new_normals = vtkFloatArray::New();
@@ -483,15 +479,15 @@ void myOBJReader::CreatePolyData()
 	polys->InitTraversal();
 
 	vtkIdType dummy_warning_prevention_mechanism[1];
-	vtkIdType n_pts=-1,*pts=dummy_warning_prevention_mechanism;
-	vtkIdType n_tcoord_pts=-1,*tcoord_pts=dummy_warning_prevention_mechanism;
-	vtkIdType n_normal_pts=-1,*normal_pts=dummy_warning_prevention_mechanism;
+	vtkIdType n_pts = -1, *pts = dummy_warning_prevention_mechanism;
+	vtkIdType n_tcoord_pts = -1, *tcoord_pts = dummy_warning_prevention_mechanism;
+	vtkIdType n_normal_pts = -1, *normal_pts = dummy_warning_prevention_mechanism;
 
 	//	int nc = polys->GetNumberOfCells();
 
-	for (int i=0; i<polys->GetNumberOfCells(); ++i)
+	for (int i = 0; i < polys->GetNumberOfCells(); ++i)
 	{
-		polys->GetNextCell(n_pts,pts);
+		polys->GetNextCell(n_pts, pts);
 
 		// If some vertices have tcoords and not others (likewise normals)
 		// then we must do something else VTK will complain. (crash on render attempt)
@@ -499,7 +495,7 @@ void myOBJReader::CreatePolyData()
 		// are any tcoords in the dataset) or normals (if there are any normals in the dataset).
 
 		// copy the corresponding points, tcoords and normals across
-		for (int j=0; j<n_pts; ++j)
+		for (int j = 0; j < n_pts; ++j)
 		{
 			// copy the vertex into the new structure and update
 			// the vertex index in the polys structure (pts is a pointer into it)
@@ -508,15 +504,15 @@ void myOBJReader::CreatePolyData()
 				// copy the tcoord for this point across (if there is one)
 				int id = pts[j];
 				pts[j] = new_points->InsertNextPoint(points->GetPoint(pts[j]));
-				pointIds->InsertId(id,pts[j]);
+				pointIds->InsertId(id, pts[j]);
 			}
 			else
-			{  
+			{
 				pts[j] = pointIds->GetId(pts[j]);
 			}
 		}
 		// copy this poly (pointing at the new points) into the new polys list
-		new_polys->InsertNextCell(n_pts,pts);
+		new_polys->InsertNextCell(n_pts, pts);
 	}
 
 	//	int n = new_points->GetNumberOfPoints();
@@ -547,10 +543,10 @@ void myOBJReader::CreatePolyData()
 	//				// copy the normal for this point across (if there is one)
 	//				int id = tcoord_pts[j];
 	//				tcoord_pts[j] = new_tcoords->InsertNextTuple(tcoords->GetTuple(tcoord_pts[j]));
-	//				pointIds->InsertId(id,tcoord_pts[j]);	
+	//				pointIds->InsertId(id,tcoord_pts[j]);
 	//			}
 	//			else
-	//			{  
+	//			{
 	//				tcoord_pts[j] = pointIds->GetId(tcoord_pts[j]);
 	//			}
 	//		}
@@ -570,48 +566,46 @@ doNormals:
 	pointIds->SetNumberOfIds(numPoints);
 
 	for (int i = 0; i < numPoints; i++)
-		pointIds->InsertId(i,-1);
+		pointIds->InsertId(i, -1);
 
-	for (int i=0; i< normal_polys->GetNumberOfCells(); ++i)
+	for (int i = 0; i < normal_polys->GetNumberOfCells(); ++i)
 	{
-		normal_polys->GetNextCell(n_normal_pts,normal_pts);
+		normal_polys->GetNextCell(n_normal_pts, normal_pts);
 
 		// copy the corresponding normal across
-		for (int j=0; j<n_normal_pts; ++j)
+		for (int j = 0; j < n_normal_pts; ++j)
 		{
 			if (pointIds->GetId(normal_pts[j]) == -1)
 			{
 				// copy the normal for this point across (if there is one)
 				int id = normal_pts[j];
 				normal_pts[j] = new_normals->InsertNextTuple(normals->GetTuple(normal_pts[j]));
-				pointIds->InsertId(id,normal_pts[j]);	
+				pointIds->InsertId(id, normal_pts[j]);
 			}
 			else
-			{  
+			{
 				normal_pts[j] = pointIds->GetId(normal_pts[j]);
 			}
 		}
 		// copy this normal poly (pointing at the new normals) into the new normal_polys list
-		new_normal_polys->InsertNextCell(n_normal_pts,normal_pts);
+		new_normal_polys->InsertNextCell(n_normal_pts, normal_pts);
 	}
 }
 
 /// ---------------------------------------------------------------------------------------------
-/// <summary> Prints self as well as filename (no need to call) 
+/// <summary> Prints self as well as filename (no need to call)
 /// </summary>
 /// <param name="os">output stream</param>
 /// <param name="indent">vtkIndent object</param>
 void myOBJReader::PrintSelf(ostream& os, vtkIndent indent)
 {
-	this->Superclass::PrintSelf(os,indent);
+	this->Superclass::PrintSelf(os, indent);
 
 	os << indent << "File Name: "
 		<< (this->FileName ? this->FileName : "(none)") << "\n";
-
 }
 /// ---------------------------------------------------------------------------------------------
 std::vector<std::string> myOBJReader::getGroupNames()
 {
 	return groupnames;
 }
-
