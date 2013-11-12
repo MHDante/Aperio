@@ -52,7 +52,7 @@ void main (void)
 	  
 	if (selected == 1)	// if selected
 	{
-		if (d < mouseSize)
+		if (d < mouseSize && peerInside == 1)
 		{
 			discard;
 		}

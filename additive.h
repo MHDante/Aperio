@@ -45,6 +45,8 @@
 
 #include "vtkCellLocator.h"
 
+#include <vtkSuperquadricSource.h>
+
 class MouseInteractorStylePP;
 
 class MyPoint
@@ -113,7 +115,7 @@ public:
 	/// <summary> Widget's CellLocator, Important for speeding up raycast/picking (BuildLocator must be called with new Widget)_</summary>
 	vtkSmartPointer<vtkCellLocator> cellLocator;
 
-	bool marked;
+	bool marked; 
 
 	bool operator==(const WidgetElem &other) const {
 		return (this->actor.GetPointer() == other.actor);
@@ -173,9 +175,13 @@ public:
 	int peerInside;
 	int toon;
 	float myexp;
+	float myn;
 
 	float pos1[3];
 	float pos2[3];
+
+	vtkSmartPointer<vtkSuperquadricSource> superquad;
+	vtkSmartPointer<vtkActor> sactor;
 
 	/// <summary> Selected Widget Actor </summary>
 	vtkSmartPointer<vtkActor> selectedWidgetActor;

@@ -51,6 +51,8 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkTransform.h"
 
+#include "vtkSuperquadricSource.h"
+
 //-----------------------------------------------------------------------------
 /// <summary>
 /// Class MouseInteractorStylePP, contains key press, mouse events etc.
@@ -169,7 +171,6 @@ public:
 			a->meshes[a->selectedIndex].actor->GetProperty()->SetOpacity(0);
 			a->updateOpacitySliderAndList();
 		}
-
 		if (this->Interactor->GetKeyCode() == 'a')
 		{
 			// just for viewing, doesnt do anything
@@ -218,7 +219,25 @@ public:
 		if (this->Interactor->GetKeyCode() == 'c')	//
 		{
 			//std::cout << "cut";
-			creation = !creation;
+			//creation = !creation;
+
+			float change = 0.1;
+
+			if (a->myn - change >= 0)
+				a->myn -= change;
+
+			a->superquad->SetPhiRoundness(a->myn);
+			a->superquad->Update();
+		}
+		if (this->Interactor->GetKeyCode() == 'v')
+		{
+			float change = 0.1;
+
+			if (a->myn + change <= 20)
+				a->myn += change;
+
+			a->superquad->SetPhiRoundness(a->myn);
+			a->superquad->Update();
 		}
 		if (this->Interactor->GetKeyCode() == 'z')
 		{
@@ -226,6 +245,9 @@ public:
 
 			if (a->myexp - change >= 0)
 				a->myexp -= change;
+
+			a->superquad->SetThetaRoundness(a->myexp);
+			a->superquad->Update();
 		}
 		if (this->Interactor->GetKeyCode() == 'x')
 		{
@@ -233,6 +255,49 @@ public:
 
 			if (a->myexp + change <= 20)
 				a->myexp += change;
+
+			a->superquad->SetThetaRoundness(a->myexp);
+			a->superquad->Update();
+		}
+		if (this->Interactor->GetKeyCode() == 's')
+		{
+			if (!a->superquad)
+			{
+				std::cout << "making\n";
+				a->superquad = vtkSmartPointer<vtkSuperquadricSource>::New();
+				a->superquad->SetPhiResolution(20);
+				a->superquad->SetThetaResolution(20);
+				a->superquad->ToroidalOff();
+
+				//a->superquad->SetSize(0.5);
+				//a->superquad->SetThickness(.333);
+				a->superquad->SetCenter(0, 0, 0);
+				a->superquad->SetPhiRoundness(0.5);
+				//a->superquad->SetThickness(0.43);
+				a->superquad->SetThetaRoundness(a->myexp);
+
+				vtkSmartPointer<vtkPolyDataMapper>  mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+				mapper->SetInputData(a->superquad->GetOutput());
+				mapper->Update();
+
+				a->sactor = vtkSmartPointer<vtkActor>::New();
+				a->sactor->SetMapper(mapper);
+				a->sactor->PickableOff();
+				a->sactor->GetProperty()->SetDiffuseColor(1, 0, 0);
+
+				a->renderer->AddActor(a->sactor);
+
+				//a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
+				a->superquad->Update();
+			}
+
+			a->sactor->SetPosition(a->mouse[0], a->mouse[1], a->mouse[2]);
+			//a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
+
+			
+			//a->superquad->Update();
+
+
 		}
 		if (this->Interactor->GetKeyCode() == 'b')
 		{
@@ -292,7 +357,7 @@ public:
 			//double* worldPosition = picker->GetPickPosition();
 
 			//int cellid = cellPicker->GetCellId();
-
+			
 			vtkActor *pickedActor = cellPicker->GetActor();
 			//std::cout << "Cell id is: " << picker->GetCellId() << std::endl;
 
