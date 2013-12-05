@@ -94,12 +94,8 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	QApplication::setStyle("cleanlooks");
 
-	//Qt::FramelessWindowHint
-	//Qt::WindowFlags flags = windowFlags();
-	//flags &= ~Qt::FramelessWindowHint;
-	//setWindowFlags(flags);
-
 	additive w;
 	w.show();
+
 	return a.exec();
 }

@@ -51,8 +51,6 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkTransform.h"
 
-#include "vtkSuperquadricSource.h"
-
 //-----------------------------------------------------------------------------
 /// <summary>
 /// Class MouseInteractorStylePP, contains key press, mouse events etc.
@@ -264,17 +262,23 @@ public:
 			if (!a->superquad)
 			{
 				std::cout << "making\n";
-				a->superquad = vtkSmartPointer<vtkSuperquadricSource>::New();
+				a->superquad = vtkSmartPointer<MySuperquadricSource>::New();
 				a->superquad->SetPhiResolution(20);
 				a->superquad->SetThetaResolution(20);
 				a->superquad->ToroidalOff();
 
+				a->superquad->SetScale(2, 1, 1);
+				a->superquad->SetSize(1.0);
+
 				//a->superquad->SetSize(0.5);
 				//a->superquad->SetThickness(.333);
-				a->superquad->SetCenter(0, 0, 0);
+				
 				a->superquad->SetPhiRoundness(0.5);
 				//a->superquad->SetThickness(0.43);
 				a->superquad->SetThetaRoundness(a->myexp);
+
+				//a->superquad->SetCenter(0, 0, 0);
+				a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
 
 				vtkSmartPointer<vtkPolyDataMapper>  mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 				mapper->SetInputData(a->superquad->GetOutput());
@@ -291,9 +295,10 @@ public:
 				a->superquad->Update();
 			}
 
-			a->sactor->SetPosition(a->mouse[0], a->mouse[1], a->mouse[2]);
+			//a->sactor->SetPosition(a->mouse[0], a->mouse[1], a->mouse[2]);
 			//a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
-
+			a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
+			a->superquad->Update();
 			
 			//a->superquad->Update();
 

@@ -68,42 +68,86 @@ public:
     {
         if (additiveClass->objectName().isEmpty())
             additiveClass->setObjectName(QString::fromUtf8("additiveClass"));
-        additiveClass->resize(637, 591);
+        additiveClass->resize(635, 590);
         additiveClass->setMouseTracking(true);
         QIcon icon;
         icon.addFile(QString::fromUtf8(":/additive/icon.ico"), QSize(), QIcon::Normal, QIcon::Off);
         additiveClass->setWindowIcon(icon);
         additiveClass->setStyleSheet(QString::fromUtf8("QWidget{\n"
-"	color: #FFFFFF;\n"
+"	color: #ffffff;\n"
 "	font: 10pt \"Lucida Sans\";\n"
-"	background-color: #505050;\n"
+"\n"
 "	selection-background-color:#FEE728;\n"
 "}\n"
 "\n"
+"#centralWidget, QLineEdit, QSlider, QDial {\n"
+"background: #111111;\n"
+"}\n"
+"QMenuBar {\n"
+"	background-color:#3C3C3C;\n"
+"	color: #ffffff;\n"
+"	selection-color: #000000;\n"
+"\n"
+"	font: 75 10pt;\n"
+"	padding: 5px;\n"
+"}\n"
+"\n"
+"QStatusBar {\n"
+"	background-color: #482F22;\n"
+"	color: #ffffff;\n"
+"	padding: 5px;\n"
+"}\n"
+"\n"
+"QMenu  {\n"
+"\n"
+"/*	gridline-color: rgb(167, 207, 255);*/\n"
+"	selection-color: #000000;\n"
+"color: #000000;\n"
+"\n"
+"/*	color: #000000;\n"
+"	background-color: #FFFFFF;*/\n"
+"	background-color: #ffffff;\n"
+"\n"
+"	border-top: 1px solid #55780A;\n"
+"	border-left: 1px solid #55780A;\n"
+"	border-right: 1px solid #55780A;\n"
+"	border-bottom: 1px solid #55780A;\n"
+"}\n"
+"\n"
+"\n"
+"#centralWidget2 {\n"
+"	border: 2px solid #927620;\n"
+"}\n"
+"\n"
 "QPushButton {\n"
-"color: white;\n"
-"border: 1px solid #cccccc;\n"
-"border-radius: 12px;\n"
+"color: #FFFFFF;\n"
+"\n"
 "padding: 5px;\n"
-"background-color:qradialgradient(cx: 0.3, cy: -0.4,\n"
-"fx: 0.3, fy: -0.4,\n"
-"radius: 1.35, stop: 0 #777777, stop: 1 #222222);\n"
+"\n"
+"/*background: qradialgradient(cx: 0.3, cy: -0.4,\n"
+"fx: 0."
+                        "3, fy: -0.4,\n"
+"radius: 1.35, stop: 0 #fff, stop: 1 #55780A);*/\n"
+"\n"
+"background: #55780A;\n"
 "min-width: 80px;\n"
+"border: none;\n"
+"/*border: 1px solid black;*/\n"
 "}\n"
 "\n"
 "QPushButton:hover {\n"
-"border: 1px solid #ffffff;\n"
-"color:white;\n"
-"background: qradialgradient(cx: 0.3, cy: -0.4,\n"
+"/*background: qradialgradient(cx: 0.3, cy: -0.4,\n"
 "fx: 0.3, fy: -0.4,\n"
-"radius: 1.35, stop: 0 #222222, stop: 1 #777777);\n"
+"radius: 1.35, stop: 0 #fff, stop: 1 #bbb);*/\n"
+"background: #6A8B0F;\n"
+"\n"
 "}\n"
 "\n"
 "QPushButton:pressed {\n"
-"color: white;\n"
-"background: qradialgradient(cx: 0.3, cy: -0.4,\n"
-"fx: 0.3, fy: -0.4,\n"
-"radius: 1.35, stop: 0 #000, stop: 1 #000);\n"
+"/*background: qradialgradient(cx: 0.4, cy: -0.1,\n"
+"fx: 0.4, fy: -0.1,\n"
+"radius: 1.35, stop: 0 #fff, stop: 1 #ddd);*/\n"
+"background: #42540C;\n"
 "}\n"
 "\n"
 "QCheckBox, QRadioButton {	\n"
@@ -112,39 +156,69 @@ public:
 "	alternate-background-color: rgb(120, 255, 96);\n"
 "}\n"
 "\n"
-"QMenu  {\n"
-"	selection-color: #000000;\n"
-"	color: #000000;\n"
-"	backgroun"
-                        "d-color: #FFFFFF;\n"
-"}\n"
-"\n"
-"QMenuBar {\n"
-"	border-bottom: 1px solid #999955;\n"
+"/** tabs ***/\n"
+"#tab, #tab_2, #tab_3, QListView {\n"
+"	background: #393C2E;\n"
+"	color: #dddddd;\n"
 "}\n"
 "\n"
 " QTabWidget::pane { \n"
-"     border-left: 1px solid #eee;\n"
-"     border-top: 1px solid #eee;\n"
-"     border-right: 1px solid #aaa;\n"
-"     border-bottom: 1px solid #aaa;\n"
+"/*     border-left: 1px solid #333333;\n"
+"     border-top: 1px solid #333333;\n"
+"     border-right: 1px solid #333333;\n"
+"     border-bottom: 1px solid #333333;*/\n"
 " }\n"
 "\n"
-"QLineEdit {\n"
-"color: white;\n"
-"selection-color: blue;\n"
-"                        \n"
-"} \n"
+"QTabBa"
+                        "r::tab {\n"
 "\n"
-"QStatusBar {\n"
-"	color: #FFFFFF;\n"
-"	border-top: 2px solid #000;\n"
-"	background-color: #252525;\n"
+"color: #ffffff;\n"
+"/*border-top-left-radius: 4px;\n"
+"border-top-right-radius: 4px;*/\n"
+"/*background: qradialgradient(cx: 0.3, cy: -0.4,\n"
+"fx: 0.3, fy: -0.4,\n"
+"radius: 1.35, stop: 0 #fff, stop: 1 #888);*/\n"
 "\n"
+"background: #55780A;\n"
 "\n"
+"/*border: 2px solid #55780A;*/\n"
+"/*     border-top-left-radius: 4px;\n"
+"     border-top-right-radius: 4px;*/\n"
+"     min-width: 8ex;\n"
+"     /*padding: 5px;*/\n"
+"\n"
+"	/*margin-right: 5px;*/\n"
+"\n"
+"	padding-right: 20px;\n"
+"	padding-left: 20px;\n"
+"	padding-top: 5px;\n"
+"	padding-bottom: 5px;\n"
 "}\n"
 "\n"
-" QCheckBox::indicator\n"
+"QTabBar::tab:hover\n"
+"{\n"
+"background: #89BA14;\n"
+"color: #005500;\n"
+"}\n"
+"QTabBar::tab:selected  {\n"
+"/*background: qradialgradient(cx: 0.3, cy: -0.4,\n"
+"fx: 0.3, fy: -0.4,\n"
+"radius: 1.35, stop: 0 #fff, stop: 1 #ddd);*/\n"
+"\n"
+"background: #BDEE46;\n"
+"color: #005500;\n"
+" }\n"
+"\n"
+"\n"
+"QLineEdit {\n"
+"color: black;\n"
+"selection-color: black;\n"
+"background: white;   \n"
+"border: none;                     \n"
+"} \n"
+"\n"
+""
+                        " QCheckBox::indicator\n"
 "  {\n"
 "	width: 18px;\n"
 "	height: 18px;\n"
@@ -159,18 +233,63 @@ public:
 "  }\n"
 "\n"
 "\n"
-"#centralWidget2 {\n"
-"	border: 2px solid #FFC35B;\n"
+"\n"
+"\n"
+"\n"
+"QScrollBar:vertical  {\n"
+"\n"
+"     background: #D0EC8C;\n"
+"     width: 15px;\n"
+"     margin: 20px 0 20px 0;\n"
+"/*	border-top: 1px solid white;\n"
+"	border-bottom: 1px solid white;*/\n"
+"\n"
+" }\n"
+" QScrollBar::handle:vertical  {\n"
+"     background: #55780A;\n"
+"	min-height: 10px;\n"
+"\n"
+" }\n"
+" QScrollBar::add-line:vertical  {\n"
+"\n"
+"     background: #99CE18;\n"
+"     height: 20px;\n"
+"     subcontrol-position: bottom;\n"
+"     subcontrol-origin: margin;\n"
+" }\n"
+" \n"
+" QScrollBar::add-line:vertical:hover, QScrollBar::sub-line:vertical:hover   {\n"
+"	background: #BCEF1F;\n"
+"\n"
 "}\n"
 "\n"
-"#qv{\n"
-"	border: 2px solid #FFC35B;\n"
+" QScrollBar::sub-line:vertical  {\n"
+"/*	border: 2px solid #ffffff;*/\n"
+"\n"
+"     background: #99CE18;\n"
+"     height: 2"
+                        "0px;\n"
+"     subcontrol-position: top;\n"
+"     subcontrol-origin: margin;\n"
+" }\n"
+" QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical  {\n"
+"     width: 3px;\n"
+"     height: 4px;\n"
+"     background: #55780A;\n"
+" }\n"
+"\n"
+" QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical  {\n"
+"     background: none;\n"
 "}\n"
 "\n"
-"QListWidget {\n"
-"	\n"
-"	selection-color: rgb(0, 0, 0);\n"
-"}"));
+"QSlider::handle:horizontal, QSlider::handle:vertical {\n"
+"	background: #55780A;\n"
+"	height: 1px;\n"
+"	max-height: 1px;\n"
+"	border-radius: 2px;\n"
+"}\n"
+"\n"
+""));
         actionNew_Window = new QAction(additiveClass);
         actionNew_Window->setObjectName(QString::fromUtf8("actionNew_Window"));
         actionOpen = new QAction(additiveClass);
@@ -186,18 +305,20 @@ public:
         centralWidget->setMouseTracking(true);
         dial = new QDial(centralWidget);
         dial->setObjectName(QString::fromUtf8("dial"));
+        dial->setEnabled(true);
         dial->setGeometry(QRect(180, 80, 50, 51));
         btnHello = new QPushButton(centralWidget);
         btnHello->setObjectName(QString::fromUtf8("btnHello"));
-        btnHello->setGeometry(QRect(20, 30, 92, 23));
+        btnHello->setGeometry(QRect(20, 30, 100, 28));
         verticalSlider = new QSlider(centralWidget);
         verticalSlider->setObjectName(QString::fromUtf8("verticalSlider"));
         verticalSlider->setGeometry(QRect(280, 20, 22, 121));
         verticalSlider->setValue(50);
         verticalSlider->setOrientation(Qt::Vertical);
+        verticalSlider->setInvertedAppearance(false);
         horizontalSlider = new QSlider(centralWidget);
         horizontalSlider->setObjectName(QString::fromUtf8("horizontalSlider"));
-        horizontalSlider->setGeometry(QRect(129, 30, 141, 22));
+        horizontalSlider->setGeometry(QRect(139, 30, 131, 22));
         horizontalSlider->setMaximum(100);
         horizontalSlider->setValue(50);
         horizontalSlider->setOrientation(Qt::Horizontal);
@@ -240,8 +361,16 @@ public:
         tab_3->setObjectName(QString::fromUtf8("tab_3"));
         listWidget = new QListWidget(tab_3);
         listWidget->setObjectName(QString::fromUtf8("listWidget"));
-        listWidget->setGeometry(QRect(0, 0, 301, 111));
+        listWidget->setGeometry(QRect(0, 0, 299, 100));
+        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(listWidget->sizePolicy().hasHeightForWidth());
+        listWidget->setSizePolicy(sizePolicy);
         listWidget->setMouseTracking(true);
+        listWidget->setFocusPolicy(Qt::NoFocus);
+        listWidget->setFrameShape(QFrame::NoFrame);
+        listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         tabWidget->addTab(tab_3, QString());
         lineEdit = new QLineEdit(centralWidget);
         lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
@@ -261,7 +390,7 @@ public:
         gridLayout->setContentsMargins(0, 0, 0, 0);
         label = new QLabel(centralWidget);
         label->setObjectName(QString::fromUtf8("label"));
-        label->setGeometry(QRect(130, 10, 46, 13));
+        label->setGeometry(QRect(140, 10, 46, 13));
         additiveClass->setCentralWidget(centralWidget);
         dial->raise();
         btnHello->raise();
@@ -273,7 +402,7 @@ public:
         centralWidget2->raise();
         menuBar = new QMenuBar(additiveClass);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 637, 21));
+        menuBar->setGeometry(QRect(0, 0, 635, 31));
         menuBar->setFocusPolicy(Qt::StrongFocus);
         menuBar->setDefaultUp(false);
         menuFile = new QMenu(menuBar);
@@ -306,6 +435,9 @@ public:
     void retranslateUi(QMainWindow *additiveClass)
     {
         additiveClass->setWindowTitle(QApplication::translate("additiveClass", "Additive Widgets", 0, QApplication::UnicodeUTF8));
+#ifndef QT_NO_WHATSTHIS
+        additiveClass->setWhatsThis(QApplication::translate("additiveClass", "<html><head/><body><p><br/></p></body></html>", 0, QApplication::UnicodeUTF8));
+#endif // QT_NO_WHATSTHIS
         actionNew_Window->setText(QApplication::translate("additiveClass", "New Window", 0, QApplication::UnicodeUTF8));
         actionOpen->setText(QApplication::translate("additiveClass", "Open", 0, QApplication::UnicodeUTF8));
         actionOpen->setShortcut(QApplication::translate("additiveClass", "Ctrl+O", 0, QApplication::UnicodeUTF8));
@@ -313,7 +445,7 @@ public:
         actionFull_Screen->setText(QApplication::translate("additiveClass", "FullScreen", 0, QApplication::UnicodeUTF8));
         actionFull_Screen->setShortcut(QApplication::translate("additiveClass", "Alt+Return", 0, QApplication::UnicodeUTF8));
         actionAbout->setText(QApplication::translate("additiveClass", "About", 0, QApplication::UnicodeUTF8));
-        btnHello->setText(QApplication::translate("additiveClass", "Show Edge", 0, QApplication::UnicodeUTF8));
+        btnHello->setText(QApplication::translate("additiveClass", "Toggled", 0, QApplication::UnicodeUTF8));
         checkBox->setText(QApplication::translate("additiveClass", "Skeletals", 0, QApplication::UnicodeUTF8));
         checkBox_2->setText(QApplication::translate("additiveClass", "Muscle", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("additiveClass", "Systems", 0, QApplication::UnicodeUTF8));

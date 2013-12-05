@@ -45,7 +45,7 @@
 
 #include "vtkCellLocator.h"
 
-#include <vtkSuperquadricSource.h>
+#include "MySuperquadricSource.h"
 
 class MouseInteractorStylePP;
 
@@ -180,7 +180,7 @@ public:
 	float pos1[3];
 	float pos2[3];
 
-	vtkSmartPointer<vtkSuperquadricSource> superquad;
+	vtkSmartPointer<MySuperquadricSource> superquad;
 	vtkSmartPointer<vtkActor> sactor;
 
 	/// <summary> Selected Widget Actor </summary>
@@ -432,8 +432,8 @@ public:
 		//meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("translucency",  mouse[0], mouse[1], mouse[2]);
 		//renderer->Render();
 		//ui.qvtkWidget->update();
-		qv->update();
-		qv->GetRenderWindow()->Render();
+		//qv->update();
+		//qv->GetRenderWindow()->Render();
 		//QApplication::processEvents();
 	}
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>637</width>
-    <height>591</height>
+    <width>635</width>
+    <height>590</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -20,38 +20,84 @@
    <iconset resource="additive.qrc">
     <normaloff>:/additive/icon.ico</normaloff>:/additive/icon.ico</iconset>
   </property>
+  <property name="whatsThis">
+   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+  </property>
   <property name="styleSheet">
    <string notr="true">QWidget{
-	color: #FFFFFF;
+	color: #ffffff;
 	font: 10pt &quot;Lucida Sans&quot;;
-	background-color: #505050;
+
 	selection-background-color:#FEE728;
 }
 
+#centralWidget, QLineEdit, QSlider, QDial {
+background: #111111;
+}
+QMenuBar {
+	background-color:#3C3C3C;
+	color: #ffffff;
+	selection-color: #000000;
+
+	font: 75 10pt;
+	padding: 5px;
+}
+
+QStatusBar {
+	background-color: #482F22;
+	color: #ffffff;
+	padding: 5px;
+}
+
+QMenu  {
+
+/*	gridline-color: rgb(167, 207, 255);*/
+	selection-color: #000000;
+color: #000000;
+
+/*	color: #000000;
+	background-color: #FFFFFF;*/
+	background-color: #ffffff;
+
+	border-top: 1px solid #55780A;
+	border-left: 1px solid #55780A;
+	border-right: 1px solid #55780A;
+	border-bottom: 1px solid #55780A;
+}
+
+
+#centralWidget2 {
+	border: 2px solid #927620;
+}
+
 QPushButton {
-color: white;
-border: 1px solid #cccccc;
-border-radius: 12px;
+color: #FFFFFF;
+
 padding: 5px;
-background-color:qradialgradient(cx: 0.3, cy: -0.4,
+
+/*background: qradialgradient(cx: 0.3, cy: -0.4,
 fx: 0.3, fy: -0.4,
-radius: 1.35, stop: 0 #777777, stop: 1 #222222);
+radius: 1.35, stop: 0 #fff, stop: 1 #55780A);*/
+
+background: #55780A;
 min-width: 80px;
+border: none;
+/*border: 1px solid black;*/
 }
 
 QPushButton:hover {
-border: 1px solid #ffffff;
-color:white;
-background: qradialgradient(cx: 0.3, cy: -0.4,
+/*background: qradialgradient(cx: 0.3, cy: -0.4,
 fx: 0.3, fy: -0.4,
-radius: 1.35, stop: 0 #222222, stop: 1 #777777);
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);*/
+background: #6A8B0F;
+
 }
 
 QPushButton:pressed {
-color: white;
-background: qradialgradient(cx: 0.3, cy: -0.4,
-fx: 0.3, fy: -0.4,
-radius: 1.35, stop: 0 #000, stop: 1 #000);
+/*background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);*/
+background: #42540C;
 }
 
 QCheckBox, QRadioButton {	
@@ -60,36 +106,65 @@ QCheckBox, QRadioButton {
 	alternate-background-color: rgb(120, 255, 96);
 }
 
-QMenu  {
-	selection-color: #000000;
-	color: #000000;
-	background-color: #FFFFFF;
-}
-
-QMenuBar {
-	border-bottom: 1px solid #999955;
+/** tabs ***/
+#tab, #tab_2, #tab_3, QListView {
+	background: #393C2E;
+	color: #dddddd;
 }
 
  QTabWidget::pane { 
-     border-left: 1px solid #eee;
-     border-top: 1px solid #eee;
-     border-right: 1px solid #aaa;
-     border-bottom: 1px solid #aaa;
+/*     border-left: 1px solid #333333;
+     border-top: 1px solid #333333;
+     border-right: 1px solid #333333;
+     border-bottom: 1px solid #333333;*/
  }
 
-QLineEdit {
-color: white;
-selection-color: blue;
-                        
-} 
+QTabBar::tab {
 
-QStatusBar {
-	color: #FFFFFF;
-	border-top: 2px solid #000;
-	background-color: #252525;
+color: #ffffff;
+/*border-top-left-radius: 4px;
+border-top-right-radius: 4px;*/
+/*background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);*/
 
+background: #55780A;
 
+/*border: 2px solid #55780A;*/
+/*     border-top-left-radius: 4px;
+     border-top-right-radius: 4px;*/
+     min-width: 8ex;
+     /*padding: 5px;*/
+
+	/*margin-right: 5px;*/
+
+	padding-right: 20px;
+	padding-left: 20px;
+	padding-top: 5px;
+	padding-bottom: 5px;
 }
+
+QTabBar::tab:hover
+{
+background: #89BA14;
+color: #005500;
+}
+QTabBar::tab:selected  {
+/*background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);*/
+
+background: #BDEE46;
+color: #005500;
+ }
+
+
+QLineEdit {
+color: black;
+selection-color: black;
+background: white;   
+border: none;                     
+} 
 
  QCheckBox::indicator
   {
@@ -106,24 +181,71 @@ QStatusBar {
   }
 
 
-#centralWidget2 {
-	border: 2px solid #FFC35B;
+
+
+
+QScrollBar:vertical  {
+
+     background: #D0EC8C;
+     width: 15px;
+     margin: 20px 0 20px 0;
+/*	border-top: 1px solid white;
+	border-bottom: 1px solid white;*/
+
+ }
+ QScrollBar::handle:vertical  {
+     background: #55780A;
+	min-height: 10px;
+
+ }
+ QScrollBar::add-line:vertical  {
+
+     background: #99CE18;
+     height: 20px;
+     subcontrol-position: bottom;
+     subcontrol-origin: margin;
+ }
+ 
+ QScrollBar::add-line:vertical:hover, QScrollBar::sub-line:vertical:hover   {
+	background: #BCEF1F;
+
 }
 
-#qv{
-	border: 2px solid #FFC35B;
+ QScrollBar::sub-line:vertical  {
+/*	border: 2px solid #ffffff;*/
+
+     background: #99CE18;
+     height: 20px;
+     subcontrol-position: top;
+     subcontrol-origin: margin;
+ }
+ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical  {
+     width: 3px;
+     height: 4px;
+     background: #55780A;
+ }
+
+ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical  {
+     background: none;
 }
 
-QListWidget {
-	
-	selection-color: rgb(0, 0, 0);
-}</string>
+QSlider::handle:horizontal, QSlider::handle:vertical {
+	background: #55780A;
+	height: 1px;
+	max-height: 1px;
+	border-radius: 2px;
+}
+
+</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="mouseTracking">
     <bool>true</bool>
    </property>
    <widget class="QDial" name="dial">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>180</x>
@@ -138,12 +260,12 @@ QListWidget {
      <rect>
       <x>20</x>
       <y>30</y>
-      <width>92</width>
-      <height>23</height>
+      <width>100</width>
+      <height>28</height>
      </rect>
     </property>
     <property name="text">
-     <string>Show Edge</string>
+     <string>Toggled</string>
     </property>
    </widget>
    <widget class="QSlider" name="verticalSlider">
@@ -161,13 +283,16 @@ QListWidget {
     <property name="orientation">
      <enum>Qt::Vertical</enum>
     </property>
+    <property name="invertedAppearance">
+     <bool>false</bool>
+    </property>
    </widget>
    <widget class="QSlider" name="horizontalSlider">
     <property name="geometry">
      <rect>
-      <x>129</x>
+      <x>139</x>
       <y>30</y>
-      <width>141</width>
+      <width>131</width>
       <height>22</height>
      </rect>
     </property>
@@ -290,12 +415,27 @@ QListWidget {
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>301</width>
-        <height>111</height>
+        <width>299</width>
+        <height>100</height>
        </rect>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="mouseTracking">
        <bool>true</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
      </widget>
     </widget>
@@ -347,7 +487,7 @@ QListWidget {
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>140</x>
       <y>10</y>
       <width>46</width>
       <height>13</height>
@@ -371,8 +511,8 @@ QListWidget {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>637</width>
-     <height>21</height>
+     <width>635</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="focusPolicy">

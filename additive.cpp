@@ -141,7 +141,7 @@ void additive::slot_timeout2()
 /// </summary>
 void additive::slot_afterShowWindow()
 {
-	strcpy(fname, "testcube.obj");
+	strcpy(fname, "heart 256k.obj");
 	QApplication::processEvents();
 
 	brushDivide = 15.0;
@@ -156,7 +156,7 @@ void additive::slot_afterShowWindow()
 	ui.statusBar->addWidget(status_label);
 
 	QTimer *timer = new QTimer(this);
-	timer->setInterval(1);
+	timer->setInterval(1000.0 / 60.0);
 	timer->start();
 
 	QTimer *timer2 = new QTimer(this);
@@ -171,8 +171,14 @@ void additive::slot_afterShowWindow()
 	vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
 	renderer = vtkSmartPointer<vtkRenderer>::New();
 	//renderer->SetBackground(1.0,1.0,1.0);
-	renderer->SetBackground(.37, .63, .80);
+	//renderer->SetBackground(.37, .63, .80);
+	//renderer->SetBackground(0, 0, 0);
 	//renderer->SetBackground(0.3203, 0.3398, 0.4297);
+	//float bgcolor[3] = { 94, 161, 204 };
+
+	float bgcolor[3] = { 
+	28,100,160};
+	renderer->SetBackground(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0);
 
 	renderWindow->AddRenderer(renderer);
 	qv->SetRenderWindow(renderWindow);
@@ -186,7 +192,7 @@ void additive::slot_afterShowWindow()
 	// Required for Depth peeling (if used)
 	renderer->GetRenderWindow()->SetAlphaBitPlanes(1);
 	renderer->GetRenderWindow()->SetMultiSamples(0);
-
+	
 	// Prepare all the rendering passes for vtkMyShaderPass
 	vtkCameraPass *cameraP = vtkCameraPass::New();
 
@@ -232,7 +238,7 @@ void additive::slot_afterShowWindow()
 	(static_cast<vtkOpenGLRenderer *>(renderer.GetPointer()))->SetPass(cameraP);
 
 	qv->show();
-	qv->update();
+	//qv->update();
 	renderWindow->Render();
 
 	vtkSmartPointer<QVTKInteractor> renderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
@@ -366,6 +372,29 @@ void additive::readFile(char * filename)
 	float lightPos[3] = { 0, 0, 0 };
 	float shininess = 1;
 
+	renderer->AutomaticLightCreationOff();
+	renderer->RemoveAllLights();
+
+	vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
+	//light->SetLightTypeToSceneLight();
+	light->SetLightTypeToCameraLight();
+	//light->SetLightTypeToHeadlight();
+	light->SetPosition(0, 0, 1);
+
+	float amb = 0.4;
+	float diff = 0.6;
+	float specc = 0.4;
+
+	light->SetPositional(true);
+	light->SetAmbientColor(amb, amb, amb - (amb / 2.0));
+	light->SetDiffuseColor(diff, diff, diff);
+	light->SetSpecularColor(specc, specc, specc);
+	light->SetIntensity(2.0);
+	light->SetFocalPoint(0, 0, 0);
+
+	renderer->AddLight(light);
+
+
 	float r, g, b;
 	srand(time(nullptr));
 
@@ -400,7 +429,7 @@ void additive::readFile(char * filename)
 
 		vtkPolyDataNormals *dataset = vtkPolyDataNormals::New();
 		dataset->SetInputData(nextMesh);
-		dataset->ComputePointNormalsOff();
+		dataset->ComputePointNormalsOn();
 		dataset->ComputeCellNormalsOff();
 		//dataset->FlipNormalsOff();
 		dataset->SplittingOn();
@@ -479,20 +508,20 @@ void additive::readFile(char * filename)
 		meshes[z].actor = vtkSmartPointer<vtkActor>::New();
 		meshes[z].actor->SetMapper(mapper);
 		meshes[z].actor->GetProperty()->SetInterpolationToPhong();
-
 		meshes[z].actor->GetProperty()->BackfaceCullingOff();
 
 		//meshes[z].actor->GetProperty()->EdgeVisibilityOn();
-		meshes[z].actor->GetProperty()->SetSpecular(.3);
-		meshes[z].actor->GetProperty()->SetSpecularColor(0.5, 0.5, 0.5);
-		//meshes[z].actor->GetProperty()->SetSpecularPowerle(80);
+		meshes[z].actor->GetProperty()->SetSpecular(0.1);
+		meshes[z].actor->GetProperty()->SetSpecularPower(20);
+		meshes[z].actor->GetProperty()->SetSpecularColor(1, 1, 1);
+		
 
-		//meshes[z].actor->GetProperty()->SetAmbientColor(1.0, 1.0, 1.0);
-		//meshes[z].actor->GetProperty()->SetAmbient(0.1);
+		meshes[z].actor->GetProperty()->SetAmbientColor(r, g, b);
+		meshes[z].actor->GetProperty()->SetAmbient(0.2);
 
 		meshes[z].actor->GetProperty()->SetOpacity(1.0);	// myopacity
 		meshes[z].actor->GetProperty()->SetDiffuseColor(r, g, b);
-		//meshes[z].actor->GetProperty()->SetDiffuse(1.0);
+		meshes[z].actor->GetProperty()->SetDiffuse(0.6);
 		//meshes[z].actor->GetProperty()->FrontfaceCullingOn();	// culling on
 		//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture);
 
@@ -655,28 +684,7 @@ void additive::readFile(char * filename)
 	//renderer->AddActor(actorrr);
 
 	// get all stuff
-	renderer->AutomaticLightCreationOff();
-	renderer->RemoveAllLights();
 
-	vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
-	//light->SetLightTypeToSceneLight();
-	light->SetLightTypeToCameraLight();
-	//light->SetLightTypeToCameraLight();
-	light->SetPosition(0, 0, 1);
-
-	light->SetPositional(true);
-	//light->SetIntensity(5);
-	light->SetFocalPoint(0, 0, 0);
-	///light->setlight
-	//light->SetPosition(0, 0, 0);
-	//light->SetPositional(true); // required for vtkLightActor below
-	//light->SetConeAngle(10);
-	//light->SetFocalPoint(lightFocalPoint[0], lightFocalPoint[1], lightFocalPoint[2]);
-	//light->SetDiffuseColor(.5,.5,.5);
-	//light->SetAmbientColor(0.8,0.8,0.0);
-	//light->SetIntensity(.5);
-	//light->SetSpecularColor(1,1,0);
-	renderer->AddLight(light);
 	//renderer->GetLights()->InitTraversal();
 	//vtkLight * x = renderer->GetLights()->GetNextItem();
 	//x->SetPosition(100, 0, 0);
