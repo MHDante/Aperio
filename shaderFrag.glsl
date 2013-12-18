@@ -31,13 +31,13 @@ void phongLighting()
 	Idiff = clamp(Idiff, 0.0, 1.0);     
 
 	// calculate Specular Term:
-	vec4 Ispec =  gl_FrontMaterial.specular * gl_LightSource[0].specular * 
+	vec4 Ispec = gl_FrontMaterial.specular * gl_LightSource[0].specular * 
 				  pow(max(dot(R,E),0.0), 0.3 * gl_FrontMaterial.shininess);
 	Ispec = clamp(Ispec, 0.0, 1.0); 
 	
 	// Calculate final color:
-	final_color  = Iamb + Idiff + Ispec;
-	
+	//final_color  = Iamb + Idiff + Ispec;
+	final_color =  gl_FrontMaterial.emission + Iamb + Idiff + Ispec;
 	//final_color = texelColor;
 	//final_color = vec4(mouse.x, 0, 0, 1);
 }

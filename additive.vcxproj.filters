@@ -86,6 +86,9 @@
     <ClCompile Include="obj_parser.cpp">
       <Filter>Source Files\OBJReader</Filter>
     </ClCompile>
+    <ClCompile Include="DepthPeeling.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_additive.h">
@@ -111,6 +114,9 @@
     </ClInclude>
     <ClInclude Include="obj_parser.h">
       <Filter>Header Files\OBJReader</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthPeeling.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

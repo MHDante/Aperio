@@ -10,6 +10,7 @@ additive::additive(QWidget *parent, Qt::WFlags flags)
 	ui.setupUi(this);
 
 	_listWidget = ui.listWidget;
+	_viewWidget = nullptr;
 
 	// Connect slots
 	QTimer::singleShot(0, this, SLOT(slot_afterShowWindow()));
@@ -71,6 +72,21 @@ void additive::resizeInternal(const QSize &newWindowSize, bool using_preview)
 		newRect.setCoords(central.topLeft().x(), central.topLeft().y(), newWindowSize.width() - margin, newWindowSize.height() - margin * 3);
 	}
 	ui.centralWidget2->setGeometry(newRect);
+
+	if (_viewWidget)
+	{
+		if (_viewWidget->HUDTexture)
+		{
+			_viewWidget->myHUDCam->setViewport(0, 0, _viewWidget->width(), _viewWidget->height());
+			_viewWidget->renderCam->setViewport(0, 0, _viewWidget->width(), _viewWidget->height());
+			
+			_viewWidget->HUDTexture->setTextureSize(_viewWidget->width(), _viewWidget->height());
+			_viewWidget->HUDTexture->dirtyTextureObject();
+			
+			_viewWidget->renderCam->setRenderingCache(0);
+			_viewWidget->myHUDCam->setRenderingCache(0);
+		}
+	}
 }
 
 // ------------------------------------------------------------------------

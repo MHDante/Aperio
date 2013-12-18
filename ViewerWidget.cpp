@@ -9,6 +9,7 @@
 #include "obj_parser.h"
 
 //#include "carve/geometry.hpp"
+#include <osgFX/Outline>
 
 using namespace osg;
 
@@ -157,7 +158,7 @@ QWidget* ViewerWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, osg::Node* sce
 
 	float bgcolor[3] = { 28, 100, 160 };
 	camera->setClearColor(osg::Vec4(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0, 1.0));
-	camera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	camera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	camera->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
 	camera->setProjectionMatrixAsPerspective(45.0f, static_cast<double>(traits->width) / static_cast<double>(traits->height), 1.0f, 10000.0f);
 
@@ -170,6 +171,7 @@ QWidget* ViewerWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, osg::Node* sce
 osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow(int x, int y, int w, int h, const std::string& name, bool windowDecoration)
 {
 	osg::DisplaySettings* ds = osg::DisplaySettings::instance().get();
+
 	osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
 	traits->windowName = name;
 	traits->windowDecoration = windowDecoration;
@@ -181,7 +183,7 @@ osgQt::GraphicsWindowQt* ViewerWidget::createGraphicsWindow(int x, int y, int w,
 	traits->alpha = ds->getMinimumNumAlphaBits();
 	traits->stencil = ds->getMinimumNumStencilBits();
 	traits->sampleBuffers = ds->getMultiSamples();
-	traits->samples = ds->getNumMultiSamples();
+	traits->samples = 2;// ds->getNumMultiSamples();	// smoother
 	
 	return new osgQt::GraphicsWindowQt(traits.get());
 }
@@ -214,18 +216,55 @@ void ViewerWidget::loadData(std::string filename)
 	
 	_a->_listWidget->clear();
 
+	// Create HUD Cam that draws HUDTexture on-screen (We use HUDTexture for render-to-texture, FBO)
+	myHUDCam = createHUDCamera();
+
+	// Create a HUD texture that attaches to FBO (HUDTexture is drawn to screen)
+	HUDTexture = new osg::Texture2D();
+	HUDTexture->setTextureSize(this->width(), this->height());
+	HUDTexture->setInternalFormat(GL_RGBA);
+	HUDTexture->setFilter(osg::Texture2D::MIN_FILTER, osg::Texture2D::LINEAR);
+	HUDTexture->setFilter(osg::Texture2D::MAG_FILTER, osg::Texture2D::LINEAR);
+
+	ref_ptr<Geode> myHUDImage = createHUDImageGeode(HUDTexture, 0, 0, this->width(), this->height());
+	myHUDCam->addChild(myHUDImage);
+
+	// Create a RenderCamera - where our scene is, attaching HUDTexture to FBO (so we can render-to-texture instead of screen)
+	// and then draw that texture on screen in HUD Cam
+	renderCam = new osg::Camera();
+	renderCam->setViewport(0, 0, this->width(), this->height());
+	float bgcolor[3] = { 28, 100, 160 };
+	renderCam->setClearColor(osg::Vec4(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0, 1));
+	renderCam->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	renderCam->setRenderOrder(osg::Camera::PRE_RENDER);
+	renderCam->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);	
+	renderCam->attach(osg::Camera::COLOR_BUFFER, HUDTexture.get(), 0, 0, false, 1, 1);
+
+	// Create group containing both cams
+	ref_ptr<osg::Group> myGroup = new osg::Group();
+	myGroup->addChild(myHUDCam);
+	myGroup->addChild(renderCam);
+
+	// Start the parser
 	unique_ptr<obj::obj_parser> parser(new obj::obj_parser());
 	parser->parse(filename);
 	
-	ref_ptr<osg::Group> mainroot = new osg::Group();
+	//ref_ptr<osg::Group> mainroot = new osg::Group();
 	ref_ptr<osg::Group> root = new osg::Group();
+	//osg::Node *sub_model = osgDB::readNodeFile("lz.osg");
 
 	ref_ptr<osg::MatrixTransform> transform = new osg::MatrixTransform();
 	transform->setMatrix(osg::Matrix::rotate(osg::DegreesToRadians(90.0), osg::Vec3(1, 0, 0)));
 	transform->addChild(root);
 
-	mainroot->addChild(transform);
-
+	//ref_ptr<osgFX::Outline> outline = new osgFX::Outline();
+	//float rgb[4] = { 255, 170, 64, 255};
+	//outline->setColor(osg::Vec4(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0, rgb[3] / 255.0));
+	//outline->setWidth(1.75);
+	//outline->setEnabled(false);
+	//outline->addChild(transform);
+	
 	// Add Light
 	ref_ptr<osg::Light> pLight = new osg::Light();
 	pLight->setLightNum(0);	
@@ -349,7 +388,6 @@ void ViewerWidget::loadData(std::string filename)
 		if (i == 0)
 			myGeom = shapeGeometry;
 		
-			
 		// Modify colour for each Geode
 		if (parser->themeshes.size() > 1) // assign a random colour if there's more than one object
 		{
@@ -370,11 +408,6 @@ void ViewerWidget::loadData(std::string filename)
 		_a->_listWidget->addItem(currentmesh.name);
 	}
 	Utility::end_clock('a');
-
-
-
-	this->getView(0)->setSceneData(mainroot);
-
 
 	//	for (int j = 0; j < shapes.at(i).mesh.positions.size() / 3; j++) {
 	//		
@@ -568,6 +601,7 @@ void ViewerWidget::loadData(std::string filename)
 
 	stateOne->setMode(GL_LIGHTING, osg::StateAttribute::ON);
 	stateOne->setMode(GL_LIGHT0, osg::StateAttribute::ON);
+
 	//stateOne->setAttribute(new osg::PolygonMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE));
 
 	//ref_ptr<osg::ShadeModel> shadeModel = new osg::ShadeModel();
@@ -578,7 +612,7 @@ void ViewerWidget::loadData(std::string filename)
 	//cullFace->setMode(osg::CullFace::FRONT);
 	//stateOne->setAttributeAndModes(cullFace);
 
-	transform->setStateSet(stateOne);
+//	transform->setStateSet(stateOne);
 
 	ref_ptr<osg::Shader> vertShader = new osg::Shader(osg::Shader::VERTEX);
 	vertShader->loadShaderSourceFromFile("shader.glsl");
@@ -606,7 +640,10 @@ void ViewerWidget::loadData(std::string filename)
 
 	//ref_ptr<osg::Camera> projection2D = createHUD();
 	//mainroot->addChild(projection2D);
+	//this->getView(0)->setSceneData(projection2D);
 	
+	transform->setStateSet(stateOne);
+
 	//// Perform CSG
 	//unique_ptr<carve::mesh::MeshSet<3> > first = geomToMeshSet(myGeom);
 	//unique_ptr<carve::mesh::MeshSet<3> > second = makeCube(0.00, carve::math::Matrix::TRANS(0, 0, 0));
@@ -627,10 +664,60 @@ void ViewerWidget::loadData(std::string filename)
 	//osgGA::TrackballManipulator* manip = dynamic_cast<osgGA::TrackballManipulator*>(this->getView(0)->getCameraManipulator());
 	//manip->home(0);
 
+	/*osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("lz.osg");
+	osg::ref_ptr<osg::Node> sub_model = osgDB::readNodeFile("glider.osg");
+
+	int tex_width = this->width();
+	int tex_height = this->height();
+
+	osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D();
+	texture->setTextureSize(tex_width, tex_height);
+	texture->setInternalFormat(GL_RGBA);
+	texture->setFilter(osg::Texture2D::MIN_FILTER, osg::Texture2D::LINEAR);
+	texture->setFilter(osg::Texture2D::MAG_FILTER, osg::Texture2D::LINEAR);
+
+	FindTextureVisitor ftv(texture.get());
+	model->accept(ftv);
+
+	ref_ptr<osg::Camera> camera = new osg::Camera;
+	camera->setViewport(0, 0, tex_width, tex_height);
+	camera->setClearColor(osg::Vec4(1, 1, 1, 0));
+	camera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	camera->setRenderOrder(osg::Camera::PRE_RENDER);
+	camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);
+	camera->attach(osg::Camera::COLOR_BUFFER, texture.get());
+	camera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
+	camera->addChild(sub_model.get());
+
+	camera->setViewMatrixAsLookAt(osg::Vec3(0, 1, 0), osg::Vec3(0, 0, 0), osg::Vec3(0, 1, 0));
+
+	this->getView(0)->setSceneData(sub_model);
+	*/
+	//osg::ref_ptr<osg::Node> sub_model = osgDB::readNodeFile("glider.osg");
+
+	ref_ptr<osg::StateSet> stateTwo = myHUDCam->getOrCreateStateSet();
+	
+	stateTwo->setTextureAttributeAndModes(0, HUDTexture, osg::StateAttribute::ON);
+
+	ref_ptr<osg::Shader> vertShader2 = new osg::Shader(osg::Shader::VERTEX);
+	vertShader->loadShaderSourceFromFile("shader2.glsl");
+	ref_ptr<osg::Shader> fragShader2 = new osg::Shader(osg::Shader::FRAGMENT);
+	fragShader->loadShaderSourceFromFile("shaderFrag2.glsl");
+
+	ref_ptr<osg::Program> program2 = new osg::Program();
+	program2->addShader(vertShader2);
+	program2->addShader(fragShader2);
+
+
+
+	renderCam->addChild(transform);
+	this->getView(0)->setSceneData(myGroup);
+
 	_a->print_statusbar("Ready.");
 }
 
-ref_ptr<Camera> ViewerWidget::createHUD()
+ref_ptr<Camera> ViewerWidget::createHUDCamera()
 {
 	ref_ptr<osg::Camera> hudCamera = new osg::Camera;
 	hudCamera->setClearMask(0);
@@ -640,23 +727,37 @@ ref_ptr<Camera> ViewerWidget::createHUD()
 	hudCamera->setProjectionMatrix(osg::Matrix::ortho2D(0, this->width(), 0, this->height()));
 	hudCamera->setViewMatrix(osg::Matrix::identity());
 
+	// Set modelview state sets
+	hudCamera->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	hudCamera->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
+
+	hudCamera->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	hudCamera->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	hudCamera->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+
+	return hudCamera;
+}
+ref_ptr<Camera> ViewerWidget::createHUD()
+{
+	ref_ptr<osg::Camera> hudCamera = createHUDCamera();
+
 	// This geode contains the text
 	ref_ptr<osg::Geode> geodeText = createHUDTextGeode("Console", 0, .3 * height(), .02 * width());
 
 	// This geode contains the image
-	ref_ptr<osg::Geode> geodeImage = createHUDImageGeode("luigi.tga", 0, 0, .2 * width(), .3 * height());
+
+	// read in image/texture
+	ref_ptr<osg::Texture2D> HUDTexture = new osg::Texture2D();
+	HUDTexture->setDataVariance(osg::Object::DYNAMIC);
+	ref_ptr<osg::Image> hudImage;
+	hudImage = osgDB::readImageFile("luigi.tga");
+	HUDTexture->setImage(hudImage);
+
+	ref_ptr<osg::Geode> geodeImage = createHUDImageGeode(HUDTexture, 0, 0, .2 * width(), .3 * height());
 
 	// Add the geodes to modelview
 	hudCamera->addChild(geodeText);
 	hudCamera->addChild(geodeImage);
-
-	// Set modelview state sets
-	hudCamera->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-	hudCamera->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
-		
-	hudCamera->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	hudCamera->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	hudCamera->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
 
 	ref_ptr<osg::Material> mat = new osg::Material();
 	mat->setAlpha(osg::Material::FRONT_AND_BACK, .5);
@@ -682,15 +783,8 @@ ref_ptr<osg::Geode> ViewerWidget::createHUDTextGeode(std::string text, float x, 
 	return geodeText;
 }
 
-ref_ptr<osg::Geode> ViewerWidget::createHUDImageGeode(std::string filename, float x, float y, float w, float h)
+ref_ptr<osg::Geode> ViewerWidget::createHUDImageGeode(ref_ptr<osg::Texture2D> &HUDTexture, float x, float y, float w, float h)
 {
-	// read in image/texture
-	ref_ptr<osg::Texture2D> HUDTexture = new osg::Texture2D();
-	HUDTexture->setDataVariance(osg::Object::DYNAMIC);
-	ref_ptr<osg::Image> hudImage;
-	hudImage = osgDB::readImageFile(filename);
-	HUDTexture->setImage(hudImage);
-
 	// create background geometry
 	ref_ptr<osg::Geometry> HUDBackgroundGeometry = new osg::Geometry();
 

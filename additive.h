@@ -85,6 +85,9 @@ public:
 	/// </summary>
 	void slot_open()
 	{
+		if (path.isEmpty())
+			path = QDir::currentPath();
+
 		//pause = true;
 
 		QString selectedFilter;
