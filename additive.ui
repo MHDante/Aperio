@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>additiveClass</class>
+ <widget class="QMainWindow" name="additiveClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>635</width>
+    <height>590</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>OpenSlider</string>
+  </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget{
+	color: #dddddd;
+	font: 10pt &quot;Lucida Sans&quot;;
+	selection-background-color: #FEE728;
+}
+
+#centralWidget, QLineEdit, QSlider, QDial {
+background: #111111;
+}
+QMenuBar {
+	background-color:#3C3C3C;
+	color: #ffffff;
+	selection-color: #000000;
+
+	font: 10pt &quot;Lucida Sans&quot;;
+	padding: 5px;
+}
+QMenuBar::item:selected { /* when selected using mouse or keyboard */
+	background: #FEE728;
+	color: #444444;
+ }
+
+QStatusBar {
+	background-color: #111111;
+	color: #000;
+	padding: 5px;
+}
+
+QMenu  {
+
+	font: 10pt &quot;Lucida Sans&quot;;
+	/*	gridline-color: rgb(167, 207, 255);*/
+	selection-color: #444444;
+	color: #ffffff;
+	background-color: #222222;
+
+/*	border: ;/*#565048;*/
+
+	border-left: 1px solid #aaaaaa;
+	border-right: 1px solid #aaaaaa;
+	border-bottom: 1px solid #aaaaaa;
+}
+
+
+#centralWidget2 {
+	border: 2px solid #D0592A;
+}
+
+QPushButton {
+
+background: rgba(86,80,72,150);
+
+border-radius: 4px;
+color: #ffffff;
+
+padding: 5px;
+
+/*background: rgba(85, 120, 10, 150);*/
+border: none;/*1px solid #808080;*/
+/*border: 1px solid black;*/
+}
+
+QPushButton:hover {
+/*background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #bbb);*/
+background: #82766A;/* #6A8B0F;*/
+
+
+}
+
+QPushButton:pressed {
+/*background: qradialgradient(cx: 0.4, cy: -0.1,
+fx: 0.4, fy: -0.1,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);*/
+background: #474037;
+}
+
+QCheckBox, QRadioButton {	
+ 
+	border-color: rgb(255, 255, 255);
+	alternate-background-color: rgb(120, 255, 96);
+}
+
+/** tabs ***/
+#tab, #tab_2, #tab_3, QListView  {
+	background: rgba(0, 0, 0, 0);
+	color: #dddddd;
+}
+
+ QTabWidget::pane { /* The tab widget frame */
+	border: none;
+	background: rgba(57, 60, 46, 255);
+ }
+
+QTabBar::tab {
+
+color: #dddddd;
+border-top-left-radius: 10px;
+border-bottom-right-radius: 10px;
+border-top-right-radius: 10px;
+
+margin-right: 2px;
+
+/*background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #888);*/
+
+background: #524A44;
+
+     min-width: 8ex;
+     /*padding: 5px;*/
+	/*margin-right: 5px;*/
+
+	padding-right: 20px;
+	padding-left: 20px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+QTabBar::tab:hover
+{
+background: #CF7C2B;
+color: #ffffff;
+}
+QTabBar::tab:selected  {
+/*background: qradialgradient(cx: 0.3, cy: -0.4,
+fx: 0.3, fy: -0.4,
+radius: 1.35, stop: 0 #fff, stop: 1 #ddd);*/
+
+background: rgba(208, 89, 42, 200);
+
+color: #ffffff;
+ }
+
+
+QLineEdit {
+color: black;
+selection-color: black;
+background: white;   
+border: none;                     
+} 
+
+ QCheckBox::indicator
+  {
+	width: 18px;
+	height: 18px;
+  }
+ QCheckBox::indicator:checked
+  {
+	background: black;
+/*	 border-left: 2px solid blue;*/
+	/*image: url(:/additive/checked.gif);*/
+  }
+  QCheckBox::indicator:unchecked
+  {
+	background: white;
+/*	 border: 2px solid white;*/
+	/*image: url(:/additive/unchecked.gif);*/
+  }
+
+
+
+
+
+QScrollBar:vertical  {
+
+     background: #988C84;
+     width: 15px;
+     margin: 20px 0 20px 0;
+/*	border-top: 1px solid white;
+	border-bottom: 1px solid white;*/
+
+ }
+ QScrollBar::handle:vertical  {
+     background: #392C23;
+	min-height: 10px;
+
+ }
+ QScrollBar::add-line:vertical  {
+
+     background: #7A6354;
+     height: 20px;
+     subcontrol-position: bottom;
+     subcontrol-origin: margin;
+ }
+ 
+ QScrollBar::add-line:vertical:hover, QScrollBar::sub-line:vertical:hover   {
+	background: #B09888;
+
+}
+
+ QScrollBar::sub-line:vertical  {
+/*	border: 2px solid #ffffff;*/
+
+     background: #7A6354;
+     height: 20px;
+     subcontrol-position: top;
+     subcontrol-origin: margin;
+ }
+ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical  {
+     width: 3px;
+     height: 4px;
+     background: #392C23;
+ }
+
+ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical  {
+     background: none;
+}
+
+QSlider::handle:horizontal, QSlider::handle:vertical {
+ 	background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #FA7401, stop:1 #E39B51);
+
+background-color: rgba(86,80,72,200); /*#565048;*/
+
+	height: 1px;
+	max-height: 1px;
+/*	border-radius: 2px;*/
+
+/*	border: 1px solid #777777;*/
+	border: 1px solid #524A44;
+
+
+}
+
+QSlider::handle:horizontal:hover, QSlider::handle:vertical:hover {
+background: #82766A;
+
+}</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QPushButton" name="btnHello">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>30</y>
+      <width>100</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Translucency</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider">
+    <property name="geometry">
+     <rect>
+      <x>139</x>
+      <y>30</y>
+      <width>131</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="value">
+     <number>50</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QSlider" name="verticalSlider">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>20</y>
+      <width>22</width>
+      <height>121</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::LeftToRight</enum>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="value">
+     <number>50</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+    <property name="invertedAppearance">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>90</y>
+      <width>151</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>90</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Search</string>
+    </property>
+   </widget>
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>10</y>
+      <width>301</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>2</number>
+    </property>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Systems</string>
+     </attribute>
+     <widget class="QCheckBox" name="checkBox">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>40</y>
+        <width>101</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Skeletals</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="checkBox_2">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>40</y>
+        <width>101</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Muscles</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Rendering</string>
+     </attribute>
+     <widget class="QRadioButton" name="radioButton">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>40</y>
+        <width>111</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Solid</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="radioButton_2">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>40</y>
+        <width>111</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Wireframe</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_3">
+     <attribute name="title">
+      <string>Groups</string>
+     </attribute>
+     <widget class="QListWidget" name="listWidget">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>299</width>
+        <height>100</height>
+       </rect>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="centralWidget2" native="true">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>160</y>
+      <width>601</width>
+      <height>361</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="mouseTracking">
+     <bool>false</bool>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="margin">
+      <number>0</number>
+     </property>
+    </layout>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>140</x>
+      <y>10</y>
+      <width>46</width>
+      <height>13</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Opacity</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>635</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionPreview"/>
+    <addaction name="actionOpen"/>
+    <addaction name="actionFullscreen"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionPreview">
+   <property name="text">
+    <string>Toggle Preview</string>
+   </property>
+   <property name="shortcut">
+    <string>P</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionFullscreen">
+   <property name="text">
+    <string>FullScreen</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Return</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="additive.qrc"/>
+ </resources>
+ <connections/>
+</ui>
