@@ -129,6 +129,6 @@ void additive::slot_afterShowWindow()
 	QApplication::processEvents();	// Process again to make sure viewer shows up before loading data
 
 	// Finally, Load viewer data
-	_viewWidget->loadData("1luigi.obj");
+	_viewWidget->loadData("heart.obj");
 }
 

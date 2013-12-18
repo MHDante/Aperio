@@ -10,6 +10,7 @@
 
 //#include "carve/geometry.hpp"
 #include <osgFX/Outline>
+#include "DepthPeeling.h"
 
 using namespace osg;
 
@@ -700,18 +701,11 @@ void ViewerWidget::loadData(std::string filename)
 	
 	stateTwo->setTextureAttributeAndModes(0, HUDTexture, osg::StateAttribute::ON);
 
-	ref_ptr<osg::Shader> vertShader2 = new osg::Shader(osg::Shader::VERTEX);
-	vertShader->loadShaderSourceFromFile("shader2.glsl");
-	ref_ptr<osg::Shader> fragShader2 = new osg::Shader(osg::Shader::FRAGMENT);
-	fragShader->loadShaderSourceFromFile("shaderFrag2.glsl");
-
-	ref_ptr<osg::Program> program2 = new osg::Program();
-	program2->addShader(vertShader2);
-	program2->addShader(fragShader2);
-
-
-
 	renderCam->addChild(transform);
+
+	//ref_ptr<osg::Node> sub_model = osgDB::readNodeFile("lz.osg");
+
+	//renderCam->addChild(sub_model);
 	this->getView(0)->setSceneData(myGroup);
 
 	_a->print_statusbar("Ready.");
@@ -720,7 +714,7 @@ void ViewerWidget::loadData(std::string filename)
 ref_ptr<Camera> ViewerWidget::createHUDCamera()
 {
 	ref_ptr<osg::Camera> hudCamera = new osg::Camera;
-	hudCamera->setClearMask(0);
+	hudCamera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	hudCamera->setRenderOrder(osg::Camera::POST_RENDER);
 	hudCamera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
 
@@ -729,14 +723,25 @@ ref_ptr<Camera> ViewerWidget::createHUDCamera()
 
 	// Set modelview state sets
 	hudCamera->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-	hudCamera->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
+	//hudCamera->getOrCreateStateSet()->setRenderBinDetails(11, "RenderBin");
 
 	hudCamera->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
-	hudCamera->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
-	hudCamera->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
+	//hudCamera->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	//hudCamera->getOrCreateStateSet()->setMode(GL_BLEND, osg::StateAttribute::ON);
 
+	ref_ptr<osg::Shader> vertShader2 = new osg::Shader(osg::Shader::VERTEX);
+	vertShader2->loadShaderSourceFromFile("shader2.glsl");
+	ref_ptr<osg::Shader> fragShader2 = new osg::Shader(osg::Shader::FRAGMENT);
+	fragShader2->loadShaderSourceFromFile("shaderFrag2.glsl");
+
+	ref_ptr<osg::Program> program2 = new osg::Program();
+	program2->addShader(vertShader2);
+	program2->addShader(fragShader2);
+
+	hudCamera->getOrCreateStateSet()->setAttributeAndModes(program2);
 	return hudCamera;
 }
+
 ref_ptr<Camera> ViewerWidget::createHUD()
 {
 	ref_ptr<osg::Camera> hudCamera = createHUDCamera();
