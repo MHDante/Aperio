@@ -45,6 +45,12 @@
     <Filter Include="Header Files\OBJReader">
       <UniqueIdentifier>{4d51f8a0-9168-4b86-bf6b-1678abea19a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\DepthPeeling">
+      <UniqueIdentifier>{1ba48681-46cc-4d6e-87b2-f40dd4d978c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\DepthPeeling">
+      <UniqueIdentifier>{b908b687-6c0e-4537-b4c2-46aba1289e9d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -86,8 +92,11 @@
     <ClCompile Include="obj_parser.cpp">
       <Filter>Source Files\OBJReader</Filter>
     </ClCompile>
+    <ClCompile Include="TransparencyGroup.cpp">
+      <Filter>Source Files\DepthPeeling</Filter>
+    </ClCompile>
     <ClCompile Include="DepthPeeling.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\DepthPeeling</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -115,8 +124,11 @@
     <ClInclude Include="obj_parser.h">
       <Filter>Header Files\OBJReader</Filter>
     </ClInclude>
+    <ClInclude Include="TransparencyGroup.h">
+      <Filter>Header Files\DepthPeeling</Filter>
+    </ClInclude>
     <ClInclude Include="DepthPeeling.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\DepthPeeling</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

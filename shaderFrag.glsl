@@ -1,4 +1,4 @@
-#version 120
+#version 130
 //#extension GL_EXT_geometry_shader4 : enable
 
 varying vec3 n;
@@ -22,7 +22,7 @@ void phongLighting()
 
 	//calculate Ambient Term:  
 	//vec4 Iamb = texelColor.rgba * gl_FrontMaterial.ambient * gl_LightSource[0].ambient;    
-	vec4 Iamb = gl_Color * gl_FrontMaterial.ambient * gl_LightSource[0].ambient;   
+	vec4 Iamb =  gl_Color * gl_FrontMaterial.ambient * gl_LightSource[0].ambient;   
 
 	//calculate Diffuse Term:  
 	//vec4 Idiff = texelColor.rgba * gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse *
@@ -37,7 +37,8 @@ void phongLighting()
 	
 	// Calculate final color:
 	//final_color  = Iamb + Idiff + Ispec;
-	final_color =  gl_FrontMaterial.emission + Iamb + Idiff + Ispec;
+	final_color =  vec4(vec3(gl_FrontMaterial.emission + Iamb + Idiff + Ispec), gl_Color.a);
+	//final_color = vec4(mouse.x, 0, 0, 1);
 	//final_color = texelColor;
 	//final_color = vec4(mouse.x, 0, 0, 1);
 }
@@ -52,11 +53,12 @@ void main (void)
 	float ee = 0.5;
 	float nn = 0.5;
 
-	float d = pow(pow(abs(v.y - mouseV.y) / 1.0, 2.0/ee) + pow(abs(v.x - mouseV.x) / 1.0, 2.0/ee), ee/nn) + pow(abs(v.z - mouseV.z) / 1.0, 2.0/nn) - 1.0;
+	//float d = pow(pow(abs(v.y - mouseV.y) / 1.0, 2.0/ee) + pow(abs(v.x - mouseV.x) / 1.0, 2.0/ee), ee/nn) + pow(abs(v.z - mouseV.z) / 1.0, 2.0/nn) - 1.0;
 	  
-	if (d < 10)
+	 float d = sqrt(pow(v.y - mouseV.y, 2) + pow(v.z - mouseV.z, 2) + pow(v.x - mouseV.x, 2));
+	if (d < 1)
 	{
-		//discard;
+		discard;
 	}
   
 	//if ()

@@ -10,7 +10,14 @@
 
 //#include "carve/geometry.hpp"
 #include <osgFX/Outline>
-#include "DepthPeeling.h"
+#include <osgFX/AnisotropicLighting>
+#include <osgFX/Cartoon>
+#include <osgFX/Scribe>
+#include <osgFX/SpecularHighlights>
+
+#include <osg/PrimitiveRestartIndex>
+
+#include "TransparencyGroup.h"
 
 using namespace osg;
 
@@ -93,7 +100,7 @@ ref_ptr<osg::Geode> meshSetToGeode(unique_ptr<carve::mesh::MeshSet<3> > &c)
 	Utility::end_clock('e');
 	std::cout << "done mesh to geom\n";
 
-	return shapeGeode;
+	return shapeGeode.release();
 }
 /// ---------------------------------------------------------------------------
 /// <summary> Returns a cube in Carve CSG format (MeshSet)
@@ -135,8 +142,9 @@ ViewerWidget::ViewerWidget(additive* a, osgViewer::ViewerBase::ThreadingModel th
 
 	// Set up signals and slots for QT
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(update()));
-	float fps = 50.0;
-	_timer.start(1000.0 / fps);
+	//float fps = 50.0;
+	//_timer.start(1000.0 / fps);
+	_timer.start(0);
 
 	QGridLayout* grid = new QGridLayout;
 	grid->setMargin(2);
@@ -157,12 +165,14 @@ QWidget* ViewerWidget::addViewWidget(osgQt::GraphicsWindowQt* gw, osg::Node* sce
 
 	const osg::GraphicsContext::Traits* traits = gw->getTraits();
 
-	float bgcolor[3] = { 28, 100, 160 };
+	//float bgcolor[3] = { 28, 100, 160 };
+	float bgcolor[3] = { 100, 100, 100 };
 	camera->setClearColor(osg::Vec4(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0, 1.0));
 	camera->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+	//camera->setClearMask(0);
 	camera->setViewport(new osg::Viewport(0, 0, traits->width, traits->height));
 	camera->setProjectionMatrixAsPerspective(45.0f, static_cast<double>(traits->width) / static_cast<double>(traits->height), 1.0f, 10000.0f);
-
+	
 	view->addEventHandler(new osgViewer::StatsHandler);
 	view->setCameraManipulator(new osgGA::TrackballManipulator);
 
@@ -234,13 +244,18 @@ void ViewerWidget::loadData(std::string filename)
 	// and then draw that texture on screen in HUD Cam
 	renderCam = new osg::Camera();
 	renderCam->setViewport(0, 0, this->width(), this->height());
-	float bgcolor[3] = { 28, 100, 160 };
+	//float bgcolor[3] = { 28, 100, 160 };
+	float bgcolor[3] = { 100, 100, 100};
 	renderCam->setClearColor(osg::Vec4(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0, 1));
 	renderCam->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//renderCam->setReferenceFrame(osg::Transform::ReferenceFrame::ABSOLUTE_RF);
+	//renderCam->setProjectionMatrixAsPerspective(45.0f, static_cast<double>(this->width()) / static_cast<double>(this->height()), 1.0f, 10000.0f);
 
 	renderCam->setRenderOrder(osg::Camera::PRE_RENDER);
 	renderCam->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);	
 	renderCam->attach(osg::Camera::COLOR_BUFFER, HUDTexture.get(), 0, 0, false, 1, 1);
+
+
 
 	// Create group containing both cams
 	ref_ptr<osg::Group> myGroup = new osg::Group();
@@ -259,12 +274,25 @@ void ViewerWidget::loadData(std::string filename)
 	transform->setMatrix(osg::Matrix::rotate(osg::DegreesToRadians(90.0), osg::Vec3(1, 0, 0)));
 	transform->addChild(root);
 
+//#include <osgFX/AnisotropicLighting>
+//#include <osgFX/Cartoon>
+//#include <osgFX/Scribe>
+//#include <osgFX/SpecularHighlights>
+
+	ref_ptr<osgFX::Cartoon> outline = new osgFX::Cartoon();
+	float rgb[4] = { 255, 170, 64, 255 };
+	outline->setOutlineColor(osg::Vec4(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0, rgb[3] / 255.0));
+	outline->setOutlineLineWidth(1);
+	//outline->setOutlineColor()
+	//outline->set
+
 	//ref_ptr<osgFX::Outline> outline = new osgFX::Outline();
 	//float rgb[4] = { 255, 170, 64, 255};
 	//outline->setColor(osg::Vec4(rgb[0] / 255.0, rgb[1] / 255.0, rgb[2] / 255.0, rgb[3] / 255.0));
-	//outline->setWidth(1.75);
+	//outline->setWidth(5);
 	//outline->setEnabled(false);
-	//outline->addChild(transform);
+	
+	outline->addChild(transform);
 	
 	// Add Light
 	ref_ptr<osg::Light> pLight = new osg::Light();
@@ -273,7 +301,7 @@ void ViewerWidget::loadData(std::string filename)
 	pLight->setDiffuse(osg::Vec4(0.6, 0.6, 0.6, 1.0));
 	pLight->setSpecular(osg::Vec4(1.0, 1.0, 1.0, 1.0));
 	
-	pLight->setPosition(osg::Vec4(0, 1, 0, 0));        // last param    w = 0.0 directional light (direction), w = 1.0 point light (position)
+	pLight->setPosition(osg::Vec4(0, 0, 0, 0));        // last param    w = 0.0 directional light (direction), w = 1.0 point light (position)
 
 	ref_ptr<osg::LightSource> pLightSource = new osg::LightSource();
 	pLightSource->setLight(pLight);
@@ -303,6 +331,12 @@ void ViewerWidget::loadData(std::string filename)
 
 		shapeGeometry->getPrimitiveSetList().reserve(currentmesh.polys.size());
 
+		//ref_ptr<osg::PrimitiveRestartIndex> pri = new osg::PrimitiveRestartIndex(1);
+		//shapeGeometry->getOrCreateStateSet()->setAttribute(pri, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+
+		//ref_ptr<osg::DrawArrays> shapeElement = new osg::DrawArrays(osg::PrimitiveSet::TRIANGLE_STRIP, 0, 50);
+		//std::cout << pri->
+		
 		for (int j = 0; j < currentmesh.polys.size(); j++)
 		{
 			// For every face (polygon)
@@ -320,8 +354,15 @@ void ViewerWidget::loadData(std::string filename)
 			//}
 			//shapeGeometry->addPrimitiveSet(shapeElement);
 
-			ref_ptr<osg::DrawElementsUInt> shapeElement = new osg::DrawElementsUInt(osg::PrimitiveSet::POLYGON, 0);
-			shapeElement->reserve(currentF.numIndices);
+
+			//shapeElement->reserve(currentF.numIndices);
+			//ref_ptr<osg::DrawElementsUInt> shapeElement = new osg::DrawElementsUInt(osg::PrimitiveSet::POLYGON);
+			
+
+			//osg::primitiveRestartIndex
+
+			
+			ref_ptr<osg::DrawElementsUInt> shapeElement = new osg::DrawElementsUInt(osg::PrimitiveSet::POLYGON);
 
 			for (int k = 0; k < currentF.numIndices; k++)	// For each index in the face
 			{
@@ -357,25 +398,57 @@ void ViewerWidget::loadData(std::string filename)
 			}
 		}
 		shapeGeometry->setVertexArray(shapeArray);
+
+		osgUtil::SmoothingVisitor::smooth(*shapeGeometry, osg::DegreesToRadians(180.0));
+
+
 		//shapeGeometry->setTexCoordArray(0, shapeArrayT, Array::BIND_PER_VERTEX);
 		//shapeGeometry->setNormalArray(shapeArrayN, Array::BIND_PER_VERTEX);
 
 		//if (computeNormals)
-			osgUtil::SmoothingVisitor::smooth(*shapeGeometry, osg::DegreesToRadians(180.0));
 
-		//cout << shapeGeometry->getVertexArray()->getNumElements();
+		//osgUtil::Tessellator tess;
+		
 
-		return shapeGeometry;
+		return shapeGeometry.release();
 	};
 
 	Utility::start_clock('a');
 
-	float r, g, b;
+	float r, g, b, a;
 	r = 1;
 	g = 1;
 	b = 1;
+	a = 1;
 
 	ref_ptr<osg::Geometry> myGeom = nullptr;
+
+	class DynamicCallBack : public Drawable::UpdateCallback
+	{
+	public:
+		void update(osg::NodeVisitor*, osg::Drawable* drawable)
+		{
+			osg::Geometry* quad = static_cast<osg::Geometry*> (drawable);
+			if (!quad) return;
+
+			osg::Vec3Array *vertices = static_cast<osg::Vec3Array*>(quad->getVertexArray());
+			if (!vertices) return;
+
+			//osg::Quat quat(osg::PI * 0.01, osg::X_AXIS);
+			//vertices->back() = quat * vertices()->back();
+
+			for (int i = 0; i < vertices->size(); i++)
+			{
+				vertices->at(i) = vertices->at(i);
+			}
+			//vertices->back() = static_cast<osg::Vec3>(vertices->back()) * -1;
+
+			quad->dirtyDisplayList();
+			quad->dirtyBound();
+
+
+		}
+	};
 
 	for (int i = 0; i < parser->themeshes.size(); i++)
 	{
@@ -397,12 +470,33 @@ void ViewerWidget::loadData(std::string filename)
 			b = ((rand() % 177 + 80) / 270.0);
 		}
 		ref_ptr<osg::Vec4Array> colorArray = new osg::Vec4Array;
-		colorArray->push_back(osg::Vec4(r, g, b, 1.0));
+		colorArray->push_back(osg::Vec4(r, g, b, a));
 		shapeGeometry->setColorArray(colorArray, Array::BIND_OVERALL);
 
-		//shapeGeometry->setUseVertexBufferObjects(true);
-		//shapeGeometry->setUseDisplayList(false);
+		if (i == 0)
+		{
+			//shapeGeometry->setUpdateCallback( new DynamicCallBack() );
+			//shapeGeometry->setUpdateCallback(nullptr);
 
+			//shapeGeometry->getOrCreateStateSet()->setRenderBinDetails(20, "DepthSortedBin");
+			//shapeGeometry->setDataVariance(Object::DYNAMIC);
+			//shapeGeometry->setUseDisplayList(false);
+			//shapeGeometry->setUseVertexBufferObjects(true);
+			shapeGeometry->setUseDisplayList(false);
+			shapeGeometry->setUseVertexBufferObjects(true);
+		}
+		else
+		{
+			//shapeGeometry->setDataVariance(Object::STATIC);
+			shapeGeometry->setUseDisplayList(true);
+			shapeGeometry->setUseVertexBufferObjects(false);
+		}
+
+		//osgUtil::TriStripVisitor tri;
+		//tri.apply(*shapeGeode);
+		//tri.stripify(*shapeGeometry);
+
+		std::cout << shapeGeometry->getNumPrimitiveSets() << std::endl;
 		root->addChild(shapeGeode);
 
 		// Add to listbox
@@ -585,19 +679,21 @@ void ViewerWidget::loadData(std::string filename)
 	//stateOne->setAttribute(pFog, osg::StateAttribute::ON);
 	//stateOne->setMode(GL_FOG, osg::StateAttribute::ON);
 
-	stateOne->setMode(GL_BLEND, osg::StateAttribute::ON);
-	stateOne->setTextureAttributeAndModes(0, myTexture, osg::StateAttribute::ON);
+	//stateOne->setTextureAttributeAndModes(0, myTexture, osg::StateAttribute::ON);
 
 	ref_ptr<osg::Material> mat = new osg::Material();
+	mat->setAlpha(osg::Material::FRONT_AND_BACK, 1.0f);
+	mat->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
 	mat->setAmbient(osg::Material::FRONT_AND_BACK, osg::Vec4(1.0, 1.0, 1.0, 1));
 	mat->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(0.8, 0.8, 0.8, 1));
 	mat->setSpecular(osg::Material::FRONT_AND_BACK, osg::Vec4(0.15, 0.15, 0.15, 1));
 	mat->setShininess(osg::Material::FRONT_AND_BACK, 15);
 	stateOne->setAttributeAndModes(mat, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
-	//ref_ptr<osg::BlendFunc> bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
-	//stateOne->setAttributeAndModes(bf);
-	//stateOne->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+	stateOne->setMode(GL_BLEND, osg::StateAttribute::ON);
+	ref_ptr<osg::BlendFunc> bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA, osg::BlendFunc::ONE_MINUS_SRC_ALPHA);
+	stateOne->setAttributeAndModes(bf);
+	stateOne->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 	//stateOne->setRenderBinDetails(10, "DepthSortedBin");
 
 	stateOne->setMode(GL_LIGHTING, osg::StateAttribute::ON);
@@ -613,7 +709,7 @@ void ViewerWidget::loadData(std::string filename)
 	//cullFace->setMode(osg::CullFace::FRONT);
 	//stateOne->setAttributeAndModes(cullFace);
 
-//	transform->setStateSet(stateOne);
+	transform->setStateSet(stateOne);
 
 	ref_ptr<osg::Shader> vertShader = new osg::Shader(osg::Shader::VERTEX);
 	vertShader->loadShaderSourceFromFile("shader.glsl");
@@ -643,7 +739,7 @@ void ViewerWidget::loadData(std::string filename)
 	//mainroot->addChild(projection2D);
 	//this->getView(0)->setSceneData(projection2D);
 	
-	transform->setStateSet(stateOne);
+	//transform->setStateSet(stateOne);
 
 	//// Perform CSG
 	//unique_ptr<carve::mesh::MeshSet<3> > first = geomToMeshSet(myGeom);
@@ -701,13 +797,176 @@ void ViewerWidget::loadData(std::string filename)
 	
 	stateTwo->setTextureAttributeAndModes(0, HUDTexture, osg::StateAttribute::ON);
 
-	renderCam->addChild(transform);
+	//ref_ptr<osgtt::TransparencyGroup> tg = new osgtt::TransparencyGroup();
+
+	//ref_ptr<osgtt::DepthPeeling> p = new osgtt::DepthPeeling(this->width(), this->height());
+	//p->setNumPasses(2);
+
+	//tg->addChild(transform, true, true);
+	//tg->setDepthPeeling(p);
+	//tg->setTransparencyMode(osgtt::TransparencyGroup::DEPTH_PEELING);
+
+	//p->setScene(transform);
+	//p->addChild(transform);
+	//p->setTexUnit(1);
+	
+	//p->addChild(transform);
+	renderCam->addChild(outline);
+	
+	//renderCam->addChild(tg);
+	//myGroup->addChild(tg);
+
+	//tg->setStateSet(stateOne);
+
 
 	//ref_ptr<osg::Node> sub_model = osgDB::readNodeFile("lz.osg");
+	//ref_ptr<osg::Node> model = osgDB::readNodeFile("glider.osg");
 
+	//
+	//osg::StateSet *state = model->getOrCreateStateSet();
+	// state->setMode(GL_BLEND, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+	// state->setAttribute(new osg::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+	// osg::Material* material = new osg::Material;
+	// material->setAmbient(osg::Material::FRONT_AND_BACK, osg::Vec4(0.2f, 0.2f, 0.2f, 0.3f));
+	// material->setDiffuse(osg::Material::FRONT_AND_BACK, osg::Vec4(0.8f, 0.8f, 0.8f, 0.3f));
+	// state->setAttribute(material, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+	 //osg::LightModel *lm = new osg::LightModel();
+	 //lm->setTwoSided(true);
+	 //state->setAttribute(lm, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+	 //(transparentTruck.get())->addChild(dt.get());
+
+
+	// The initial size set to 0, 0. We get a resize event for the right size...
+	 //DepthPeeling* depthPeeling = new DepthPeeling(0, 0);
+	 // the heat map already uses two textures bound to unit 0 and 1, so we can use TexUnit 2 for the peeling
+	//depthPeeling->setTexUnit(2);
+	 //depthPeeling->setSolidScene(sub_model.get());
+	 //depthPeeling->setTransparentScene(model.get());
+	 //this->getView(0)->setSceneData(depthPeeling->getRoot());
 	//renderCam->addChild(sub_model);
+	
+	 
+	 //this->getView(0)->setSceneData(myGroup);
 	this->getView(0)->setSceneData(myGroup);
 
+
+	class PickHandler : public osgGA::GUIEventHandler
+	{
+	public:
+		ViewerWidget* _viewerWidget;
+
+		PickHandler(ViewerWidget *viewerWidget)
+		: _viewerWidget(viewerWidget) {}
+
+		bool handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa)
+		{
+			//if (!_model) return false;
+			//osg::Matrix matrix = _model->getMatrix();
+			//if (aa.asView())
+//				std::cout << "yea";
+			//ref_ptr<osgUtil::LineSegmentIntersector> intersector - new osgUtil::LineSegmentIntersector(osgUtil::Intersector::WINDOW, ea.getX())
+			//if (ea.getEventType() != osgGA::GUIEventAdapter::RELEASE || ea.getButton() != osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON || 
+				//!(ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL))
+			//{
+//				return false;
+			//}
+
+			//osgViewer::Viewer* viewer = static_cast<osgViewer::Viewer*>(&aa);
+			osgViewer::View* view = dynamic_cast<osgViewer::View*>(&aa);
+
+			switch (ea.getEventType())
+			{
+			case (osgGA::GUIEventAdapter::DOUBLECLICK) :
+				if (view)
+				{
+					osgUtil::LineSegmentIntersector::Intersections intersections;
+					std::string gdlist = "";
+
+					if (view->computeIntersections(ea, intersections));
+					{
+						if (intersections.size() > 0)
+						{
+							osg::Vec3 point = intersections.begin()->getLocalIntersectPoint();
+							_viewerWidget->stateOne->getOrCreateUniform("mouse", osg::Uniform::FLOAT_VEC3)->set(osg::Vec3(point.x(), point.y(), point.z()));
+						}
+
+					}
+				}
+				//std::cout << "double" << std::endl;
+				break;
+			case (osgGA::GUIEventAdapter::MOVE) :
+				//std::cout << "moving" << std::endl;
+				break;
+			case(osgGA::GUIEventAdapter::DRAG) :
+				//std::cout << "dragg" << std::endl;
+				break;
+			case(osgGA::GUIEventAdapter::PUSH) :
+				//std::cout << "push" << std::endl;
+				break;
+			case(osgGA::GUIEventAdapter::RELEASE) :
+				//std::cout << "release" << std::endl;
+				break;
+			default:
+				break;
+			}
+
+			if (view )//&& ea.getButton() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON && (ea.getModKeyMask() & osgGA::GUIEventAdapter::MODKEY_CTRL) )
+			{
+				
+					//for (osgUtil::LineSegmentIntersector::Intersections::iterator hitr = intersections.begin();
+//						hitr != intersections.end(); ++hitr)
+					//{
+					//}
+
+					//ref_ptr<osg::Uniform> uniform = new osg::Uniform("x", 0.5f);
+					//ref_ptr<osg::Uniform> uniformMouse = new osg::Uniform("mouse", osg::Vec3(0, 0, 0));
+
+					//stateOne->addUniform(uniform);
+					//stateOne->addUniform(uniformMouse);
+				//osg::ref_ptr<osgUtil::LineSegmentIntersector> intersector = new osgUtil::LineSegmentIntersector(osgUtil::Intersector::WINDOW, ea.getX(), ea.getY());
+				//osgUtil::IntersectionVisitor iv(intersector.get());
+				//iv.setTraversalMask(~0x1);
+				//osgUtil::LineSegmentIntersector::Intersections intersections;
+
+				//std::string gdlist = "";
+
+				//if (viewer->computeIntersections(ea, ))
+
+				//if (intersector->containsIntersections())
+				//{
+					//osg::computeLocalToWorld(intersector->getFirstIntersection().nodePath);
+					//intersector->getFirstIntersection().
+					
+					//std::cout << "YES";
+					//osgUtil::LineSegmentIntersector::Intersection &result = *(intersector->getIntersections().begin());
+
+				//}
+			//	std::cout << ea.getX() << ", " << ea.getY() << std::endl;
+			}
+
+			
+
+			switch (ea.getKey())
+			{
+			case 'a': case 'A':
+				//matrix *= osg::Matrix::rotate(-0.1f, osg::Z_AXIS);
+				std::cout << " a";
+				break;
+			default:
+				break;
+			}
+			//_model->setMatrix(matrix);
+
+			return false;
+		}
+	protected:
+		//ref_ptr<osg::MatrixTransform> _model;
+
+	};
+
+	ref_ptr<PickHandler> pickHandler = new PickHandler(this);
+	this->getView(0)->addEventHandler(pickHandler);
+	
 	_a->print_statusbar("Ready.");
 }
 
@@ -739,7 +998,7 @@ ref_ptr<Camera> ViewerWidget::createHUDCamera()
 	program2->addShader(fragShader2);
 
 	hudCamera->getOrCreateStateSet()->setAttributeAndModes(program2);
-	return hudCamera;
+	return hudCamera.release();
 }
 
 ref_ptr<Camera> ViewerWidget::createHUD()
@@ -769,7 +1028,7 @@ ref_ptr<Camera> ViewerWidget::createHUD()
 	hudCamera->getOrCreateStateSet()->setAttributeAndModes(mat, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 
 	// Return the root (projection)
-	return hudCamera;
+	return hudCamera.release();
 }
 
 ref_ptr<osg::Geode> ViewerWidget::createHUDTextGeode(std::string text, float x, float y, float size)
@@ -785,7 +1044,7 @@ ref_ptr<osg::Geode> ViewerWidget::createHUDTextGeode(std::string text, float x, 
 	ref_ptr<osg::Geode> geodeText = new osg::Geode();
 	geodeText->addDrawable(hudText);
 
-	return geodeText;
+	return geodeText.release();
 }
 
 ref_ptr<osg::Geode> ViewerWidget::createHUDImageGeode(ref_ptr<osg::Texture2D> &HUDTexture, float x, float y, float w, float h)
@@ -821,6 +1080,6 @@ ref_ptr<osg::Geode> ViewerWidget::createHUDImageGeode(ref_ptr<osg::Texture2D> &H
 
 	geodeImage->getOrCreateStateSet()->setTextureAttributeAndModes(0, HUDTexture, osg::StateAttribute::ON);
 
-	return geodeImage;
+	return geodeImage.release();
 }
 
