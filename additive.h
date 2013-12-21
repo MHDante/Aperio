@@ -51,7 +51,7 @@ public:
 	{
 		//QMessageBox::QPushButton reply;
 		QMessageBox mb(this);
-		mb.setStyleSheet("color: white; background: black;");
+		mb.setStyleSheet("color: white; background: black; selection-color: black;");
 		mb.setWindowOpacity(0.9);
 		mb.setWindowTitle(this->windowTitle());
 		mb.setText("Are you sure you want to quit?");
@@ -191,7 +191,7 @@ public:
 		messageBox.setText("OpenSlider ");
 		messageBox.setInformativeText("1.0.0.1 (Released 12-17-2013) \n\nCopyright © 2011-2013 David Tran\n");
 		messageBox.setWindowOpacity(.85);
-		messageBox.setStyleSheet("background: rgba(0, 0, 0, 255); color: white; ");
+		messageBox.setStyleSheet("background: rgba(0, 0, 0, 255); color: white; selection-color: black;");
 
 		QPushButton *okButton = messageBox.addButton(tr("Ok"), QMessageBox::ActionRole);
 		
