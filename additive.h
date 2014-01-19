@@ -314,10 +314,28 @@ private:
 	}
 
 	// ------------------------------------------------------------------------
+	/// <summary> Slot called some milliseconds after clicking a top-level menu (File, Help, etc.)
+	/// </summary>
+	void slot_menuclick2()
+	{
+		float menu_opacity = 0.8f;
+		ui.menuHelp->setWindowOpacity(menu_opacity);
+		ui.menuFile->setWindowOpacity(menu_opacity);
+	}
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called upon clicking a top-level menu (File, Help, etc.)
+	/// </summary>
+	void slot_menuclick()
+	{
+		// Wait for menu fade-in animation to complete before setting opacity
+		QTimer::singleShot(200, this, SLOT(slot_menuclick2()));
+	}
+	// ------------------------------------------------------------------------
 	/// <summary> Slot called as frequently as possible (refreshes qvtkWidget)
 	/// </summary>
 	void slot_timeout()
 	{
+		
 		//((vtkOpenGLRenderer *)(vtkRenderer*)renderer)->SetShaderProgram(shaderProgram);
 
 		//renderer->Render();

@@ -65,6 +65,8 @@
 
 #include <vtkOpenGLRenderWindow.h>
 
+#include <vtkSmoothPolyDataFilter.h>
+
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
 
@@ -156,13 +158,7 @@ void additive::slot_afterShowWindow()
 {
 	update_orig_size();
 
-	// Set translucencies for all menus
-	float menu_opacity = 0.8f;
-
-	ui.menuFile->setAttribute(Qt::WA_TranslucentBackground);
-	ui.menuFile->setWindowOpacity(menu_opacity);
-	ui.menuHelp->setAttribute(Qt::WA_TranslucentBackground);
-	ui.menuHelp->setWindowOpacity(menu_opacity);
+	preview = false;
 
 	strcpy(fname, "heart 256k.obj");
 	QApplication::processEvents();
@@ -294,6 +290,9 @@ void additive::slot_afterShowWindow()
 	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(slot_exit()));
 	connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(slot_about()));
 	connect(ui.actionPreview, SIGNAL(triggered()), this, SLOT(slot_preview()));
+
+	connect(ui.menuFile, SIGNAL(aboutToShow()), this, SLOT(slot_menuclick()));
+	connect(ui.menuHelp, SIGNAL(aboutToShow()), this, SLOT(slot_menuclick()));
 
 	connect(ui.horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(slot_valueChanged(int)));
 
@@ -451,12 +450,19 @@ void additive::readFile(char * filename)
 		//std::cout << "..." << std::endl;
 		//std::cout << nextMesh->GetNumberOfPoints() << std::endl;
 
+		//vtkSmoothPolyDataFilter * dataset0 = vtkSmoothPolyDataFilter::New();
+		//dataset0->SetInputData(nextMesh);
+		//dataset0->SetRelaxationFactor(.05);
+		//dataset0->SetNumberOfIterations(50);
+		//dataset0->Update();
+
 		vtkPolyDataNormals *dataset = vtkPolyDataNormals::New();
 		dataset->SetInputData(nextMesh);
 		dataset->ComputePointNormalsOn();
 		dataset->ComputeCellNormalsOff();
 		//dataset->FlipNormalsOff();
 		dataset->SplittingOn();
+		//dataset->NonManifoldTraversalOff();
 		dataset->SetFeatureAngle(60);
 		dataset->Update();
 
