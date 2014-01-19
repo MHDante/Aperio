@@ -2,7 +2,7 @@
 
 Mesh Illustrator is a 3D anatomical or other mesh browser allowing slidable superquadrics to be stretched 
 and placed onto surfaces of structures as a way of marking up areas to be illustratively manipulated 
-(transformed or deformed in a manner for the purpose of illustration). The marked areas can 
+(transformed or deformed in a manner for the purpose of illustration and understanding). The marked areas can 
 then be cut, peeled, split, deformed or act as hinges or constraints for exploders etc. Additionally, elements can 
 act as handles on meshes for moving them out of the way; parts can also be transformed in a free-form fashion, 
 constrained like beads on a string, or exploded along a constrained axis, etc. The goal is to develop an 
@@ -19,7 +19,7 @@ These pages document the use of the application.
 
 #### Important Links (dependencies)
 
-Written using C++11 (Requires Visual Studio 2010 or higher) 
+Written using C++11 (Requires Visual Studio 2010 or higher) <br />
 Visualization Toolkit 6.0.0 (algorithms and rendering), [http://www.vtk.org/](http://www.vtk.org/) <br />
 Qt 4.85 (GUI), [http://qt-project.org/](http://qt-project.org/) <br />
 Carve CSG 1.40 (Boolean operations), [http://carve-csg.com/](http://carve-csg.com/) <br />
