@@ -301,8 +301,8 @@ private:
 
 		messageBox.setIconPixmap(QPixmap("about.png"));
 
-		messageBox.setWindowTitle("About OpenSlider");
-		messageBox.setText("OpenSlider ");
+		messageBox.setWindowTitle("About Mesh Illustrator");
+		messageBox.setText("Mesh Illustrator ");
 		messageBox.setInformativeText("1.0.0.2 (Released 01-18-2014) \n\nCopyright © 2011-2014 David Tran\n");
 		messageBox.setWindowOpacity(.85);
 		messageBox.setStyleSheet("background: rgba(0, 0, 0, 255); color: white; selection-color: black;");

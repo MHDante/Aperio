@@ -452,7 +452,7 @@ public:
 
     void retranslateUi(QMainWindow *additiveClass)
     {
-        additiveClass->setWindowTitle(QApplication::translate("additiveClass", "OpenSlider", 0, QApplication::UnicodeUTF8));
+        additiveClass->setWindowTitle(QApplication::translate("additiveClass", "Mesh Illustrator", 0, QApplication::UnicodeUTF8));
 #ifndef QT_NO_WHATSTHIS
         additiveClass->setWhatsThis(QApplication::translate("additiveClass", "<html><head/><body><p><br/></p></body></html>", 0, QApplication::UnicodeUTF8));
 #endif // QT_NO_WHATSTHIS
