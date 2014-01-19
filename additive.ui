@@ -117,6 +117,18 @@ QCheckBox, QRadioButton {
 	color: #dddddd;
 }
 
+QListView::indicator:checked
+{
+background-color: #988C84;
+border: 1px solid #222222;
+}
+
+QListView::indicator:unchecked
+{
+background: none;
+border: 1px solid #222222;
+}
+
  QTabWidget::pane { /* The tab widget frame */
 	border: none;
 	background: rgba(57, 60, 46, 255);

@@ -10,9 +10,22 @@ var files =
     [ "myOBJReader.h", "my_o_b_j_reader_8h_source.html", null ],
     [ "myOBJReader_Exp.cpp", "my_o_b_j_reader___exp_8cpp_source.html", null ],
     [ "myOBJReader_Exp.h", "my_o_b_j_reader___exp_8h_source.html", null ],
+    [ "MySuperquadric.cpp", "_my_superquadric_8cpp_source.html", null ],
+    [ "MySuperquadric.h", "_my_superquadric_8h_source.html", null ],
+    [ "MySuperquadricSource.cpp", "_my_superquadric_source_8cpp_source.html", null ],
+    [ "MySuperquadricSource.h", "_my_superquadric_source_8h_source.html", null ],
+    [ "obj_parser.cpp", "obj__parser_8cpp_source.html", null ],
+    [ "obj_parser.h", "obj__parser_8h_source.html", null ],
     [ "resource.h", "resource_8h_source.html", null ],
     [ "stdafx.cpp", "stdafx_8cpp_source.html", null ],
     [ "stdafx.h", "stdafx_8h_source.html", null ],
+    [ "StdDefines.h", "_std_defines_8h_source.html", null ],
+    [ "Superquadrics.h", "_superquadrics_8h_source.html", null ],
     [ "Utility.cpp", "_utility_8cpp_source.html", null ],
-    [ "Utility.h", "_utility_8h_source.html", null ]
+    [ "Utility.h", "_utility_8h_source.html", null ],
+    [ "Vectors.h", "_vectors_8h.html", "_vectors_8h" ],
+    [ "vtkMyProcessingPass.cpp", "vtk_my_processing_pass_8cpp_source.html", null ],
+    [ "vtkMyProcessingPass.h", "vtk_my_processing_pass_8h_source.html", null ],
+    [ "vtkMyShaderPass.cpp", "vtk_my_shader_pass_8cpp_source.html", null ],
+    [ "vtkMyShaderPass.h", "vtk_my_shader_pass_8h_source.html", null ]
 ];

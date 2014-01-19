@@ -185,6 +185,8 @@ public:
 	QRect _orig_size;
 	bool preview;
 
+	QString path;
+
 	vtkSmartPointer<MySuperquadricSource> superquad;
 	vtkSmartPointer<vtkActor> sactor;
 
@@ -359,13 +361,16 @@ private:
 	/// </summary>
 	void slot_open()
 	{
+		if (path.isEmpty())
+			path = QDir::currentPath();
+
 		pause = true;
 
 		QString selectedFilter;
 		QFileDialog::Options options;
 
 		QString fileName = QFileDialog::getOpenFileName(this,
-			"Select a file.", "",
+			"Select a file.", QString(path),
 			"OBJ Files (*.obj);;All Files (*)",
 			&selectedFilter,
 			options);
@@ -374,6 +379,8 @@ private:
 
 		if (!fileName.isEmpty())
 		{
+			path = QFileInfo(fileName).path(); // store path for next time
+
 			print_statusbar("Loading file...please be patient!");
 
 			readFile(fileName.toLocal8Bit().data());
