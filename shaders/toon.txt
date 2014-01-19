@@ -1,0 +1,49 @@
+uniform vec3 lightDirs;
+uniform vec3 myColor;
+varying vec3 normal;
+
+void main()
+{
+	float intensity;
+	vec4 color;
+	intensity = dot(normalize(normal), lightDirs);
+
+	vec3 hColor = myColor + (0.4, 0.2, 0.2);
+	vec3 mColor = myColor + (0.4, 0.2, 0.2);
+	vec3 lColor = myColor + (0.4, 0.2, 0.2);
+	
+	if (intensity > 0.95)
+		color = vec4(hColor,1.0);
+	else if (intensity > 0.5)
+		color = vec4(mColor,1.0);
+	else if (intensity > 0.25)
+		color = vec4(lColor,1.0);
+	else
+		color = vec4(0.2,0.1,0.1,1.0);
+	gl_FragColor = color;
+
+}
+------------
+varying vec3 normal;
+
+void main()
+{
+	normal = gl_Normal;
+	gl_Position = ftransform();
+
+}
+-----------------
+<?xml version="1.0" encoding="UTF-8"?>
+<Material name="Twisted">
+
+
+  <Shader scope="Vertex" name="GLSLTwisted" location="Twisted.glsl" 
+	language="GLSL" entry="main">
+  </Shader>
+  <Shader scope="Fragment" name="GLSLTwisted" location="TwistedFrag.glsl" 
+	language="GLSL" entry="main">
+	 <ApplicationUniform name="lightDirs" value="lightDirs"> </ApplicationUniform> 
+	 <ApplicationUniform name="myColor" value="myColor"> </ApplicationUniform> 
+	</Shader>
+
+</Material>

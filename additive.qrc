@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="additive">
+    <file>icon.ico</file>
+    <file>checked.gif</file>
+    <file>transparent.gif</file>
+    <file>unchecked.gif</file>
+  </qresource>
+</RCC>

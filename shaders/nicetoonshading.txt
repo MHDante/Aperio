@@ -1,0 +1,86 @@
+varying vec3 position;
+varying vec3 normal;
+
+uniform sampler2D tex;
+uniform vec3 lightPos;
+ 
+uniform vec3 mambient;  //gl_FrontMaterial
+uniform vec3 mdiffuse;
+uniform vec3 mspecular;
+uniform float shininess;
+ 
+uniform vec3 lambient;  //gl_LightSource[0]
+uniform vec3 ldiffuse;
+uniform vec3 lspecular;
+ 
+uniform vec3 myColor;
+uniform float translucency;
+
+void main()
+{
+    vec4 color = texture2D(tex,gl_TexCoord[0].st);
+    
+	
+	        float dist=length(position-lightPos);   //distance from light-source to surface
+        float att=1.0/(1.0+0.1*dist+0.01*dist*dist);    //attenuation (constant,linear,quadric)
+        vec3 ambient=mambient*lambient; //the ambient light
+       
+        vec3 surf2light=normalize(lightPos-position);
+        vec3 norm=normalize(normal);
+        float dcont=max(0.0,dot(norm,surf2light));
+        vec3 diffuse=dcont*(mdiffuse*ldiffuse);
+       
+        vec3 surf2view=normalize(-position);
+        vec3 reflection=reflect(-surf2light,norm);
+       
+        float scont=pow(max(0.0,dot(surf2view,reflection)),shininess);
+        vec3 specular=scont*lspecular*mspecular;
+       
+	   float x = translucency;
+         gl_FragColor=vec4((ambient+diffuse+specular)*att,0.0)+vec4(vec3(myColor), translucency);
+		//gl_FragColor=vec4(vec3(myColor), translucency);
+}
+
+--------------
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Material name="Twisted">
+
+
+  <Shader scope="Vertex" name="GLSLTwisted" location="Twisted.glsl" 
+	language="GLSL" entry="main">
+  </Shader>
+  <Shader scope="Fragment" name="GLSLTwisted" location="TwistedFrag.glsl" 
+	language="GLSL" entry="main">
+	     <ApplicationUniform name="mambient" > </ApplicationUniform> 
+     <ApplicationUniform name="mdiffuse" > </ApplicationUniform> 
+     <ApplicationUniform name="mspecular" > </ApplicationUniform> 
+
+	 <ApplicationUniform name="lambient" > </ApplicationUniform> 
+     <ApplicationUniform name="ldiffuse" > </ApplicationUniform> 
+     <ApplicationUniform name="lspecular" > </ApplicationUniform> 
+
+	 <ApplicationUniform name="shininess" > </ApplicationUniform> 
+     <ApplicationUniform name="lightPos" > </ApplicationUniform> 
+     <ApplicationUniform name="translucency" > </ApplicationUniform> 
+
+     <ApplicationUniform name="myColor" > </ApplicationUniform> 
+	 </Shader>
+
+</Material>
+
+--------
+
+varying vec3 position;
+varying vec3 normal;
+
+void main() {
+ 
+    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+    gl_Position = ftransform();
+	
+	//output position with projection
+        position=vec3(gl_ModelViewMatrix*gl_Vertex);    //get the position of the vertex after translation, rotation, scaling
+        normal=gl_NormalMatrix*gl_Normal;       //get the normal direction, after translation, rotation, scaling
+}
