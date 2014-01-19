@@ -1,10 +1,10 @@
-# Superquad Illustrator
+# Mesh Illustrator
 
-Superquad Illustrator is a 3D anatomical or other mesh browser allowing slidable superquadrics to be stretched 
+Mesh Illustrator is a 3D anatomical or other mesh browser allowing slidable superquadrics to be stretched 
 and placed onto surfaces of structures as a way of marking up areas to be illustratively manipulated 
-(transformed ot deformed in a manner for the purpose of illustration). The marked areas can 
-then be cut, peeled, split or act as hinges or constraints for exploders etc. Additionally, elements can 
-act as handles on meshes for moving them out of the way; parts can be transformed in a free-form fashion, 
+(transformed or deformed in a manner for the purpose of illustration). The marked areas can 
+then be cut, peeled, split, deformed or act as hinges or constraints for exploders etc. Additionally, elements can 
+act as handles on meshes for moving them out of the way; parts can also be transformed in a free-form fashion, 
 constrained like beads on a string, or exploded along a constrained axis, etc. The goal is to develop an 
 intuitive and immediate exploration system using slidable elements (in the shape of superquadrics) that 
 lends itself to visual affordance (i.e. users can easily and intuitively combine the elements such that 
@@ -14,6 +14,7 @@ between parts in the 3D system. It can be used by medical professionals on anato
 for use as an immediate rigging tool on other polygonal meshes.
 
 These pages document the use of the application.
+
 
 
 #### Important Links (dependencies)
