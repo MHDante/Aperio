@@ -1,4 +1,5 @@
-# Mesh Illustrator
+
+# <img src="https://raw2.github.com/eternallite/MeshIllustrator/superquadrics/about.png" valign="bottom" />Mesh Illustrator  
 
 Mesh Illustrator is a 3D anatomical or other mesh browser allowing slidable superquadrics to be stretched 
 and placed onto surfaces of structures as a way of marking up areas to be illustratively manipulated 
