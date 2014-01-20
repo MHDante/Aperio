@@ -119,14 +119,16 @@ QCheckBox, QRadioButton {
 
 QListView::indicator:checked
 {
-background-color: #988C84;
-border: 1px solid #222222;
+/*background-color: #988C84;
+border: 1px solid #222222;*/
+	background-image: url(:/additive/checked_list.png);
 }
 
 QListView::indicator:unchecked
 {
-background: none;
-border: 1px solid #222222;
+/*background: none;
+border: 1px solid #222222;*/
+	background-image: url(:/additive/unchecked_list.png);
 }
 
  QTabWidget::pane { /* The tab widget frame */
@@ -184,18 +186,18 @@ border: none;
 
  QCheckBox::indicator
   {
-	width: 18px;
-	height: 18px;
+	width: 13px;
+	height: 13px;
   }
  QCheckBox::indicator:checked
   {
-	background: black;
+	background-image: url(:/additive/checked_list.png);
 /*	 border-left: 2px solid blue;*/
 	/*image: url(:/additive/checked.gif);*/
   }
   QCheckBox::indicator:unchecked
   {
-	background: white;
+	background-image: url(:/additive/unchecked_list.png);
 /*	 border: 2px solid white;*/
 	/*image: url(:/additive/unchecked.gif);*/
   }
@@ -354,7 +356,7 @@ background: #82766A;
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
