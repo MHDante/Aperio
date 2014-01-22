@@ -1,4 +1,3 @@
-
 # <img src="https://raw2.github.com/eternallite/MeshIllustrator/superquadrics/about.png" valign="bottom" />Mesh Illustrator  
 
 Mesh Illustrator is a 3D anatomical or other mesh browser allowing slidable superquadrics to be stretched 
@@ -24,4 +23,5 @@ Written using C++11 (Requires Visual Studio 2010 or higher) <br />
 Visualization Toolkit 6.0.0 (algorithms and rendering), [http://www.vtk.org/](http://www.vtk.org/) <br />
 Qt 4.85 (GUI), [http://qt-project.org/](http://qt-project.org/) <br />
 Carve CSG 1.40 (Boolean operations), [http://carve-csg.com/](http://carve-csg.com/) <br />
+Bullet Physics Engine 2.82 (Collision, Forces and Constraints) [http://bulletphysics.org/] (http://bulletphysics.org/) <br />
 Graphics card with GLSL shader support (OpenGL 2.1 or higher)
