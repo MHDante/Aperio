@@ -23,8 +23,7 @@
 /// </summary>
 namespace Utility
 {
-	/// <summary>
-	/// Struct representing a color (contains 3 floats: r, g, b) - red, green, blue
+	/// <summary> Struct representing a color (contains 3 floats: r, g, b) - red, green, blue
 	/// </summary>
 	struct myColor
 	{
@@ -45,8 +44,7 @@ namespace Utility
 	/// <param name="clockname">The clockname.</param>
 	void start_clock(char clockname);
 
-	/// <summary>
-	/// Ends the specified clock.
+	/// <summary> Ends the specified clock.
 	/// </summary>
 	/// <param name="clockname">The clock's name</param>
 	void end_clock(char clockname);

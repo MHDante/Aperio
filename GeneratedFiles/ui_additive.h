@@ -14,7 +14,6 @@
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
 #include <QtGui/QCheckBox>
-#include <QtGui/QGridLayout>
 #include <QtGui/QHeaderView>
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
@@ -54,9 +53,7 @@ public:
     QWidget *tab_3;
     QListWidget *listWidget;
     QLineEdit *lineEdit;
-    QWidget *centralWidget2;
-    QWidget *layoutWidget;
-    QGridLayout *gridLayout;
+    QWidget *mainWidget;
     QLabel *label;
     QPushButton *pushButton;
     QMenuBar *menuBar;
@@ -118,14 +115,14 @@ public:
 "}\n"
 "\n"
 "\n"
-"#centralWidget2 {\n"
+"#mainWidget {\n"
 "	border: 2px solid #D0592A;\n"
 "}\n"
 "\n"
 "QPushButton {\n"
 "\n"
-""
-                        "background: rgba(86,80,72,150);\n"
+"b"
+                        "ackground: rgba(86,80,72,150);\n"
 "\n"
 "border-radius: 4px;\n"
 "color: #ffffff;\n"
@@ -169,8 +166,8 @@ public:
 "{\n"
 "/*background-color: #988C84;\n"
 "border: 1px solid #222222;*/\n"
-"	background-image: ur"
-                        "l(:/additive/checked_list.png);\n"
+"	background-image: url"
+                        "(:/additive/checked_list.png);\n"
 "}\n"
 "\n"
 "QListView::indicator:unchecked\n"
@@ -216,8 +213,8 @@ public:
 "color: #ffffff;\n"
 "}\n"
 "QTabBar::tab:selected  {\n"
-"/*background: qradialgradient(cx: 0.3, "
-                        "cy: -0.4,\n"
+"/*background: qradialgradient(cx: 0.3, c"
+                        "y: -0.4,\n"
 "fx: 0.3, fy: -0.4,\n"
 "radius: 1.35, stop: 0 #fff, stop: 1 #ddd);*/\n"
 "\n"
@@ -265,8 +262,8 @@ public:
 "	border-bottom: 1px solid white;*/\n"
 "\n"
 " }\n"
-" QScrollBar::handle:v"
-                        "ertical  {\n"
+" QScrollBar::handle:ve"
+                        "rtical  {\n"
 "     background: #392C23;\n"
 "	min-height: 10px;\n"
 "\n"
@@ -303,8 +300,8 @@ public:
 "}\n"
 "\n"
 "QSlider::handle:horizontal, QSlider::handle:vertical {\n"
-" 	background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #FA7401, stop:1 #E39B51"
-                        ");\n"
+" 	background-color: qlineargradient(spread:pad, x1:0.5, y1:1, x2:0.5, y2:0, stop:0 #FA7401, stop:1 #E39B51)"
+                        ";\n"
 "\n"
 "background-color: rgba(86,80,72,200); /*#565048;*/\n"
 "\n"
@@ -405,19 +402,11 @@ public:
         lineEdit = new QLineEdit(centralWidget);
         lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
         lineEdit->setGeometry(QRect(20, 90, 151, 20));
-        centralWidget2 = new QWidget(centralWidget);
-        centralWidget2->setObjectName(QString::fromUtf8("centralWidget2"));
-        centralWidget2->setGeometry(QRect(20, 160, 601, 361));
-        centralWidget2->setCursor(QCursor(Qt::ArrowCursor));
-        centralWidget2->setMouseTracking(true);
-        layoutWidget = new QWidget(centralWidget2);
-        layoutWidget->setObjectName(QString::fromUtf8("layoutWidget"));
-        layoutWidget->setGeometry(QRect(9, 9, 581, 341));
-        gridLayout = new QGridLayout(layoutWidget);
-        gridLayout->setSpacing(0);
-        gridLayout->setContentsMargins(0, 0, 0, 0);
-        gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
-        gridLayout->setContentsMargins(0, 0, 0, 0);
+        mainWidget = new QWidget(centralWidget);
+        mainWidget->setObjectName(QString::fromUtf8("mainWidget"));
+        mainWidget->setGeometry(QRect(20, 160, 601, 361));
+        mainWidget->setCursor(QCursor(Qt::ArrowCursor));
+        mainWidget->setMouseTracking(true);
         label = new QLabel(centralWidget);
         label->setObjectName(QString::fromUtf8("label"));
         label->setGeometry(QRect(140, 10, 46, 13));
@@ -431,7 +420,7 @@ public:
         tabWidget->raise();
         lineEdit->raise();
         label->raise();
-        centralWidget2->raise();
+        mainWidget->raise();
         pushButton->raise();
         menuBar = new QMenuBar(additiveClass);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
@@ -459,7 +448,7 @@ public:
         retranslateUi(additiveClass);
         QObject::connect(actionFull_Screen, SIGNAL(triggered()), additiveClass, SLOT(slot_fullScreen()));
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(additiveClass);

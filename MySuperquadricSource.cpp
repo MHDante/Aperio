@@ -1,9 +1,9 @@
-#include "stdafx.h"		// Precompiled header files
+#include "stdafx.h"
 
 /*=========================================================================
 
 Program:   Visualization Toolkit
-Module:    MySuperquadricSource.cxx
+Module:    vtkSuperquadricSource.cxx
 
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
@@ -49,7 +49,7 @@ MySuperquadricSource::MySuperquadricSource(int res)
 {
 	res = res < 4 ? 4 : res;
 
-	this->AxisOfSymmetry = 2; //z-axis symmetry
+	this->AxisOfSymmetry = 1; // y-axis symmetry
 	this->Toroidal = 0;
 	this->Thickness = 0.3333;
 	this->PhiRoundness = 0.0;
@@ -63,6 +63,7 @@ MySuperquadricSource::MySuperquadricSource(int res)
 	this->SetThetaResolution(res);
 	this->PhiResolution = 0;
 	this->SetPhiResolution(res);
+	this->OutputPointsPrecision = SINGLE_PRECISION;
 
 	this->SetNumberOfInputPorts(0);
 }
@@ -219,6 +220,17 @@ int MySuperquadricSource::RequestData(
 	// Set things up; allocate memory
 	//
 	newPoints = vtkPoints::New();
+
+	// Set the desired precision for the points in the output.
+	if (this->OutputPointsPrecision == vtkAlgorithm::DOUBLE_PRECISION)
+	{
+		newPoints->SetDataType(VTK_DOUBLE);
+	}
+	else
+	{
+		newPoints->SetDataType(VTK_FLOAT);
+	}
+
 	newPoints->Allocate(numPts);
 	newNormals = vtkFloatArray::New();
 	newNormals->SetNumberOfComponents(3);
@@ -276,7 +288,7 @@ int MySuperquadricSource::RequestData(
 						thetaOffset = 0.0;
 					}
 
-					//This give you superquadric with axis of symmetry: z
+					// This gives a superquadric with axis of symmetry: z
 					evalSuperquadric(theta, phi,
 						thetaOffset, phiOffset,
 						this->ThetaRoundness, this->PhiRoundness,
@@ -284,7 +296,7 @@ int MySuperquadricSource::RequestData(
 					switch (this->AxisOfSymmetry)
 					{
 					case 0:
-						//x-axis
+						// x-axis
 						tmp = pt[0];
 						pt[0] = pt[2];
 						pt[2] = tmp;
@@ -296,9 +308,20 @@ int MySuperquadricSource::RequestData(
 						nv[1] = -nv[1];
 						break;
 					case 1:
-						//y-axis
-						//PENDING
+						// y-axis
+						tmp = pt[1];
+						pt[1] = pt[2];
+						pt[2] = tmp;
+						pt[0] = -pt[0];
 
+						tmp = nv[1];
+						nv[1] = nv[2];
+						nv[2] = tmp;
+						nv[0] = -nv[0];
+						break;
+					case 2:
+					default:
+						// Default case is managed above
 						break;
 					}
 
@@ -316,8 +339,24 @@ int MySuperquadricSource::RequestData(
 						// make sure the pole is at the same location for all evals
 						// (the superquadric evaluation is numerically unstable
 						// at the poles)
+						switch (this->AxisOfSymmetry)
+						{
+						case 0:
+							// x-axis
+							pt[1] = pt[2] = 0.0;
+							break;
 
-						pt[0] = pt[2] = 0.0;
+						case 1:
+							// y-axis
+							pt[0] = pt[2] = 0.0;
+							break;
+
+						case 2:
+						default:
+							// z-axis
+							pt[0] = pt[1] = 0.0;
+							break;
+						}
 					}
 
 					pt[0] += this->Center[0];
@@ -388,6 +427,8 @@ void MySuperquadricSource::PrintSelf(ostream& os, vtkIndent indent)
 		<< this->Center[1] << ", " << this->Center[2] << ")\n";
 	os << indent << "Scale: (" << this->Scale[0] << ", "
 		<< this->Scale[1] << ", " << this->Scale[2] << ")\n";
+	os << indent << "Output Points Precision: " << this->OutputPointsPrecision
+		<< "\n";
 }
 
 static double cf(double w, double m, double a = 0)
@@ -395,7 +436,14 @@ static double cf(double w, double m, double a = 0)
 	double c;
 	double sgn;
 
-	c = cos(w);
+	if (w == vtkMath::Pi() || w == -vtkMath::Pi())
+	{
+		c = -1.0;
+	}
+	else
+	{
+		c = cos(w);
+	}
 	sgn = c < 0.0 ? -1.0 : 1.0;
 	return a + sgn*pow(sgn*c, m);
 }
@@ -405,7 +453,14 @@ static double sf(double w, double m)
 	double s;
 	double sgn;
 
-	s = sin(w);
+	if (w == vtkMath::Pi() || w == -vtkMath::Pi())
+	{
+		s = 0.0;
+	}
+	else
+	{
+		s = sin(w);
+	}
 	sgn = s < 0.0 ? -1.0 : 1.0;
 	return sgn*pow(sgn*s, m);
 }
@@ -418,15 +473,17 @@ static void evalSuperquadric(double theta, double phi,  // parametric coords
 	double xyz[3],      // output coords
 	double nrm[3])      // output normals
 {
+	// axis of symmetry: z
+
 	double cf1, cf2;
 
 	cf1 = cf(phi, rphi, alpha);
-	xyz[0] = dims[0] * cf1 * sf(theta, rtheta);
-	xyz[1] = dims[1] * sf(phi, rphi);
-	xyz[2] = dims[2] * cf1 * cf(theta, rtheta);
+	xyz[0] = -dims[0] * cf1 * sf(theta, rtheta);
+	xyz[1] = dims[1] * cf1 * cf(theta, rtheta);
+	xyz[2] = dims[2] * sf(phi, rphi);
 
 	cf2 = cf(phi + dphi, 2.0 - rphi);
-	nrm[0] = 1.0 / dims[0] * cf2 * sf(theta + dtheta, 2.0 - rtheta);
-	nrm[1] = 1.0 / dims[1] * sf(phi + dphi, 2.0 - rphi);
-	nrm[2] = 1.0 / dims[2] * cf2 * cf(theta + dtheta, 2.0 - rtheta);
+	nrm[0] = -1.0 / dims[0] * cf2 * sf(theta + dtheta, 2.0 - rtheta);
+	nrm[1] = 1.0 / dims[1] * cf2 * cf(theta + dtheta, 2.0 - rtheta);
+	nrm[2] = 1.0 / dims[2] * sf(phi + dphi, 2.0 - rphi);
 }

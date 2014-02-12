@@ -46,7 +46,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;.\GeneratedFiles;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include;$(QTDIR)\include\QtOpenGL;C:\Program Files (x86)\VTK\include\vtk-6.0;C:\Program Files (x86)\carve\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;.\GeneratedFiles;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include;$(QTDIR)\include\QtOpenGL;C:\Program Files (x86)\VTK\include\vtk-6.0;C:\Program Files (x86)\carve\include;C:\Program Files (x86)\bullet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -60,17 +60,16 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\Program Files (x86)\VTK\lib;C:\Program Files (x86)\carve\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\Program Files (x86)\VTK\lib;C:\Program Files (x86)\carve\lib;C:\Program Files (x86)\bullet\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;carved.lib;vtkCommonCore-6.0.lib;vtkCommonMath-6.0.lib;vtkCommonDataModel-6.0.lib;vtkCommonExecutionModel-6.0.lib;vtkCommonTransforms-6.0.lib;vtkFiltersCore-6.0.lib;vtkFiltersGeneral-6.0.lib;vtkFiltersHybrid-6.0.lib;vtkFiltersSources-6.0.lib;vtkFiltersModeling-6.0.lib;vtkGUISupportQt-6.0.lib;vtkGUISupportQtOpenGL-6.0.lib;vtkInteractionStyle-6.0.lib;vtkIOImage-6.0.lib;vtkRenderingCore-6.0.lib;vtkRenderingQt-6.0.lib;vtkRenderingOpenGL-6.0.lib;vtkRenderingVolumeOpenGL-6.0.lib;vtksys-6.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;carved.lib;vtkCommonCore-6.0.lib;vtkCommonMath-6.0.lib;vtkCommonDataModel-6.0.lib;vtkCommonExecutionModel-6.0.lib;vtkCommonTransforms-6.0.lib;vtkFiltersCore-6.0.lib;vtkFiltersGeneral-6.0.lib;vtkFiltersHybrid-6.0.lib;vtkFiltersSources-6.0.lib;vtkFiltersModeling-6.0.lib;vtkGUISupportQt-6.0.lib;vtkGUISupportQtOpenGL-6.0.lib;vtkInteractionStyle-6.0.lib;vtkIOImage-6.0.lib;vtkRenderingCore-6.0.lib;vtkRenderingQt-6.0.lib;vtkRenderingOpenGL-6.0.lib;vtkRenderingVolumeOpenGL-6.0.lib;vtksys-6.0.lib;BulletDynamics_vs2010_debug.lib;BulletCollision_vs2010_debug.lib;LinearMath_vs2010_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;QT_LARGEFILE_SUPPORT;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;.\GeneratedFiles;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include;$(QTDIR)\include\QtOpenGL;C:\Program Files (x86)\VTK\include\vtk-6.0;C:\Program Files (x86)\carve\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <AdditionalIncludeDirectories>.;.\GeneratedFiles;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include;$(QTDIR)\include\QtOpenGL;C:\Program Files (x86)\VTK\include\vtk-6.0;C:\Program Files (x86)\carve\include;C:\Program Files (x86)\bullet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
@@ -90,11 +89,13 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\Program Files (x86)\VTK\lib;C:\Program Files (x86)\carve\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\Program Files (x86)\VTK\lib;C:\Program Files (x86)\carve\lib;C:\Program Files (x86)\bullet\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;carve.lib;vtkCommonCore-6.0.lib;vtkCommonMath-6.0.lib;vtkCommonDataModel-6.0.lib;vtkCommonExecutionModel-6.0.lib;vtkCommonTransforms-6.0.lib;vtkFiltersCore-6.0.lib;vtkFiltersGeneral-6.0.lib;vtkFiltersHybrid-6.0.lib;vtkFiltersModeling-6.0.lib;vtkFiltersSources-6.0.lib;vtkGUISupportQt-6.0.lib;vtkGUISupportQtOpenGL-6.0.lib;vtkInteractionStyle-6.0.lib;vtkIOImage-6.0.lib;vtkRenderingCore-6.0.lib;vtkRenderingQt-6.0.lib;vtkRenderingOpenGL-6.0.lib;vtkRenderingVolumeOpenGL-6.0.lib;vtksys-6.0.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>QtCore4.lib;QtGui4.lib;QtOpenGL4.lib;opengl32.lib;glu32.lib;carve.lib;vtkCommonCore-6.0.lib;vtkCommonMath-6.0.lib;vtkCommonDataModel-6.0.lib;vtkCommonExecutionModel-6.0.lib;vtkCommonTransforms-6.0.lib;vtkFiltersCore-6.0.lib;vtkFiltersGeneral-6.0.lib;vtkFiltersHybrid-6.0.lib;vtkFiltersModeling-6.0.lib;vtkFiltersSources-6.0.lib;vtkGUISupportQt-6.0.lib;vtkGUISupportQtOpenGL-6.0.lib;vtkInteractionStyle-6.0.lib;vtkIOImage-6.0.lib;vtkRenderingCore-6.0.lib;vtkRenderingQt-6.0.lib;vtkRenderingOpenGL-6.0.lib;vtkRenderingVolumeOpenGL-6.0.lib;vtksys-6.0.lib;BulletDynamics_vs2010.lib;BulletCollision_vs2010.lib;LinearMath_vs2010.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
+      <OptimizeReferences>
+      </OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -119,8 +120,6 @@
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</ForcedIncludeFiles>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="myOBJReader.cpp" />
-    <ClCompile Include="myOBJReader_Exp.cpp" />
     <ClCompile Include="MySuperquadric.cpp" />
     <ClCompile Include="MySuperquadricSource.cpp" />
     <ClCompile Include="obj_parser.cpp" />
@@ -161,20 +160,14 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CheckForMemoryLeaks.h" />
     <ClInclude Include="GeneratedFiles\ui_additive.h" />
-    <ClInclude Include="MyInteractor.h" />
-    <ClInclude Include="myOBJReader.h" />
-    <ClInclude Include="myOBJReader_Exp.h" />
+    <ClInclude Include="MyInteractorStyle.h" />
     <ClInclude Include="MySuperquadric.h" />
     <ClInclude Include="MySuperquadricSource.h" />
     <ClInclude Include="obj_parser.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="StdDefines.h" />
-    <ClInclude Include="Superquadrics.h" />
     <ClInclude Include="Utility.h" />
-    <ClInclude Include="Vectors.h" />
     <ClInclude Include="vtkMyProcessingPass.h" />
     <ClInclude Include="vtkMyShaderPass.h" />
   </ItemGroup>

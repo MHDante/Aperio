@@ -8,7 +8,7 @@ using namespace std;
 
 namespace obj {
 
-	const int MAX_INDICES = 5;	// Max indices per face
+	const int MAX_INDICES = 10;	// Max indices per face
 
 	struct Vertex
 	{

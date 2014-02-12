@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   Visualization Toolkit
-Module:    MySuperquadricSource.h
+Module:    vtkSuperquadricSource.h
 
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
@@ -15,7 +15,7 @@ PURPOSE.  See the above copyright notice for more information.
 // .NAME MySuperquadricSource - create a polygonal superquadric centered
 // at the origin
 // .SECTION Description
-// MySuperquadricSource creates a superquadric (represented by polygons) of
+// vtkSuperquadricSource creates a superquadric (represented by polygons) of
 // specified size centered at the origin. The alignment of the axis of the
 // superquadric along one of the global axes can be specified. The resolution
 // (polygonal discretization)
@@ -53,7 +53,6 @@ PURPOSE.  See the above copyright notice for more information.
 #define VTK_MIN_SUPERQUADRIC_THICKNESS  1e-4
 #define VTK_MIN_SUPERQUADRIC_ROUNDNESS  1e-24
 
-//class VTKFILTERSSOURCES_EXPORT MySuperquadricSource : public vtkPolyDataAlgorithm
 class MySuperquadricSource : public vtkPolyDataAlgorithm
 {
 public:

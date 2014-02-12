@@ -21,24 +21,26 @@
 
 \subsection things Things to do
 + Shaders for drawing widget elements as contour lines
-+ vtkPlaneSource for widget elements
 + Undo system?
-+ click and drag widget elements
-+ cut element must put back in same index on list
-+ unchecking list item should make opacity 0, check 1.0
++ click and drag elements
++ if cutting, elements must be put back in same index on list
++ unchecking list item should set its opacity to 0, check 1.0
 + Depth peeling is kind of broken
 + rid of memory leaks
 + select picked object before placing markers on
 + cell picker is slow, so everytime doing picking, check if selected obj is full opacity, if not, increase to 100% (or 0 is fine)
+
 \subsection bugs Current bugs
-myOBJReader expects extra dummy group at end as delimiter (just put g nothing at the end of file)
+Program breaks at beginning sometimes
+Mouse move error debug at beginning running of program
 
 \subsection solved Solved (tasks/bugs)
 
++ SOLVED [created new loader], myOBJReader expects extra dummy group at end as delimiter (requires g at the end of obj file)
 + SOLVED, Speed up boolean operations/loading (recompile carve statically linked with boost)
-+ SOLVED, Carve CSG not implemented
++ SOLVED [implemented], Carve CSG not implemented
 <hr />
-+ SOLVED, Sometimes crashes on access violation (check myOBJReader for pointer problems)
++ SOLVED, [smart pointers and c++11] crashes and access violation (check myOBJReader for pointer problems)
 
 \mainpage notitle
 \tableofcontents
@@ -75,8 +77,7 @@ Graphics card with GLSL (OpenGL 2.1 or higher)
 #include "stdafx.h"		// Precompiled header files
 #include "additive.h"
 
-//#include <vld.h>					// Visual Leak Detector
-#include "CheckForMemoryLeaks.h"	// MUST be Last include
+#include <QtGui/QSplashScreen>
 
 /// ---------------------------------------------------------------------------------------------
 /// <summary> The main method itself, creates Additive window class and starts it
@@ -95,8 +96,16 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	QApplication::setStyle("cleanlooks");
 
+	QPixmap pixmap("splash.png");
+	QSplashScreen splash(pixmap, Qt::WindowStaysOnTopHint);
+	splash.setWindowOpacity(0.8);
+	splash.show();
+	a.processEvents();
+
 	additive w;
 	w.show();
+
+	//splash.finish(&w);
 
 	return a.exec();
 }

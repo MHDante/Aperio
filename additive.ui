@@ -71,7 +71,7 @@ QMenu  {
 }
 
 
-#centralWidget2 {
+#mainWidget {
 	border: 2px solid #D0592A;
 }
 
@@ -356,7 +356,7 @@ background: #82766A;
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -470,7 +470,7 @@ background: #82766A;
      </rect>
     </property>
    </widget>
-   <widget class="QWidget" name="centralWidget2" native="true">
+   <widget class="QWidget" name="mainWidget" native="true">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -485,24 +485,6 @@ background: #82766A;
     <property name="mouseTracking">
      <bool>true</bool>
     </property>
-    <widget class="QWidget" name="layoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>9</x>
-       <y>9</y>
-       <width>581</width>
-       <height>341</height>
-      </rect>
-     </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <property name="margin">
-       <number>0</number>
-      </property>
-      <property name="spacing">
-       <number>0</number>
-      </property>
-     </layout>
-    </widget>
    </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
@@ -536,7 +518,7 @@ background: #82766A;
    <zorder>tabWidget</zorder>
    <zorder>lineEdit</zorder>
    <zorder>label</zorder>
-   <zorder>centralWidget2</zorder>
+   <zorder>mainWidget</zorder>
    <zorder>pushButton</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">

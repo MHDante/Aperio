@@ -49,15 +49,41 @@
 
 #include <QtGui/QMessageBox>
 
-class MouseInteractorStylePP;
+#include <btBulletDynamicsCommon.h>
+
+#include <vtkVector.h>
+
+class MyInteractorStyle;
 
 class MyPoint
 {
 public:
-	MyPoint()
+	MyPoint() {}
+	~MyPoint() {}
+
+	//vtkSmartPointer<vtkPoints> point;
+	//vtkSmartPointer<vtkPoints> normal;
+	vtkVector3f point;
+	vtkVector3f normal;
+};
+
+class MyElem
+{
+public:
+	MyElem() {}
+	~MyElem() {}
+
+	MyPoint p1;
+	MyPoint p2;
+	vtkSmartPointer<vtkActor> actor;	// Superquadric actor
+};
+
+class MyWidgetPoint
+{
+public:
+	MyWidgetPoint()
 	{
 	}
-
 	vtkSmartPointer<vtkPoints> point;		// surface point
 	vtkSmartPointer<vtkPoints> normal;		// surface normal
 	vtkSmartPointer<vtkActor> actor;	// actor of point
@@ -91,15 +117,14 @@ public:
 	}
 
 	std::vector<MyWidgetElem> elems;
-	std::vector<MyPoint> points;
+	std::vector<MyWidgetPoint> points;
 
 	vtkSmartPointer<vtkPoints> avgnormal;
 
 	//vtkSmartPointer<vtkCellLocator> cellLocator;
 };
-// ------------------------------------------------------------------------
-/// <summary>
-/// WidgetElem, represents a widget element (position, normal, actor, etc.)
+///---------------------------------------------------------------------------------------------
+/// <summary> WidgetElem, represents a widget element (position, normal, actor, etc.)
 /// </summary>
 class WidgetElem
 {
@@ -128,16 +153,15 @@ public:
 	}
 };
 
-// ------------------------------------------------------------------------
-/// <summary>
-/// CustomMesh, represents a mesh (opacity, name, actor, etc.)
+///------------------------------------------------------------------------
+/// <summary> CustomMesh, represents a mesh (opacity, name, actor, etc.)
 /// </summary>
 struct CustomMesh
 {
 	/// <summary> Mesh's opacity </summary>
 	float opacity;
 	/// <summary> Mesh's name (group name) </summary>
-	char name[256];
+	std::string name;
 	/// <summary> Mesh's color </summary>
 	Utility::myColor color;
 	/// <summary> Mesh's actor, contains Mapper->GetOutput() - vtkPolyData </summary>
@@ -151,27 +175,30 @@ struct CustomMesh
 	bool operator==(const CustomMesh &other) const {
 		return (this->actor.GetPointer() == other.actor);
 	}
-
 	bool operator==(vtkActor *otherActor) const {
 		return (this->actor.GetPointer() == otherActor);
 	}
 };
-
 // ------------------------------------------------------------------------
-/// <summary>
-/// Main window class
+/// <summary> Main window class
 /// </summary>
 class additive : public QMainWindow
 {
 	Q_OBJECT
 
-	// ------------------------------------------------------------------------
 public:
+	/// <summary> The constructor (Fires a timer that starts slot_afterShowWindow which has all initialization code)
+	/// </summary>
 	additive(QWidget *parent = 0, Qt::WFlags flags = 0);
+
+	/// <summary> Finalizes an instance of the <see cref="additive" /> class.
+	/// </summary>
 	~additive();
 
 	// public access variables
-	double mouse[3];			// Put in struct later
+	double mouse[3];				// Put in struct later
+	double mouseNorm[3];			// Put in struct later
+
 	float mouseSize;
 	float brushDivide;
 	int peerInside;
@@ -182,50 +209,51 @@ public:
 	float pos1[3];
 	float pos2[3];
 
+	float norm1[3];
+	float norm2[3];
+
 	QRect _orig_size;
 	bool preview;
 
 	QString path;
+
+	/// <summary> QVTK Widget </summary>
+	QVTKWidget *qv;
+
+	/// <summary> VTK renderer </summary>
+	vtkSmartPointer<vtkRenderer> renderer;
+
+	/// <summary> Interactor style </summary>
+	vtkSmartPointer<MyInteractorStyle> interactorstyle;
+
+	/// <summary> Vector of CustomMesh objects </summary>
+	std::vector<CustomMesh> meshes;
+
+	/// <summary> Currently selected mesh index </summary>
+	int selectedIndex;
 
 	vtkSmartPointer<MySuperquadricSource> superquad;
 	vtkSmartPointer<vtkActor> sactor;
 
 	/// <summary> Selected Widget Actor </summary>
 	vtkSmartPointer<vtkActor> selectedWidgetActor;
-
 	vtkSmartPointer<vtkActor> clickedWidgetActor;
 
-	QVTKWidget *qv;
-	vtkSmartPointer<MouseInteractorStylePP> estyle;
-
-	//vtkSmartPointer<vtkShaderProgram2> shaderProgram ;
-
-	//enum class State {WIREFRAME, POLYGON};
-
-	/// <summary> VTK renderer </summary>
-	vtkSmartPointer<vtkRenderer> renderer;
-
-	/// <summary> Vector of CustomMesh objects </summary>
-	std::vector<CustomMesh> meshes;
 	std::vector<std::vector<WidgetElem> > widgets;
-
 	std::vector<MyWidget> mywidgets;
 
-	/// <summary> Currently selected mesh index </summary>
-	int selectedIndex;
+	std::vector<MyElem> myelems;
 
-	vtkSmartPointer<vtkActor> mainCursor;
-
-	// ------------------------------------------------------------------------
+	//------------------------------------------------------------------------
 private:
-	/// <summary> The UI object (access widgets from here) </summary>
+	/// <summary> The UI object (access QWidgets from here) </summary>
 	Ui::additiveClass ui;
 
 	/// <summary> Label located inside the statusbar </summary>
-	QLabel * status_label;
+	QLabel* status_label;
 
-	/// <summary> Whether edges are visible (turn on/off for current mesh) </summary>
-	bool edgevisible;
+	/// Frame rate (frames per second)
+	float fps;
 
 	/// <summary> Currently hovered over mesh index (in listbox)</summary>
 	int hoveredIndex;
@@ -234,9 +262,9 @@ private:
 	bool pause;
 
 	/// <summary> Filename of currently opened file </summary>
-	char fname[256];
+	std::string fname;
 
-	// ************* PUBLIC SLOTS *******************************************************************************
+	/////////////////////////////////////// PUBLIC SLOTS //////////////////////////////////////////////////////////////////
 	public slots:
 
 	// ------------------------------------------------------------------------
@@ -244,15 +272,8 @@ private:
 	/// </summary>
 	void slot_listitementered(QListWidgetItem * item)
 	{
-		//meshes[hoveredIndex].actor->GetProperty()->EdgeVisibilityOff();
-		//meshes[hoveredIndex].actor->GetProperty()->SetOpacity(meshes[hoveredIndex].opacity);
-
 		hoveredIndex = ui.listWidget->row(item);
-
-		//meshes[hoveredIndex].actor->GetProperty()->EdgeVisibilityOn();
-		//meshes[hoveredIndex].actor->GetProperty()->SetOpacity(1.0);		// myopacity
 	}
-
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when list item clicked (i is the index of the clicked item)
 	/// </summary>
@@ -266,34 +287,7 @@ private:
 	{
 		ui.btnHello->setText("Toggled");
 		print_statusbar("Depth peeling toggled!");
-
-		if (selectedIndex > -1 && selectedIndex < meshes.size())
-		{
-			toon = (toon + 1) % 2;
-			for (int z = 0; z < meshes.size(); z++)
-			{
-				meshes[z].actor->GetProperty()->AddShaderVariable("toon", toon);
-			}
-			updateDisplay();
-		}
-
-		//if (!edgevisible)
-		//actor->GetProperty()->EdgeVisibilityOn();
-		//else
-		//actor->GetProperty()->EdgeVisibilityOff();
-
-		edgevisible = !edgevisible;
 	}
-
-	// ------------------------------------------------------------------------
-	/// <summary> Slot called when File->New Window menu item clicked
-	/// </summary>
-	//void slot_newwindow()
-	//{
-		//ui.btnHello->setText("Many");
-		//print_statusbar("New window clicked!");
-	//}
-
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when Help->About menu item clicked
 	/// </summary>
@@ -314,9 +308,8 @@ private:
 		okButton->setStyleSheet(this->styleSheet());
 		messageBox.exec();
 	}
-
 	// ------------------------------------------------------------------------
-	/// <summary> Slot called some milliseconds after clicking a top-level menu (File, Help, etc.)
+	/// <summary> Slot called some milliseconds after clicking top-level menu (File, Help, etc.) to fade opacity
 	/// </summary>
 	void slot_menuclick2()
 	{
@@ -337,25 +330,11 @@ private:
 	/// </summary>
 	void slot_timeout()
 	{
-		
-		//((vtkOpenGLRenderer *)(vtkRenderer*)renderer)->SetShaderProgram(shaderProgram);
-
-		//renderer->Render();
-		//meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("translucency",  mouse[0], mouse[1], mouse[2]);
-		//	cout << "hi";
-
-		//this->updateDisplay();
 		if (GetAsyncKeyState(VK_ESCAPE))
 			exit(0);
 		if (!pause)
-		{
-			//ui.qvtkWidget->update();
 			qv->update();
-		}
 	}
-
-	void slot_timeout2();
-
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when File->Open clicked
 	/// </summary>
@@ -382,7 +361,6 @@ private:
 			path = QFileInfo(fileName).path(); // store path for next time
 
 			print_statusbar("Loading file...please be patient!");
-
 			readFile(fileName.toLocal8Bit().data());
 			renderer->ResetCamera();
 			print_statusbar("File loaded");
@@ -395,7 +373,6 @@ private:
 	/// </summary>
 	void slot_exit()
 	{
-			//QMessageBox::QPushButton reply;
 			QMessageBox mb(this);
 			mb.setStyleSheet("color: white; background: black; selection-color: black;");
 			mb.setWindowOpacity(0.9);
@@ -411,18 +388,16 @@ private:
 			noButton->setStyleSheet(this->styleSheet());
 
 			mb.exec();
-
 			if (mb.clickedButton() == yesButton)
 				QApplication::quit();
 	}
-
 	// ------------------------------------------------------------------------
 	void additive::resizeInternal(const QSize &newWindowSize, bool using_preview)
 	{
-		int margin = 20;
-		int extra = 2;	// extra border-width margin of qframe
+		int marginWidth = 20;
+		int marginHeight = marginWidth * 3;	// extra border-width margin of qframe
 
-		QRect central = ui.centralWidget2->geometry();
+		QRect main = ui.mainWidget->geometry();
 		QRect newRect;
 
 		// Previewing resize
@@ -432,23 +407,22 @@ private:
 			if (!preview)
 			{
 				preview = true;
-				newRect.setCoords(margin, 0, newWindowSize.width() - margin, newWindowSize.height() - margin * 3);
-				ui.centralWidget2->raise();
+				newRect.setCoords(_orig_size.x(), 0, newWindowSize.width() - marginWidth, newWindowSize.height() - marginHeight);
+				ui.mainWidget->raise();
 			}
 			else
 			{
 				preview = false;
-				newRect.setCoords(_orig_size.x(), _orig_size.y(), newWindowSize.width() - margin, newWindowSize.height() - margin * 3);
-				ui.centralWidget2->lower();
+				newRect.setCoords(_orig_size.x(), _orig_size.y(), newWindowSize.width() - marginWidth, newWindowSize.height() - marginHeight);
+				ui.mainWidget->lower();
 			}
 		}
 		else  // Regular resize
 		{
-			newRect.setCoords(central.topLeft().x(), central.topLeft().y(), newWindowSize.width() - margin, newWindowSize.height() - margin * 3);
+			newRect.setCoords(main.topLeft().x(), main.topLeft().y(), newWindowSize.width() - marginWidth, newWindowSize.height() - marginHeight);
 		}
-		ui.centralWidget2->setGeometry(newRect);
+		ui.mainWidget->setGeometry(newRect);
 	}
-
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when File->New Window menu item clicked
 	/// </summary>
@@ -456,8 +430,6 @@ private:
 	{
 		resizeInternal(this->size(), true);
 	}
-
-
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when fullscreen menu item clicked
 	/// </summary>
@@ -474,13 +446,11 @@ private:
 	/// <param name="i">new opacity value</param>
 	void slot_valueChanged(int i)
 	{
-		setDiffuseAndOpacity();
-
 		// opacity is perceived opacity, i / 100.0f is actual opacity;
 		float actualopacity = i / 100.0f;
 		float opacity;
 
-		opacity = actualopacity;// *0.4f;
+		opacity = actualopacity *0.4f;
 		if (i >= 100)
 			opacity = 1;
 
@@ -488,41 +458,36 @@ private:
 		// if opacity > 0, enabled
 
 		meshes[selectedIndex].opacity = actualopacity;
-
 		meshes[selectedIndex].actor->GetProperty()->SetOpacity(opacity);
-		//meshes[selectedIndex].actor->GetProperty()->SetDiffuseColor()
-
-		//meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("translucency",  meshes[selectedIndex].opacity);
-		meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("translucency", opacity);
-
-		for (int z = 0; z < meshes.size(); z++)
-		{
-			//if (z != selectedIndex)
-			//meshes[z].actor->GetProperty()->AddShaderVariable("translucency",  1.0);
-		}
-		//renderer->ResetCameraClippingRange();
-		//ResetCameraClippingRange
-		updateDisplay();
 	}
-
-	// ------------------------------------------------------------------------
-	/// <summary> Slot called after window is loaded and shown
+	///-----------------------------------------------------------------------------------------------
+	/// <summary> Slot called after the window is fully loaded (contains all initialization code)
 	/// </summary>
 	void slot_afterShowWindow();
 
-	// ************* END SLOTS *******************************************************************************
+	////////////////////////////////////////////// END SLOTS //////////////////////////////////////////////////////////
 
 	// Public Methods ----------------------------------------------------------------------------------------------
 public:
 
+	/// <summary> Event called when window resized (resizes qvtkwidget)	
+	/// </summary>
+	/// <param name="event">Event object (Qt-based)</param>
 	virtual void resizeEvent(QResizeEvent *) override;
+
+	/// <summary> Event called when mouse moves over window 
+	/// </summary>
+	/// <param name="">Event object (Qt-based)</param>
 	virtual void mouseMoveEvent(QMouseEvent *) override;
 
 	// Custom methods
 	void update_orig_size();
 
 	// ------------------------------------------------------------------------
-	void readFile(char *filename);
+	/// <summary> Reads an .obj file and loads into meshes vector
+	/// </summary>
+	/// <param name="filename">filename.</param>
+	void readFile(std::string filename);
 
 	// ------------------------------------------------------------------------
 	/// <summary> Changes label in status bar to a new message
@@ -533,160 +498,10 @@ public:
 		status_label->setText(text.c_str());
 		QApplication::processEvents();
 	}
-
-	void updateOpacitySliderAndList();
-
 	// ------------------------------------------------------------------------
-	void updateDisplay()
-	{
-		//meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("translucency",  mouse[0], mouse[1], mouse[2]);
-		//renderer->Render();
-		//ui.qvtkWidget->update();
-		//qv->update();
-		//qv->GetRenderWindow()->Render();
-		//QApplication::processEvents();
-	}
-
-	// ------------------------------------------------------------------------
-	/// <summary>
-	/// Sets the diffuse and opacity properties of all objects to the ones set in meshes vector
+	/// <summary> Updates slider opacity value; called when list item clicked
 	/// </summary>
-	void setDiffuseAndOpacity()
-	{
-		for (int j = 0; j < meshes.size(); j++)
-		{
-			meshes[j].actor->GetProperty()->SetDiffuseColor(meshes[j].color.r, meshes[j].color.g, meshes[j].color.b);
-			//meshes[j].actor->GetProperty()->SetOpacity(meshes[j].opacity);
-		}
-	}
-
-	// ------------------------------------------------------------------------
-	void updateMouseShader()
-	{
-		/*for (int z = 0; z < meshes.size(); z++)
-		{
-		meshes[z].actor->GetProperty()->AddShaderVariable("mouse",  mouse[0], mouse[1], mouse[2]);
-		meshes[z].actor->GetProperty()->AddShaderVariable("mouseSize",  mouseSize);
-		meshes[z].actor->GetProperty()->AddShaderVariable("peerInside",  peerInside);
-		}*/
-
-		meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("mouse", mouse[0], mouse[1], mouse[2]);
-		meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("mouseSize", mouseSize);
-		meshes[selectedIndex].actor->GetProperty()->AddShaderVariable("peerInside", peerInside);
-	}
-
-	class vtkMyShader : public vtkGLSLShader
-	{
-	public:
-
-		int MyGetUniformLocation(const char* name)
-		{
-			if (!this->IsShader())
-			{
-				return -1;
-			}
-			if (!name)
-			{
-				vtkErrorMacro("NULL uniform shader parameter name.");
-				return -1;
-			}
-
-			if (vtkgl::IsProgram(this->GetProgram()) != GL_TRUE)
-			{
-				vtkErrorMacro("NULL shader program.");
-				return -1;
-			}
-
-			int location;
-			location = vtkgl::GetUniformLocation(this->GetProgram(), name);
-			if (location == -1)
-			{
-				vtkErrorMacro("No such shader parameter. " << name);
-			}
-			return location;
-		}
-
-		void dosomething(vtkActor *actor, vtkRenderer * renderer)
-		{
-			//float mou[3] = {1,1,1};
-			//this->AddShaderVariable("mouse", 3, mou);
-
-			//std::cout << "doing" << std::endl;
-			//this->AddShaderVariable("mat", 16, elems);
-			//this->AddShaderVariable()
-
-			//vtkCxxSetObjectMacro(vtkShader, XMLShader, vtkXMLShader);
-			//this->GetXMLShader()->GetRootElement();
-
-			vtkShader::GetXMLShader()->GetName();
-			//super->GetXMLShader()->GetName();
-			//this->XMLShader->GetRootElement();
-
-			vtkXMLDataElement* root = this->XMLShader->GetRootElement();
-
-			if (root == NULL)
-			{
-				return;
-			}
-
-			int max = root->GetNumberOfNestedElements();
-			for (int i = 0; i < max; i++)
-			{
-				vtkXMLDataElement* elem = root->GetNestedElement(i);
-				// Decide what to do with the elem element.
-				const char* name = elem->GetAttribute("name");
-				if (!name)
-				{
-					vtkErrorMacro("Uniform parameter missing required attribute 'name' " << *elem);
-					continue;
-				}
-
-				// MY STUFF
-				if (strcmp(name, "mat") == 0)
-				{
-					vtkSmartPointer<vtkMatrix4x4> mat = renderer->GetActiveCamera()->GetModelViewTransformMatrix();
-
-					int index = 0;
-					float elems[16];
-
-					std::ostringstream elems_str;
-
-					for (int i = 0; i < 4; i++)
-					for (int j = 0; j < 4; j++)
-					{
-						elems[index] = mat->GetElement(j, i);	// row j, column i (column major)
-						//std::cout << elems[index];
-						elems_str << elems[index] << " ";
-						index++;
-					}
-
-					elem->SetAttribute("value", elems_str.str().c_str());
-				}
-			}
-		}
-	};
-
-	void updateMat()
-	{
-		return;
-		for (int z = 0; z < meshes.size(); z++)
-		{
-			updateMat(z);
-		}
-	}
-	void updateMat(int z)
-	{
-		return;
-		vtkCollectionIterator* iter = meshes[z].actor->GetProperty()->GetShaderProgram()->NewShaderIterator();
-		//std::cout << meshes[0].actor->GetProperty()->GetShaderProgram()->GetNumberOfShaders() << std::endl;
-		for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
-		{
-			vtkMyShader* shader = (vtkMyShader*)(iter->GetCurrentObject());
-			//shader->dosomething(meshes[z].actor, qv->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-			shader->dosomething(meshes[z].actor, renderer);
-			//system("pause");
-		}
-	}
+	void updateOpacitySliderAndList();
 };
 
 #endif // ADDITIVE_H

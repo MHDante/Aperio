@@ -24,7 +24,7 @@ void phongLighting()
 
 	//calculate Ambient Term:  
 	//vec4 Iamb = texelColor.rgba * gl_FrontMaterial.ambient * gl_LightSource[0].ambient;    
-	vec4 Iamb =  gl_Color * gl_FrontMaterial.ambient * gl_LightSource[0].ambient;   
+	vec4 Iamb = gl_Color * gl_FrontMaterial.ambient * gl_LightSource[0].ambient;   
 
 	//calculate Diffuse Term:  
 	//vec4 Idiff = texelColor.rgba * gl_FrontMaterial.diffuse * gl_LightSource[0].diffuse *
@@ -39,9 +39,16 @@ void phongLighting()
 	
 	// Calculate final color:
 	//final_color  = Iamb + Idiff + Ispec;
+	
 	final_color =  vec4(vec3(gl_FrontMaterial.emission + Iamb + Idiff + Ispec), gl_Color.a);
+		//final_color = vec4(gl_LightSource[0].position.z, 0, 0, 1);
+	//final_color = gl_Color;
+	
+	//final_color = vec4(gl_FrontMaterial.ambient.r, 0, 0, 1);
+	//final_color = gl_FrontMaterial.specular;
 	//final_color = vec4(mouse.x, 0, 0, 1);
 	//final_color = texelColor;
+	//final_color = gl_FrontMaterial.emission + Iamb + Idiff + Ispec;
 	//final_color = vec4(mouse.x, 0, 0, 1);
 }
 

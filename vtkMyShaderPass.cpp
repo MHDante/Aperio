@@ -176,7 +176,8 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	vtkMyShaderProgram2 *currentProgram = static_cast<vtkMyShaderProgram2 *>(this->shaderProgram.GetPointer());
 
 	//	bool none = false;
-
+	//if (!currentProgram->IsUsed())
+		
 	while (i < c)
 	{
 		vtkProp *p = s->GetPropArray()[i];
@@ -234,9 +235,9 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 		{
 			//currentProgram->Use();
 			int rendered;
-			
-			//vtkgl::UseProgram(0);
 			currentProgram->Use();
+			//vtkgl::UseProgram(0);
+			
 
 			if (passType == ShaderPassType::PASS_TRANSLUCENT)
 			{
@@ -280,6 +281,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 		}
 		++i;
 	}
+	//
 }
 
 void vtkMyShaderPass::initialize(additive * window, ShaderPassType::T passType)

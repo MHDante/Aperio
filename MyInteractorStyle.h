@@ -14,21 +14,6 @@
 // and potentially multi-touch events linking (to be added)</summary>
 // ***********************************************************************
 
-/*=========================================================================
-
-Program:   Visualization Toolkit
-Module:    vtkInteractorStyleTrackballCamera.cxx
-
-Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-All rights reserved.
-See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-
-This software is distributed WITHOUT ANY WARRANTY; without even
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-
 // Inherited from
 #include "vtkInteractorStyleTrackballCamera.h"
 
@@ -51,14 +36,15 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkTransform.h"
 
+#include "vtkVector.h"
+
 //-----------------------------------------------------------------------------
-/// <summary>
-/// Class MouseInteractorStylePP, contains key press, mouse events etc.
+/// <summary> Class MouseInteractorStylePP, contains key press, mouse events etc.
 /// </summary>
-class MouseInteractorStylePP : public vtkInteractorStyleTrackballCamera
+class MyInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
 public:
-	/// <summary> Pointer to the mainwindow class so we can call functions to manipulate/update shaders, etc. </summary>
+	/// <summary> Pointer to the mainwindow class so we can access instance variables, etc. </summary>
 	additive * a;
 	vtkSmartPointer<vtkCellPicker> cellPicker;
 
@@ -71,16 +57,12 @@ private:
 	bool creation;
 public:
 
-	// Getters and setters for encapsulated variables
-	// ...
-
-	/// ---------------------------------------------------------------------------------------------
-	/// <summary>
-	/// Creates a new instance (Factory creator declaration) - definition is below outside of class
+	//--------------------------------------------------------------------------------------------------
+	/// <summary> Creates a new instance (Factory creator declaration) - definition is outside of class
 	/// </summary>
-	static MouseInteractorStylePP* New();
+	static MyInteractorStyle* New();
 
-	MouseInteractorStylePP() : NumberOfClicks(0), ResetPixelDistance(5)
+	MyInteractorStyle() : NumberOfClicks(0), ResetPixelDistance(5)
 	{
 		this->PreviousPosition[0] = 0;
 		this->PreviousPosition[1] = 0;
@@ -90,103 +72,35 @@ public:
 
 		dragging = false;
 		creation = false;
+
 		//this->PickingManagedOn();
 	}
-
-	/// ---------------------------------------------------------------------------------------------
-	/// <summary>
-	/// Since there is no constructor (just a factory creator), we have an initialize function
+	//--------------------------------------------------------------------------------------------------
+	/// <summary> Used to initialize a pointer to the main QT window
 	/// </summary>
 	void initialize(additive *window)
 	{
 		this->a = window;
-
-		//this->worldPicker = vtkSmartPointer<vtkCellPicker>::New();
-		//this->worldPicker->SetTolerance(0.0005);
-		//this->GetInteractor()->SetPicker(worldPicker);
-
-		//this->worldPicker->
-		//this->GetInteractor()->GetPicker()->GetPickList()->RemoveAllItems();
-		//this->GetInteractor()->GetPicker()->AddPickList(a->meshes[117].actor);
-		//this->GetInteractor()->GetPicker()->PickFromListOn();
-		//this->GetInteractor()->GetPickingManager()->EnabledOn();
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void setPickList(int z)
 	{
 		//worldPicker->GetPickList()->RemoveAllItems();
 		//worldPicker->AddPickList(a->meshes[z].actor);
 		//worldPicker->PickFromListOn();
 	}
-	vtkTypeMacro(MouseInteractorStylePP, vtkInteractorStyleTrackballCamera);
+	vtkTypeMacro(MyInteractorStyle, vtkInteractorStyleTrackballCamera);
 
 	/// ---------------------------------------------------------------------------------------------
-	//virtual void OnLeftButtonDown() override
-	//{
-	//	//std::cout << "Picking pixel: " << this->Interactor->GetEventPosition()[0] << " " << this->Interactor->GetEventPosition()[1] << std::endl;
-	//	//this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],
-	//	//	this->Interactor->GetEventPosition()[1], 0,  // always zero.
-	//	//	this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-	//	//double picked[3];
-	//	//this->Interactor->GetPicker()->GetPickPosition(picked);
-	//	//std::cout << "Picked value: " << picked[0] << " " << picked[1] << " " << picked[2] << std::endl;
-
-	//	// Forward events
-	//	//vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
-	//}
-	//
-	//	virtual void OnRightButtonDown()  override
-	//	{
-	//		cout << "ehehe";
-	//	}
-	//
-	//	virtual void OnMouseMove()  override
-	//	{
-	//		//this->OnMouseMove();
-	//		//double picked[3];
-	//		this->Interactor->GetPicker()->GetPickPosition(mouse);
-	//		cout << "hi";
-	////		QApplication::processEvents();
-	//		//QApplication::exec();
-	//		this->GrabFocus(this->EventCallbackCommand);
-	//		this->ReleaseFocus();
-	//	}
-	//
-	//	virtual void OnLeftButtonUp();
-
-	/// ---------------------------------------------------------------------------------------------
-	/// <summary>
-	/// Called on key press (handles QT key events)
+	/// <summary> Called on key press (handles QT key events)
 	/// </summary>
-	virtual void MouseInteractorStylePP::OnKeyPress() override
+	virtual void MyInteractorStyle::OnKeyPress() override
 	{
-		//cout << "hi";
-
 		if (strcmp(this->Interactor->GetKeySym(), "Delete") == 0)	// Del key	 ( probably should put this in QT keycheck, b/c QVTKWidget requires focus)
 		{
-			std::cout << "HI";
 			a->meshes[a->selectedIndex].opacity = 0;
 			a->meshes[a->selectedIndex].actor->GetProperty()->SetOpacity(0);
 			a->updateOpacitySliderAndList();
-		}
-		if (this->Interactor->GetKeyCode() == 'a')
-		{
-			// just for viewing, doesnt do anything
-			vtkSmartPointer<vtkMatrix4x4> mat = a->renderer->GetActiveCamera()->GetModelViewTransformMatrix();
-
-			int index = 0;
-			float elems[16];
-
-			std::ostringstream elems_str;
-
-			for (int i = 0; i < 4; i++)
-			for (int j = 0; j < 4; j++)
-			{
-				elems[index] = mat->GetElement(j, i);	// row j, column i (column major)
-				elems_str << elems[index] << " ";
-				index++;
-			}
-			std::cout << elems_str.str() << std::endl;
 		}
 		if (this->Interactor->GetKeyCode() == '+')
 		{
@@ -197,21 +111,16 @@ public:
 		{
 			a->brushDivide++;
 			this->OnMouseMove();
-			cout << "m";
 		}
 		if (this->Interactor->GetKeyCode() == 't')
 		{
-			if (a->peerInside == 1) a->peerInside = 0;
-			else if (a->peerInside == 0) a->peerInside = 1;
+			a->peerInside = (a->peerInside + 1) % 2;
 		}
 		if (this->Interactor->GetKeyCode() == 13)	// enter
 		{
-			//std::cout << "enter";
-			//a->widgets.push_back(std::vector<WidgetElem>());
-
-			a->mywidgets.push_back(MyWidget());
-
-			std::cout << "*** NEW WIDGET ***" << std::endl;
+			//a->mywidgets.push_back(MyWidget());
+			//std::cout << "*** NEW WIDGET ***" << std::endl;
+			a->myelems.push_back(MyElem());
 		}
 
 		if (this->Interactor->GetKeyCode() == 'c')	//
@@ -283,7 +192,7 @@ public:
 				vtkSmartPointer<vtkPolyDataMapper>  mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 				mapper->SetInputData(a->superquad->GetOutput());
 
-				mapper->ImmediateModeRenderingOn();
+				//mapper->ImmediateModeRenderingOn();
 
 				mapper->Update();
 
@@ -319,15 +228,15 @@ public:
 			std::cout << "Picked value: " << picked[0] << " " << picked[1] << " " << picked[2] << std::endl;
 			std::cout << "Mouse value: " << a->mouse[0] << " " << a->mouse[1] << " " << a->mouse[2] << std::endl;
 
-			vtkSphereSource * ss = vtkSphereSource::New();
+			vtkSmartPointer<vtkSphereSource> ss = vtkSmartPointer<vtkSphereSource>::New();
 			ss->SetRadius(0.1);
 			ss->SetCenter(picked[0], picked[1], picked[2]);
 			ss->Update();
 
-			vtkPolyDataMapper *pp = vtkPolyDataMapper::New();
+			vtkSmartPointer<vtkPolyDataMapper> pp = vtkSmartPointer<vtkPolyDataMapper>::New();
 			pp->SetInputData(ss->GetOutput());
 
-			vtkActor * xx = vtkActor::New();
+			vtkSmartPointer<vtkActor> xx = vtkSmartPointer<vtkActor>::New();
 			xx->SetMapper(pp);
 
 			//
@@ -336,118 +245,35 @@ public:
 
 		if (this->Interactor->GetKeyCode() == ' ')
 		{
-			if (a->widgets.size() == 0)
+			if (a->myelems.size() == 0)
 			{
-				// If widget empty, add the first one
-				//a->widgets.push_back(std::vector<WidgetElem>());
+				// If elements empty, add the first one
+				a->myelems.push_back(MyElem());
 			}
-
-			if (a->mywidgets.size() == 0)
-			{
-				// If widget empty, add the first one
-				a->mywidgets.push_back(MyWidget());
-			}
-
-			//this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],
-			//	this->Interactor->GetEventPosition()[1], 0,  // always zero.
-			//	this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-
-			//double pos[3];
-			//this->Interactor->GetPicker()->GetPickPosition(pos);
-
-			//vtkSmartPointer<vtkWorldPointPicker> picker2 = vtkSmartPointer<vtkWorldPointPicker>::New();
-			//picker2->
 
 			// Pick from this location.
 			cellPicker->Pick(this->Interactor->GetEventPosition()[0], this->Interactor->GetEventPosition()[1], 0,
 				this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-
-			//double* worldPosition = picker->GetPickPosition();
-
-			//int cellid = cellPicker->GetCellId();
-			
+		
 			vtkActor *pickedActor = cellPicker->GetActor();
-			//std::cout << "Cell id is: " << picker->GetCellId() << std::endl;
 
 			if (pickedActor == nullptr)
-				cout << "none\n";
+				cout << "No actor picked\n";
 			else
 			{
-				//picker->GetActor()->GetProperty()->SetDiffuseColor(1, 1, 1);
+				cout << "Actor picked\n";
+
 				double poss[3];
-				//picker->GetPickNormal(poss);
 				cellPicker->GetPickPosition(poss);
 
-				//return;
-				//picker->getposit
-				//std::cout << "posss: " << poss[0] << ", " << poss[1] << ", " << poss[2] << "\n";
+				vtkPolyData* thepolydata = vtkPolyData::SafeDownCast(pickedActor->GetMapper()->GetInput());		
 
-				//std::cout << ", " << picker->GetActor()->GetProperty()->GetRepresentationAsString() << "\n";
-				//picker->GetActor()->GetProperty()->SetDiffuseColor(1, 0, 0);
-				//auto coll = cellPicker->GetActors();
-
-				//int id = cellPicker->GetPointId();
-
-				//if (coll->GetNumberOfItems() == 0)
-				//{
-				//std::cout << "none\n";
-				//}
-				//if (coll->GetNumberOfItems() > 0)
-				//{
-				//std::cout << "id" << id << std::endl;
-				//std::cout << "cellid" << cellid << std::endl;
-
-				//std::cout << "noneeee\n" ;
-				auto thepolydata = static_cast<vtkPolyData *> (pickedActor->GetMapper()->GetInput());
-
-				//thepolydata->GetPointData()->GetNormals()->GetTuple(id);
-				//std::cout << id << "\n";
-				double normal[3];//= thepolydata->GetPointData()->GetNormals()->GetTuple(id);
-
+				double normal[3];
 				cellPicker->GetPickNormal(normal);
 
-				//std::cout << "" << thepolydata->GetPointData()->GetNumberOfTuples();
 
-				//for (int i = 0 ; i < 8; i++)
-				//{
-				//std::cout << "" << thepolydata->GetPointData()->GetTuple(i)[0] << "," << thepolydata->GetPointData()->GetTuple(i)[1] <<
-				//"," << thepolydata->GetPointData()->GetTuple(i)[2] << "\n";
-				//}
+				return;
 
-				//double *normal = thepolydata->GetCellData()->GetNormals()->GetTuple(cellid);
-
-				//thepolydata->GetPoint(id);
-
-				float tubeWidth = a->mouseSize / 20.0f;
-				//vtkMath::Normalize(normal);
-
-				//vtkSmartPointer<vtkLineSource> sphere = vtkSmartPointer<vtkLineSource>::New();
-				//sphere->SetPoint1(0, 0, 0);
-				////sphere->SetPoint2(normal[0], normal[1], normal[2]);
-				//sphere->SetPoint2(0.0, 0.0, 0.0);
-
-				//vtkSmartPointer<vtkTubeFilter> tube = vtkSmartPointer<vtkTubeFilter>::New();
-				//tube->SetInputConnection(sphere->GetOutputPort());
-				//tube->SetRadius(tubeWidth); //default is .5
-				//tube->SetNumberOfSides(50);
-				//tube->Update();
-
-				float  mouseSizeDivide = 5.0;
-
-				vtkSmartPointer<vtkSphereSource> spherec = vtkSmartPointer<vtkSphereSource>::New();
-				spherec->SetRadius(a->mouseSize / mouseSizeDivide);
-				spherec->Update();
-
-				//vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-				//transform->Translate(poss[0], poss[1], poss[2]);
-
-				//vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-				//transformFilter->SetInputData(spherec->GetOutput());
-				//transformFilter->SetTransform(transform);
-				//transformFilter->Update();
-
-				vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-				mapper->SetInputConnection(spherec->GetOutputPort());
 
 				//WidgetElem elem;
 
@@ -476,7 +302,7 @@ public:
 
 				int selectedwidgetind = a->mywidgets.size() - 1;
 
-				MyPoint p;
+				MyWidgetPoint p;
 				p.normal = vtkSmartPointer<vtkPoints>::New();
 				p.normal->InsertNextPoint(normal[0], normal[1], normal[2]);
 
@@ -484,7 +310,7 @@ public:
 				p.point->InsertNextPoint(poss[0], poss[1], poss[2]);
 
 				p.actor = vtkSmartPointer<vtkActor>::New();
-				p.actor->SetMapper(mapper);
+				//p.actor->SetMapper(mapper);
 				p.actor->PickableOn();
 				p.actor->GetProperty()->SetDiffuseColor(1, 0.0, 0);
 				p.actor->GetProperty()->SetOpacity(0.5);
@@ -713,7 +539,7 @@ public:
 						vtkSmartPointer<vtkSphereSource> newSphere = vtkSmartPointer<vtkSphereSource>::New();
 						//newSphere->SetCenter(pts[0] , pts[1] , pts[2] );
 						newSphere->SetCenter(pts[0] - beforepts[0], pts[1] - beforepts[1], pts[2] - beforepts[2]);
-						newSphere->SetRadius(a->mouseSize / mouseSizeDivide);
+						//newSphere->SetRadius(a->mouseSize / mouseSizeDivide);
 						newSphere->Update();
 
 						vtkSmartPointer<vtkAppendPolyData> appendPoly = vtkSmartPointer<vtkAppendPolyData>::New();
@@ -950,7 +776,7 @@ public:
 		//OnMouseMove();
 
 		//a->updateMouseShader();
-		a->updateDisplay();
+		//a->updateDisplay();
 		//throw std::exception("The method or operation is not implemented.");
 		vtkInteractorStyleTrackballCamera::OnKeyPress();
 	}
@@ -990,15 +816,23 @@ public:
 			this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 
 		cellPicker->GetPickPosition(a->mouse);
-
-		//std::cout << a->mouse[0] << ", " << a->mouse[1] << ", " << a->mouse[2] << std::endl;
+		cellPicker->GetPickNormal(a->mouseNorm);
 
 		vtkSmartPointer<vtkActor> actorHovered = cellPicker->GetActor();
-
+		
+		vtkInteractorStyleTrackballCamera::OnMouseMove();
+		return;
 		if (actorHovered)
 		{
 			// Only drag if you hovered over the correct actor (selected one)
-			std::vector<CustomMesh>::iterator it = std::find(a->meshes.begin(), a->meshes.end(), actorHovered);
+			std::vector<CustomMesh>::iterator it = std::find(a->meshes.begin(), a->meshes.end(), actorHovered.GetPointer());
+
+			if (it != a->meshes.end())
+			{
+				// Mouse dragged over actor
+			}
+			return;
+
 
 			if (it != a->meshes.end())
 			{
@@ -1008,7 +842,7 @@ public:
 					{
 						for (int i = 0; i < a->mywidgets.size(); i++)
 						{
-							std::vector<MyPoint>::iterator it2 = std::find(a->mywidgets.at(i).points.begin(), a->mywidgets.at(i).points.end(), a->clickedWidgetActor);
+							std::vector<MyWidgetPoint>::iterator it2 = std::find(a->mywidgets.at(i).points.begin(), a->mywidgets.at(i).points.end(), a->clickedWidgetActor);
 
 							if (it2 != a->mywidgets.at(i).points.end())	// found
 							{
@@ -1146,7 +980,7 @@ public:
 
 			for (int i = 0; i < a->mywidgets.size(); i++)
 			{
-				std::vector<MyPoint>::iterator it2 = std::find(a->mywidgets.at(i).points.begin(), a->mywidgets.at(i).points.end(), actorHovered);
+				std::vector<MyWidgetPoint>::iterator it2 = std::find(a->mywidgets.at(i).points.begin(), a->mywidgets.at(i).points.end(), actorHovered);
 
 				if (it2 != a->mywidgets.at(i).points.end())	// found
 				{
@@ -1201,14 +1035,17 @@ public:
 
 		//a->meshes[a->selectedIndex].actor->GetMapper()->GetOutputDataObject()
 
-		vtkPolyData * thepolydata = static_cast<vtkPolyData *> (a->meshes[a->selectedIndex].actor->GetMapper()->GetInput());
+		if (a->meshes.size() > 0)
+		{
+			
+			vtkPolyData* thepolydata = vtkPolyData::SafeDownCast(a->meshes.at(a->selectedIndex).actor->GetMapper()->GetInput());
+			float diffx = thepolydata->GetBounds()[1] - thepolydata->GetBounds()[0];	// diff in maxx and minx
+			float diffy = thepolydata->GetBounds()[3] - thepolydata->GetBounds()[2];	// diff in maxx and minx
+			float diffz = thepolydata->GetBounds()[5] - thepolydata->GetBounds()[4];	// diff in maxx and minx
 
-		float diffx = thepolydata->GetBounds()[1] - thepolydata->GetBounds()[0];	// diff in maxx and minx
-		float diffy = thepolydata->GetBounds()[3] - thepolydata->GetBounds()[2];	// diff in maxx and minx
-		float diffz = thepolydata->GetBounds()[5] - thepolydata->GetBounds()[4];	// diff in maxx and minx
-
-		float avg = (diffx + diffy + diffz) / 3.0;
-		a->mouseSize = avg / a->brushDivide;
+			float avg = (diffx + diffy + diffz) / 3.0;
+			a->mouseSize = avg / a->brushDivide;
+		}
 
 		//if (this->GetCurrentRenderer())
 		//				this->GetCurrentRenderer()->Render();
@@ -1298,15 +1135,11 @@ public:
 					it->selected = 1;
 
 					int newindex = it._Ptr - &a->meshes[0];
-					std::cout << newindex;
 					a->selectedIndex = newindex;
 
 					a->updateOpacitySliderAndList();
-
-					std::cout << actorDouble->GetProperty()->GetOpacity() << std::endl;
 				}
 			}
-
 			this->NumberOfClicks = 0;
 		}
 
@@ -1317,87 +1150,102 @@ public:
 			0,  // always zero.
 			this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 
-		if (creation)
-		{
-			a->pos1[0] = cellPicker->GetPickPosition()[0];
-			a->pos1[1] = cellPicker->GetPickPosition()[1];
-			a->pos1[2] = cellPicker->GetPickPosition()[2];
-		}
-
 		vtkSmartPointer<vtkActor> actorSingle = cellPicker->GetActor();
 		if (actorSingle)
 		{
-			// If actor single-clicked is one of the widgets
-			for (int i = 0; i < a->mywidgets.size(); i++)
+			// If actor selected is one of the CustomMesh
+			auto it = std::find(a->meshes.begin(), a->meshes.end(), actorSingle.GetPointer());
+
+			if (it != a->meshes.end())
 			{
-				std::vector<MyPoint>::iterator it2 = std::find(a->mywidgets.at(i).points.begin(), a->mywidgets.at(i).points.end(), actorSingle);
+				dragging = true;
 
-				if (it2 != a->mywidgets.at(i).points.end())	// found
-				{
-					// set dragging true and we will now bound picking to selectedIndex actor until left button released
-					// So set pickable off for all widgets until left released - and maybe off for all meshes except active
-					dragging = true;
-					a->clickedWidgetActor = it2->actor;
+				a->pos1[0] = cellPicker->GetPickPosition()[0];
+				a->pos1[1] = cellPicker->GetPickPosition()[1];
+				a->pos1[2] = cellPicker->GetPickPosition()[2];
 
-					for (int i = 0; i < a->mywidgets.size(); i++)
-					{
-						for (int j = 0; j < a->mywidgets.at(i).points.size(); j++)
-						{
-							a->mywidgets.at(i).points.at(j).actor->PickableOff();
-						}
-					}
+				a->norm1[0] = cellPicker->GetPickNormal()[0];
+				a->norm1[1] = cellPicker->GetPickNormal()[1];
+				a->norm1[2] = cellPicker->GetPickNormal()[2];
 
-					for (int i = 0; i < a->meshes.size(); i++)
-					{
-						a->meshes.at(i).actor->PickableOff();
-					}
-					a->meshes.at(a->selectedIndex).actor->PickableOn();
+				// only do if creation == true
 
-					//if (a->selectedWidgetActor)
-					//a->selectedWidgetActor->GetProperty()->SetDiffuseColor(1, 0, 0);
-
-					//it2->actor->GetProperty()->SetDiffuseColor(0, 1, 0);
-
-					//a->selectedWidgetActor = it2->actor;
-					//std::cout << "actor hit" << std::endl;
-				}
+				std::cout << "start dragging\n";
 			}
 
+
+			//return;
 			// If actor single-clicked is one of the widgets
-			for (int i = 0; i < a->widgets.size(); i++)
-			{
-				std::vector<WidgetElem>::iterator it2 = std::find(a->widgets[i].begin(), a->widgets[i].end(), actorSingle);
+			//for (int i = 0; i < a->mywidgets.size(); i++)
+			//{
+			//	std::vector<MyWidgetPoint>::iterator it2 = std::find(a->mywidgets.at(i).points.begin(), a->mywidgets.at(i).points.end(), actorSingle);
 
-				if (it2 != a->widgets[i].end())	// found
-				{
-					// set dragging true and we will now bound picking to selectedIndex actor until left button released
-					// So set pickable off for all widgets until left released - and maybe off for all meshes except active
-					dragging = true;
-					a->clickedWidgetActor = it2->actor;
+			//	if (it2 != a->mywidgets.at(i).points.end())	// found
+			//	{
+			//		// set dragging true and we will now bound picking to selectedIndex actor until left button released
+			//		// So set pickable off for all widgets until left released - and maybe off for all meshes except active
+			//		dragging = true;
+			//		a->clickedWidgetActor = it2->actor;
 
-					for (int i = 0; i < a->widgets.size(); i++)
-					{
-						for (int j = 0; j < a->widgets[i].size(); j++)
-						{
-							a->widgets.at(i).at(j).actor->PickableOff();
-						}
-					}
+			//		for (int i = 0; i < a->mywidgets.size(); i++)
+			//		{
+			//			for (int j = 0; j < a->mywidgets.at(i).points.size(); j++)
+			//			{
+			//				a->mywidgets.at(i).points.at(j).actor->PickableOff();
+			//			}
+			//		}
 
-					for (int i = 0; i < a->meshes.size(); i++)
-					{
-						a->meshes.at(i).actor->PickableOff();
-					}
-					a->meshes.at(a->selectedIndex).actor->PickableOn();
+			//		for (int i = 0; i < a->meshes.size(); i++)
+			//		{
+			//			a->meshes.at(i).actor->PickableOff();
+			//		}
+			//		a->meshes.at(a->selectedIndex).actor->PickableOn();
 
-					//if (a->selectedWidgetActor)
-					//a->selectedWidgetActor->GetProperty()->SetDiffuseColor(1, 0, 0);
+			//		//if (a->selectedWidgetActor)
+			//		//a->selectedWidgetActor->GetProperty()->SetDiffuseColor(1, 0, 0);
 
-					//it2->actor->GetProperty()->SetDiffuseColor(0, 1, 0);
+			//		//it2->actor->GetProperty()->SetDiffuseColor(0, 1, 0);
 
-					//a->selectedWidgetActor = it2->actor;
-					//std::cout << "actor hit" << std::endl;
-				}
-			}
+			//		//a->selectedWidgetActor = it2->actor;
+			//		//std::cout << "actor hit" << std::endl;
+			//	}
+			//}
+
+			// If actor single-clicked is one of the widgets
+			//for (int i = 0; i < a->widgets.size(); i++)
+			//{
+			//	std::vector<WidgetElem>::iterator it2 = std::find(a->widgets[i].begin(), a->widgets[i].end(), actorSingle);
+
+			//	if (it2 != a->widgets[i].end())	// found
+			//	{
+			//		// set dragging true and we will now bound picking to selectedIndex actor until left button released
+			//		// So set pickable off for all widgets until left released - and maybe off for all meshes except active
+			//		dragging = true;
+			//		a->clickedWidgetActor = it2->actor;
+
+			//		for (int i = 0; i < a->widgets.size(); i++)
+			//		{
+			//			for (int j = 0; j < a->widgets[i].size(); j++)
+			//			{
+			//				a->widgets.at(i).at(j).actor->PickableOff();
+			//			}
+			//		}
+
+			//		for (int i = 0; i < a->meshes.size(); i++)
+			//		{
+			//			a->meshes.at(i).actor->PickableOff();
+			//		}
+			//		a->meshes.at(a->selectedIndex).actor->PickableOn();
+
+			//		//if (a->selectedWidgetActor)
+			//		//a->selectedWidgetActor->GetProperty()->SetDiffuseColor(1, 0, 0);
+
+			//		//it2->actor->GetProperty()->SetDiffuseColor(0, 1, 0);
+
+			//		//a->selectedWidgetActor = it2->actor;
+			//		//std::cout << "actor hit" << std::endl;
+			//	}
+			//}
 		}
 
 		if (dragging == true)
@@ -1447,212 +1295,244 @@ public:
 		// Forward events
 		//vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
-
 	////----------------------------------------------------------------------------
-	/// <summary>
-	/// Called when [left button up].
+	/// <summary> Called when [left button up].
 	/// </summary>
 	virtual void OnLeftButtonUp() override
 	{
 		if (dragging)
 		{
+			dragging = false;
+
+			// check if p2 is on an actor
+
 			a->pos2[0] = a->mouse[0];
 			a->pos2[1] = a->mouse[1];
 			a->pos2[2] = a->mouse[2];
-		}
 
-		dragging = false;
+			a->norm2[0] = a->mouseNorm[0];
+			a->norm2[1] = a->mouseNorm[1];
+			a->norm2[2] = a->mouseNorm[2];
 
-		// set all widgets back to pickable
-		for (int i = 0; i < a->mywidgets.size(); i++)
-		{
-			for (int j = 0; j < a->mywidgets.at(i).points.size(); j++)
+			auto dist = [](float pos1[3], float pos2[3]) -> float
 			{
-				a->mywidgets.at(i).points.at(j).actor->PickableOn();
+				return sqrtf( pow(pos2[2] - pos1[2], 2.0f) + pow(pos2[1] - pos1[1], 2.0f) + pow(pos2[0] - pos1[0], 2.0f) );
+			};
+			
+			if (dist(a->pos1, a->pos2) < 0.2)
+			{
+				std::cout << "stop dragging NO GOOD\n";
+				return;
 			}
+			// Otherwise, good
+
+			MyElem elem;
+			
+			elem.p1.point = vtkVector3f(a->pos1[0], a->pos1[1], a->pos1[2]);
+			elem.p1.normal = vtkVector3f(a->norm1[0], a->norm1[1], a->norm1[2]);
+
+			//elem.p1.point = vtkSmartPointer<vtkPoints>::New();
+			//elem.p1.point->InsertNextPoint(a->pos1);
+			//elem.p1.normal = vtkSmartPointer<vtkPoints>::New();
+			//elem.p1.normal->InsertNextPoint(a->norm1);
+
+			elem.p2.point = vtkVector3f(a->pos2[0], a->pos2[1], a->pos2[2]);
+			elem.p2.normal = vtkVector3f(a->norm2[0], a->norm2[1], a->norm2[2]);
+
+			//elem.p2.point = vtkSmartPointer<vtkPoints>::New();
+			//elem.p2.point->InsertNextPoint(a->pos2);
+			//elem.p2.normal = vtkSmartPointer<vtkPoints>::New();
+			//elem.p2.normal->InsertNextPoint(a->norm2);
+
+			a->myelems.push_back(elem);
+
+			vtkSmartPointer<MySuperquadricSource> superquad = vtkSmartPointer<MySuperquadricSource>::New();
+			superquad->SetToroidal(false);
+			superquad->SetThetaResolution(32);
+			superquad->SetPhiResolution(32);
+
+			//float normx = (elem.p1.normal->GetPoint(0)[0] + elem.p2.normal->GetPoint(0)[0]) / 2.0f;
+			//float normy = (elem.p1.normal->GetPoint(0)[1] + elem.p2.normal->GetPoint(0)[1]) / 2.0f;
+			//float normz = (elem.p1.normal->GetPoint(0)[2] + elem.p2.normal->GetPoint(0)[2]) / 2.0f;
+
+			//superquad->SetCenter((elem.p1.point->GetPoint(0)[0] + elem.p2.point->GetPoint(0)[0]) / 2.0f,
+//				(elem.p1.point->GetPoint(0)[1] + elem.p2.point->GetPoint(0)[1]) / 2.0f,
+				//(elem.p1.point->GetPoint(0)[2] + elem.p2.point->GetPoint(0)[2]) / 2.0f);
+
+			//superquad->SetCenter( (elem.p1.point.X() + elem.p2.point.X()) / 2.0f,
+			//	(elem.p1.point.Y() + elem.p2.point.Y()) / 2.0f,
+			//	(elem.p1.point.Z() + elem.p2.point.Z()) / 2.0f );
+				//;
+
+
+
+			//superquad->SetCenter((elem.p1.point->GetPoint(0)[0] + elem.p2.point->GetPoint(0)[0]) / 2.0f ,
+				//(elem.p1.point->GetPoint(0)[1] + elem.p2.point->GetPoint(0)[1]) / 2.0f ,
+				//(elem.p1.point->GetPoint(0)[2] + elem.p2.point->GetPoint(0)[2]) / 2.0f );
+
+
+			//superquad->SetScale(dist(a->pos1, a->pos2), 0.1, 0.1);
+
+
+			 
+			//superquad->SetScale(dist(a->pos1, a->pos2), .1, .1);
+
+			
+			superquad->SetPhiRoundness(0.25);
+			superquad->SetThetaRoundness(0.25);
+			superquad->Update();
+
+			// vtk does row-major matrix operations
+
+			vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+			//transform->Translate((elem.p1.point.X() + elem.p2.point.X()) / 2.0f,
+				//(elem.p1.point.Y() + elem.p2.point.Y()) / 2.0f,
+				//(elem.p1.point.Z() + elem.p2.point.Z()) / 2.0f);
+			//double elements[16] = {
+			//	dist(a->pos1, a->pos2), 0, 0, (elem.p1.point.GetX() + elem.p2.point.GetX()) / 2.0f,
+			//	0, .1, 0, (elem.p1.point.GetY() + elem.p2.point.GetY()) / 2.0f,
+			//	0, 0, .1, (elem.p1.point.GetZ() + elem.p2.point.GetZ()) / 2.0f,
+			//	0, 0, 0, 1
+			//};
+
+			double elements3[16] = {
+				1, 0, 0, (elem.p1.point.GetX() + elem.p2.point.GetX()) / 2.0f,
+				0, 1, 0, (elem.p1.point.GetY() + elem.p2.point.GetY()) / 2.0f,
+				0, 0, 1, (elem.p1.point.GetZ() + elem.p2.point.GetZ()) / 2.0f,
+				0, 0, 0, 1
+			};
+
+			float rads = vtkMath::RadiansFromDegrees(45.0);
+
+			vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
+				(elem.p1.normal.GetY() + elem.p2.normal.GetZ()) / 2.0f,
+				(elem.p1.normal.GetY() + elem.p2.normal.GetZ()) / 2.0f
+				);
+
+			std::cout << forward.GetX() << "," << forward.GetY() << "," << forward.GetZ() << "\n";
+			std::cout << forward.Normalize() << "\n";
+			std::cout << forward.GetX() << "," << forward.GetY() << "," << forward.GetZ() << "\n";
+			std::cout << forward.Norm() << "\n";
+			vtkVector3f right = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
+				(elem.p1.normal.GetY() + elem.p2.normal.GetZ()) / 2.0f,
+				(elem.p1.normal.GetY() + elem.p2.normal.GetZ()) / 2.0f
+				);
+
+
+			double elements2[16] = {
+				cosf(rads), -sinf(rads), 0, 0,
+				sinf(rads), cosf(rads), 0, 0,
+				0, 0, 1, 0, 
+				0, 0, 0, 1
+			};
+
+			double elements1[16] = {
+				dist(a->pos1, a->pos2), 0, 0, 0,
+				0, .1, 0, 0,
+				0, 0, .1, 0,
+				0, 0, 0, 1
+			};
+			//vtkSmartPointer<vtkMatrix4x4> elementsMat = vtkSmartPointer<vtkMatrix4x4>::New();
+			//for (int i = 0; i < 4; i++)
+				//for (int j = 0; j < 4; j++)
+					//elementsMat->SetElement(i, j, elements[i * 4 + j]);
+			//elementsMat->SetElement(0, 0)
+
+			transform->SetMatrix(elements1);
+
+			transform->PostMultiply();
+			transform->Concatenate(elements2);
+			transform->Concatenate(elements3);
+			//transform->Scale(dist(a->pos1, a->pos2), .1, .1);
+
+			//transform->Concatenate()
+			vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+			transformFilter->SetTransform(transform);
+			transformFilter->SetInputData(superquad->GetOutput());
+			transformFilter->Update();
+
+
+			vtkSmartPointer<vtkPolyDataMapper> smapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+			smapper->SetInputData(transformFilter->GetOutput());
+
+			vtkSmartPointer<vtkActor> sactor = vtkSmartPointer<vtkActor>::New();
+			sactor->SetMapper(smapper);
+			sactor->GetProperty()->SetDiffuseColor(1, .5, .5);
+			sactor->GetProperty()->SetOpacity(.5);
+
+			a->renderer->AddActor(sactor);
+			
+			//std::cout << a->myelems.size() << "\n";
+
+			//float x = a->pos1[0];
+			//float y = a->pos1[1];
+			//float z = a->pos1[2];
+			auto addSphere = [](additive *a, float x, float y, float z){
+				float  mouseSizeDivide = 5.0;
+
+				if (a->meshes.size() > 0)
+				{
+					vtkPolyData* thepolydata = vtkPolyData::SafeDownCast(a->meshes.at(a->selectedIndex).actor->GetMapper()->GetInput());
+					float diffx = thepolydata->GetBounds()[1] - thepolydata->GetBounds()[0];	// diff in maxx and minx
+					float diffy = thepolydata->GetBounds()[3] - thepolydata->GetBounds()[2];	// diff in maxy and miny
+					float diffz = thepolydata->GetBounds()[5] - thepolydata->GetBounds()[4];	// diff in maxz and minz
+
+					float avg = (diffx + diffy + diffz) / 3.0;
+					a->mouseSize = avg / a->brushDivide;
+				}
+
+
+				vtkSmartPointer<vtkSphereSource> spherec = vtkSmartPointer<vtkSphereSource>::New();
+				spherec->SetRadius(a->mouseSize / mouseSizeDivide);
+				spherec->Update();
+
+				vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+				transform->Translate(x, y, z);
+
+				vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+				transformFilter->SetInputData(spherec->GetOutput());
+				transformFilter->SetTransform(transform);
+				transformFilter->Update();
+
+				vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+				mapper->SetInputConnection(transformFilter->GetOutputPort());
+
+				vtkSmartPointer<vtkActor> actors = vtkSmartPointer<vtkActor>::New();
+				actors->SetMapper(mapper);
+				actors->SetPickable(false);
+
+				a->renderer->AddActor(actors);
+			};
+			addSphere(a, a->pos1[0], a->pos1[1], a->pos1[2]);
+			addSphere(a, a->pos2[0], a->pos2[1], a->pos2[2]);
+
 		}
 
 		// set all widgets back to pickable, and all meshes pickable
-		for (int i = 0; i < a->widgets.size(); i++)
-		{
-			for (int j = 0; j < a->widgets[i].size(); j++)
-			{
-				a->widgets.at(i).at(j).actor->PickableOn();
-			}
-		}
-		for (int i = 0; i < a->meshes.size(); i++)
-		{
-			a->meshes.at(i).actor->PickableOn();
-		}
-
+		//for (int i = 0; i < a->widgets.size(); i++)
+		//{
+		//	for (int j = 0; j < a->widgets[i].size(); j++)
+		//	{
+		//		a->widgets.at(i).at(j).actor->PickableOn();
+		//	}
+		//}
+		//for (int i = 0; i < a->meshes.size(); i++)
+		//{
+		//	a->meshes.at(i).actor->PickableOn();
+		//}
 		vtkInteractorStyleTrackballCamera::OnLeftButtonUp();
 	}
-
-	////----------------------------------------------------------------------------
-	/// <summary>
-	/// Called when [left button down].
-	/// </summary>
-	//virtual void OnLeftButtonDown()  override
-	//{
-	//	this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
-	//		this->Interactor->GetEventPosition()[1]);
-	//	if (this->CurrentRenderer == nullptr)
-	//	{
-	//		return;
-	//	}
-
-	//	this->GrabFocus(this->EventCallbackCommand);
-	//
-	//	if (this->Interactor->GetShiftKey())
-	//	{
-	//		if (this->Interactor->GetControlKey())
-	//		{
-	//			this->StartDolly();
-	//		}
-	//		else
-	//		{
-	//			this->StartPan();
-	//		}
-	//	}
-	//	else
-	//	{
-	//		if (this->Interactor->GetControlKey())
-	//		{
-	//			this->StartSpin();
-	//		}
-	//		else
-	//		{
-	//			this->StartRotate();
-	//		}
-	//	}
-	//}
-
-	//////----------------------------------------------------------------------------
-	//virtual void OnLeftButtonUp() override
-	//{
-	//	switch (this->State)
-	//	{
-	//	case VTKIS_DOLLY:
-	//		this->EndDolly();
-	//		break;
-
-	//	case VTKIS_PAN:
-	//		this->EndPan();
-	//		break;
-
-	//	case VTKIS_SPIN:
-	//		this->EndSpin();
-	//		break;
-
-	//	case VTKIS_ROTATE:
-	//		this->EndRotate();
-	//		break;
-	//	}
-
-	//	if ( this->Interactor )
-	//	{
-	//		this->ReleaseFocus();
-	//	}
-	//}
-
-	//////----------------------------------------------------------------------------
-	//virtual void OnMiddleButtonDown()  override
-	//{
-	//	this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
-	//		this->Interactor->GetEventPosition()[1]);
-	//	if (this->CurrentRenderer == nullptr)
-	//	{
-	//		return;
-	//	}
-
-	//	this->GrabFocus(this->EventCallbackCommand);
-	//	this->StartPan();
-	//}
-
-	//////----------------------------------------------------------------------------
-	////virtual void MouseInteractorStylePP::OnMiddleButtonUp() override
-	//{
-	//	switch (this->State)
-	//	{
-	//	case VTKIS_PAN:
-	//		this->EndPan();
-	//		if ( this->Interactor )
-	//		{
-	//			this->ReleaseFocus();
-	//		}
-	//		break;
-	//	}
-	//}
-
-	//////----------------------------------------------------------------------------
-	//virtual void OnRightButtonDown()  override
-	//{
-	//	this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
-	//		this->Interactor->GetEventPosition()[1]);
-	//	if (this->CurrentRenderer == nullptr)
-	//	{
-	//		return;
-	//	}
-
-	//	this->GrabFocus(this->EventCallbackCommand);
-	//	this->StartDolly();
-	//}
-
-	//////----------------------------------------------------------------------------
-	//virtual void OnRightButtonUp() override
-	//{
-	//	switch (this->State)
-	//	{
-	//	case VTKIS_DOLLY:
-	//		this->EndDolly();
-
-	//		if ( this->Interactor )
-	//		{
-	//			this->ReleaseFocus();
-	//		}
-	//		break;
-	//	}
-	//}
-
-	//////----------------------------------------------------------------------------
-	//virtual void OnMouseWheelForward()  override
-	//{
-	//	this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
-	//		this->Interactor->GetEventPosition()[1]);
-	//	if (this->CurrentRenderer == nullptr)
-	//	{
-	//		return;
-	//	}
-
-	//	this->GrabFocus(this->EventCallbackCommand);
-	//	this->StartDolly();
-	//	double factor = this->MotionFactor * 0.2 * this->MouseWheelMotionFactor;
-	//	this->Dolly(pow(1.1, factor));
-	//	this->EndDolly();
-	//	this->ReleaseFocus();
-	//}
-
-	//////----------------------------------------------------------------------------
-	//virtual void OnMouseWheelBackward() override
-	//{
-	//	this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
-	//		this->Interactor->GetEventPosition()[1]);
-	//	if (this->CurrentRenderer == nullptr)
-	//	{
-	//		return;
-	//	}
-
-	//	this->GrabFocus(this->EventCallbackCommand);
-	//	this->StartDolly();
-	//	double factor = this->MotionFactor * -0.2 * this->MouseWheelMotionFactor;
-	//	this->Dolly(pow(1.1, factor));
-	//	this->EndDolly();
-	//	this->ReleaseFocus();
-	//}
-
-	//virtual void Rotate() override
-	//{
-	//	throw std::exception("The method or operation is not implemented.");
-	//}
+	//----------------------------------------------------------------------------
+	virtual void OnMouseWheelForward()  override
+	{
+		//std::cout << "forward\n";
+		vtkInteractorStyleTrackballCamera::OnMouseWheelForward();
+	}
+	//----------------------------------------------------------------------------
+	virtual void OnMouseWheelBackward() override
+	{
+		//std::cout << "backward\n";
+		vtkInteractorStyleTrackballCamera::OnMouseWheelBackward();
+	}
 };
-vtkStandardNewMacro(MouseInteractorStylePP);
+vtkStandardNewMacro(MyInteractorStyle);

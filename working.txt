@@ -1,0 +1,54 @@
+
+
+// ---------------- Main function ----------------------//
+void main (void)  
+{
+	phongLighting();
+
+	// convert mouse world coords to view coords (so same as v)
+	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
+	
+	float ee = myexp;
+	float nn = 0.5;
+
+	float d = pow(pow(abs(v.y - mouseV.y) / 1.0, 2.0/ee) + pow(abs(v.x - mouseV.x) / 1.0, 2.0/ee), ee/nn) + pow(abs(v.z - mouseV.z) / 1.0, 2.0/nn) - 1.0;
+	  
+	if (selected == 1)	// if selected
+	{
+		if (d < mouseSize && peerInside == 1)
+		{
+			discard;
+		}
+		else
+		{
+			gl_FragColor = final_color;
+
+		}
+	}
+	else
+	{
+			gl_FragColor = final_color;
+	}
+}
+
+*******************************
+
+#version 130
+//#extension GL_EXT_geometry_shader4 : enable
+
+varying vec3 n;
+varying vec3 v;
+
+void main(void)  
+{     
+   v = vec3(gl_ModelViewMatrix * gl_Vertex);       
+   n = normalize(gl_NormalMatrix * gl_Normal);
+
+   //original_v = vec3(gl_Vertex);         
+   
+   gl_FrontColor = gl_Color;
+   gl_BackColor = gl_Color;
+   gl_TexCoord[0] = gl_MultiTexCoord0;   
+	
+   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;  
+}

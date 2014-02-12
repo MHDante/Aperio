@@ -71,12 +71,6 @@
     <ClCompile Include="Utility.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="myOBJReader.cpp">
-      <Filter>Source Files\OBJReader</Filter>
-    </ClCompile>
-    <ClCompile Include="myOBJReader_Exp.cpp">
-      <Filter>Source Files\OBJReader</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files\Utilities</Filter>
     </ClCompile>
@@ -93,7 +87,7 @@
       <Filter>Source Files\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="obj_parser.cpp">
-      <Filter>Source Files\Utilities</Filter>
+      <Filter>Source Files\OBJReader</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -117,32 +111,11 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="myOBJReader.h">
-      <Filter>Header Files\OBJReader</Filter>
-    </ClInclude>
-    <ClInclude Include="myOBJReader_Exp.h">
-      <Filter>Header Files\OBJReader</Filter>
-    </ClInclude>
-    <ClInclude Include="MyInteractor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="CheckForMemoryLeaks.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="vtkMyShaderPass.h">
       <Filter>Header Files\Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Vectors.h">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Superquadrics.h">
-      <Filter>Header Files\Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="StdDefines.h">
-      <Filter>Header Files\Utilities</Filter>
     </ClInclude>
     <ClInclude Include="MySuperquadric.h">
       <Filter>Header Files\Utilities</Filter>
@@ -154,7 +127,10 @@
       <Filter>Header Files\Rendering</Filter>
     </ClInclude>
     <ClInclude Include="obj_parser.h">
-      <Filter>Header Files\Utilities</Filter>
+      <Filter>Header Files\OBJReader</Filter>
+    </ClInclude>
+    <ClInclude Include="MyInteractorStyle.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
