@@ -110,6 +110,7 @@
     <ClCompile Include="additive.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="CarveConnector.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_additive.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdafx.h</ForcedIncludeFiles>
@@ -168,6 +169,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CarveConnector.h" />
     <ClInclude Include="GeneratedFiles\ui_additive.h" />
     <ClInclude Include="MyInteractorStyle.h" />
     <ClInclude Include="MySuperquadric.h" />

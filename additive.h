@@ -244,8 +244,6 @@ public:
 
 	std::vector<MyElem> myelems;
 
-	carve::csg::CSG csg;
-
 	//------------------------------------------------------------------------
 private:
 	/// <summary> The UI object (access QWidgets from here) </summary>

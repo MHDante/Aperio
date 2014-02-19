@@ -89,6 +89,9 @@
     <ClCompile Include="obj_parser.cpp">
       <Filter>Source Files\OBJReader</Filter>
     </ClCompile>
+    <ClCompile Include="CarveConnector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="additive.h">
@@ -130,6 +133,9 @@
       <Filter>Header Files\OBJReader</Filter>
     </ClInclude>
     <ClInclude Include="MyInteractorStyle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CarveConnector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

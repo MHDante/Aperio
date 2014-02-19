@@ -64,56 +64,13 @@
 #include <vtkSmoothPolyDataFilter.h>
 
 #include "obj_parser.h"
+#include "CarveConnector.h"
 
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
 
 using namespace std;
 
-//-------------------------------------------------------------------------------------------------------------
-/// <summary> Returns a cube in Carve CSG format (MeshSet)
-/// </summary>
-/// <param name="size">Size of cube</param>
-/// <param name="t">A transformation matrix </param>
-/// <returns>Cube in Carve's MeshSet format</returns>
-unique_ptr<carve::mesh::MeshSet<3> > makeCube(float size, const carve::math::Matrix &t = carve::math::Matrix())
-{
-	vector<carve::geom3d::Vector> vertices;
-
-	vertices.push_back(t * carve::geom::VECTOR(+size, +size, +size));
-	vertices.push_back(t * carve::geom::VECTOR(-size, +size, +size));
-	vertices.push_back(t * carve::geom::VECTOR(-size, -size, +size));
-	vertices.push_back(t * carve::geom::VECTOR(+size, -size, +size));
-	vertices.push_back(t * carve::geom::VECTOR(+size, +size, -size));
-	vertices.push_back(t * carve::geom::VECTOR(-size, +size, -size));
-	vertices.push_back(t * carve::geom::VECTOR(-size, -size, -size));
-	vertices.push_back(t * carve::geom::VECTOR(+size, -size, -size));
-
-	vector<int> f;
-	int numfaces = 0;
-
-	f.push_back(4);
-	f.push_back(0); f.push_back(1); f.push_back(2); f.push_back(3);
-	numfaces++;
-	f.push_back(4);
-	f.push_back(7); f.push_back(6); f.push_back(5); f.push_back(4);
-	numfaces++;
-	f.push_back(4);
-	f.push_back(0); f.push_back(4); f.push_back(5); f.push_back(1);
-	numfaces++;
-	f.push_back(4);
-	f.push_back(1); f.push_back(5); f.push_back(6); f.push_back(2);
-	numfaces++;
-	f.push_back(4);
-	f.push_back(2); f.push_back(6); f.push_back(7); f.push_back(3);
-	numfaces++;
-	f.push_back(4);
-	f.push_back(3); f.push_back(7); f.push_back(4); f.push_back(0);
-	numfaces++;
-
-	unique_ptr<carve::mesh::MeshSet<3> > poly(new carve::mesh::MeshSet<3>(vertices, numfaces, f));
-	return poly;
-}
 //-------------------------------------------------------------------------------------------------------------
 additive::additive(QWidget *parent, Qt::WFlags flags)
 : QMainWindow(parent, flags)
@@ -514,155 +471,35 @@ void additive::readFile(std::string filename)
 		ui.listWidget->addItem(item);
 		//ui.listWidget->itemAt(0, i)->setCheckState(Qt::Checked);
 	}
-
 	// VTK CSG
 	//vtkSmartPointer<vtkBooleanOperationPolyDataFilter> booleanOperation = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
 	//booleanOperation->SetOperationToIntersection();
 	//booleanOperation->SetInputConnection(0, polydata1->GetProducerPort());
 	//booleanOperation->SetInputConnection(1, polydata2->GetProducerPort());
 
-	Utility::start_clock('z');
-	qDebug() << "Start processing data" << endl;
-
-	//// vertices = 0.007 seconds
-	//Utility::start_clock('a');
-
-	//qDebug() << "start poly vertices # " << thepolydata->GetNumberOfPoints() << "\n";
-
-	//std::vector<carve::geom3d::Vector> vertices;
-	//vertices.resize(thepolydata->GetNumberOfPoints());
-
-	//for(vtkIdType i = 0; i < thepolydata->GetNumberOfPoints(); i++)
-	//{
-	//	double p[3];
-	//	thepolydata->GetPoint(i,p);
-
-	//	vertices[i] = carve::geom::VECTOR(p[0], p[1], p[2]);
-	//}
-	//qDebug() << "end poly vertices\n";
-	//Utility::end_clock('a');
-
-	//// faces - 0.006 seconds
-	//Utility::start_clock('a');
-
-	//qDebug() << "start faces #" << thepolydata->GetPolys()->GetNumberOfCells() << "\n";
-
-	//vtkSmartPointer<vtkCellArray> polys = thepolydata->GetPolys();
-	//polys->InitTraversal();
-
-	//std::vector<int> f;
-	//int numfaces = 0;
-	//int t = 0;
-
-	//f.resize(polys->GetSize());	// exact size: n1, id1, id2, id3, n2, id1, id2..etc
-	//for (int i = 0; i < polys->GetNumberOfCells(); i++)
-	//{
-	//	vtkIdType n_pts;
-	//	vtkIdType *pts = nullptr;
-
-	//	polys->GetNextCell(n_pts, pts);
-
-	//	f[t++] = n_pts;
-	//	f[t++] = pts[0];
-	//	f[t++] = pts[1];
-	//	f[t++] = pts[2];
-
-	//	if (n_pts > 3)
-	//		f[t++] = pts[3];
-	//	numfaces++;
-	//}
-	//qDebug() << "end faces\n";
-
-	//Utility::end_clock('a');
-
-	//Utility::start_clock('a');
-	//qDebug() << "start create \n";		// 2 seconds (under debug, 0.7 release)
-	//unique_ptr<carve::mesh::MeshSet<3> > first(new carve::mesh::MeshSet<3> (vertices, numfaces, f));
-	//qDebug() << "end create\n";
-	//Utility::end_clock('a');
-
-	//qDebug() << "start cube \n";
-	unique_ptr<carve::mesh::MeshSet<3> > first = makeCube(5, carve::math::Matrix::IDENT());
-	unique_ptr<carve::mesh::MeshSet<3> > second = makeCube(5, carve::math::Matrix::ROT(1, 0, 1, 0));
-	//qDebug() << "end cube\n";
+	//CarveConnector connector;
+	//vtkSmartPointer<vtkPolyData> thepolydata (vtkPolyData::SafeDownCast(meshes[0].actor->GetMapper()->GetInput()));
 	//
-	//Utility::start_clock('a');
-	//qDebug() << "start compute\n";		// 11 secs (on luigi in Debug, 0.8 release)
-	//carve::csg::CSG csg;
-	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT); // slow but accurate
-	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(first.get(), second.get(), carve::csg::CSG::A_MINUS_B, nullptr, carve::csg::CSG::CLASSIFY_EDGE));
-	//qDebug() << "end compute\n";
-	//Utility::end_clock('a');
+	//// Make MeshSet from vtkPolyData
+	//unique_ptr<carve::mesh::MeshSet<3> > first(CarveConnector::vtkPolyDataToMeshSet(thepolydata));
+	//unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(10, carve::math::Matrix::IDENT()));
 	//
-	//
-	//Utility::start_clock('a');
-	//qDebug() << "start adding points # " << c->vertex_storage.size() << "\n";	// 0.016 seconds
+	//unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::performDifference(first, second));
 
-	///// Converting c back to vtk points and faces
-	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-	points->SetNumberOfPoints(c->vertex_storage.size());	// allocate memory
-
-	boost::unordered_map<carve::mesh::MeshSet<3>::vertex_t*, uint> vertexToIndex_map;	// vertex index map
-
-	auto iter = begin(c->vertex_storage);
-	for (int k = 0; iter != end(c->vertex_storage); ++k, ++iter) {
-	
-		carve::mesh::MeshSet<3>::vertex_t *vertex = &(*iter);
-
-		points->SetPoint(k, vertex->v.x, vertex->v.y, vertex->v.z);
-		vertexToIndex_map[vertex] = k;
-	}
-	//cout<<" points done";
-	//qDebug() << "end adding points\n";
-	//Utility::end_clock('a');
-
-	//Utility::start_clock('a');
-
-	//qDebug() << "start adding faces";	// 0.37 seconds see if you can change insertnextcell to setcell?
-
-	vtkSmartPointer<vtkCellArray> polygons = vtkSmartPointer<vtkCellArray>::New();
-	vtkSmartPointer<vtkPolygon> polygon = vtkSmartPointer<vtkPolygon>::New();
-
-	for (auto face_iter = c->faceBegin(); face_iter != c->faceEnd(); ++face_iter) {
-		carve::mesh::MeshSet<3>::face_t *f = *face_iter;
-		polygon->GetPointIds()->SetNumberOfIds(f->nVertices());
-
-		// nVertices = nEdges since half edge
-		int j = 0;
-		for (auto e_iter = f->begin(); e_iter != f->end(); ++e_iter) {
-			polygon->GetPointIds()->SetId (j++, vertexToIndex_map.at(e_iter->vert) );
-		}
-		polygons->InsertNextCell(polygon);
-	
-	}
-	//cout << polygons->GetNumberOfCells() << endl;
-
-	//qDebug() << "end adding faces\n";
-
-	//Utility::end_clock('a');
-
-	//Utility::start_clock('a');
-	//qDebug() << "start vtkPolyData\n";
-	vtkSmartPointer<vtkPolyData> polygonPolyData = vtkSmartPointer<vtkPolyData>::New();
-	polygonPolyData->SetPoints(points);
-	polygonPolyData->SetPolys(polygons);
-	//qDebug() << "end vtkPolyData \n";
-	//Utility::end_clock('a');
+	//vtkSmartPointer<vtkPolyData> c_poly (CarveConnector::meshSetToVTKPolyData(c));
 
 	//// Create a mapper and actor
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputData(polygonPolyData);
+	//vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	//mapper->SetInputData(c_poly);
 
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(mapper);
+	//vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	//actor->GetProperty()->SetDiffuseColor(meshes[0].color.r, meshes[0].color.b, meshes[0].color.b);
+	//actor->GetProperty()->SetAmbientColor(meshes[0].color.r, meshes[0].color.b, meshes[0].color.b);
+	//actor->SetMapper(mapper);
 
-	renderer->AddActor(actor);
 	//// Now replace mesh too
-	//renderer->GetViewProps()->ReplaceItem(myIndex, actor);
-	//meshes[myIndex].actor = actor;
-
-	//qDebug() << "end processing data \n";
-	Utility::end_clock('z');
+	//renderer->GetViewProps()->ReplaceItem(0, actor);
+	//meshes[0].actor = actor;
 }
 //-------------------------------------------------------------------------------------
 void additive::slot_listitemclicked(int i)
