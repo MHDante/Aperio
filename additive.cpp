@@ -254,6 +254,38 @@ void additive::slot_afterShowWindow()
 	connect(ui.listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(slot_listitemclicked(int)));
 	readFile(fname);
 }
+// ------------------------------------------------------------------------
+void additive::resizeInternal(const QSize &newWindowSize, bool using_preview)
+{
+	int marginWidth = 20;
+	int marginHeight = marginWidth * 3;	// extra border-width margin of qframe
+
+	QRect main = ui.mainWidget->geometry();
+	QRect newRect;
+
+	// Previewing resize
+	if (using_preview)
+	{
+		// Check state of preview (true or false and draw appropriately)
+		if (!preview)
+		{
+			preview = true;
+			newRect.setCoords(_orig_size.x(), 0, newWindowSize.width() - marginWidth, newWindowSize.height() - marginHeight);
+			ui.mainWidget->raise();
+		}
+		else
+		{
+			preview = false;
+			newRect.setCoords(_orig_size.x(), _orig_size.y(), newWindowSize.width() - marginWidth, newWindowSize.height() - marginHeight);
+			ui.mainWidget->lower();
+		}
+	}
+	else  // Regular resize
+	{
+		newRect.setCoords(main.topLeft().x(), main.topLeft().y(), newWindowSize.width() - marginWidth, newWindowSize.height() - marginHeight);
+	}
+	ui.mainWidget->setGeometry(newRect);
+}
 ///---------------------------------------------------------------------------------------
 void additive::resizeEvent(QResizeEvent * event)
 {
