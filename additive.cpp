@@ -275,7 +275,9 @@ void additive::readFile(std::string filename)
 
 	renderer->RemoveAllViewProps();
 	ui.listWidget->clear();
+	myelems.clear();
 	meshes.clear();
+
 
 	qDebug() << " - reading file - \n";
 

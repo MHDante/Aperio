@@ -49,8 +49,6 @@
 
 #include <QtGui/QMessageBox>
 
-#include <btBulletDynamicsCommon.h>
-
 #include <vtkVector.h>
 
 class MyInteractorStyle;
@@ -75,7 +73,9 @@ public:
 
 	MyPoint p1;
 	MyPoint p2;
-	vtkSmartPointer<vtkActor> actor;	// Superquadric actor
+	vtkSmartPointer<vtkActor> actor;								// Superquadric actor
+	vtkSmartPointer<MySuperquadricSource> source;					// the superquadric source
+	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter;	// the transform filter
 };
 
 class MyWidgetPoint

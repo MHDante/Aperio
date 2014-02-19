@@ -242,7 +242,96 @@ public:
 			//
 			a->renderer->AddActor(xx);
 		}
+		if (this->Interactor->GetKeyCode() == 'u')
+		{
+			for (int i = 0; i < a->myelems.size(); i++)
+			{
+				vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
+				double elements1[16] = {
+					1, 0, 0, 0,
+					0, 1, 0, 0,
+					0, 0, 0.9, 0,
+					0, 0, 0, 1
+				};
+				transform->PreMultiply();
+				transform->Concatenate(elements1);
+
+				a->myelems.at(i).transformFilter->Update();
+
+				a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
+				a->myelems.at(i).actor->GetMapper()->Update();
+			}
+		}
+		if (this->Interactor->GetKeyCode() == 'o')
+		{
+			for (int i = 0; i < a->myelems.size(); i++)
+			{
+				vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
+
+				double elements1[16] = {
+					1, 0, 0, 0,
+					0, 1, 0, 0,
+					0, 0, 1.1, 0,
+					0, 0, 0, 1
+				};
+				transform->PreMultiply();
+				transform->Concatenate(elements1);
+
+				a->myelems.at(i).transformFilter->Update();
+
+				a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
+				a->myelems.at(i).actor->GetMapper()->Update();
+			}
+		}
+		if (this->Interactor->GetKeyCode() == 'e')
+		{
+			for (int i = 0; i < a->myelems.size(); i++)
+			{				
+				vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
+				
+				double elements1[16] = {
+					1, 0, 0, 0,
+					0, 1.1, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1
+				};
+				transform->PreMultiply();
+				transform->Concatenate(elements1);
+
+				a->myelems.at(i).transformFilter->Update();
+
+				a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
+				a->myelems.at(i).actor->GetMapper()->Update();
+			}
+		}
+		if (this->Interactor->GetKeyCode() == 'a')
+		{
+			int x = 30000;
+			std::cout << x << "\n";
+		}
+		if (this->Interactor->GetKeyCode() == 'q')
+		{
+			for (int i = 0; i < a->myelems.size(); i++)
+			{
+				vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
+
+				double elements1[16] = {
+					1, 0, 0, 0,
+					0, 0.9, 0, 0,
+					0, 0, 1, 0,
+					0, 0, 0, 1
+				};
+				transform->PreMultiply();
+				transform->Concatenate(elements1);
+
+				a->myelems.at(i).transformFilter->Update();
+
+				a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
+				a->myelems.at(i).actor->GetMapper()->Update();
+			}
+
+		}
 		if (this->Interactor->GetKeyCode() == ' ')
 		{
 			if (a->myelems.size() == 0)
@@ -274,31 +363,6 @@ public:
 
 				return;
 
-
-				//WidgetElem elem;
-
-				//elem.actor = vtkSmartPointer<vtkActor>::New();
-				//elem.actor->SetMapper(mapper);
-				//elem.actor->PickableOn();
-				//elem.actor->GetProperty()->SetDiffuseColor(1, 0.0, 0);
-				//elem.actor->GetProperty()->SetOpacity(0.5);
-				//elem.actor->GetProperty()->BackfaceCullingOff();
-
-				//elem.actor->SetProperty()
-
-				//a->renderer->AddActor(elem.actor);
-				//
-				//elem.endpoints = vtkSmartPointer<vtkPoints>::New();
-				//elem.endpoints->InsertNextPoint(poss[0], poss[1], poss[2]);
-
-				//elem.normals = vtkSmartPointer<vtkPoints>::New();
-				//elem.normals->InsertNextPoint(normal[0], normal[1], normal[2]);
-
-				//a->widgets.at(a->widgets.size() - 1).push_back(elem);
-
-				// NEW CODE
-
-				//myelem.actor->GetProperty()->BackfaceCullingOff();
 
 				int selectedwidgetind = a->mywidgets.size() - 1;
 
@@ -360,14 +424,6 @@ public:
 							std::cout << "none\n";
 					}
 				}
-				//p1.
-				//myelem.endpoints = vtkSmartPointer<vtkPoints>::New();
-				//elem.endpoints->InsertNextPoint(poss[0], poss[1], poss[2]);
-
-				//elem.normals = vtkSmartPointer<vtkPoints>::New();
-				//elem.normals->InsertNextPoint(normal[0], normal[1], normal[2]);
-				//MyWidgetElem myelem;
-
 				// Calculate avg normals
 				for (int i = 0; i < a->mywidgets.size(); i++)
 				{
@@ -479,14 +535,6 @@ public:
 						a->mywidgets.at(i).elems.at(j).actor->SetPosition(beforepts[0], beforepts[1], beforepts[2]);
 						a->mywidgets.at(i).elems.at(j).actor->PickableOff();
 
-						// COMMENT OFF
-						//elem.cellLocator  = vtkSmartPointer<vtkCellLocator>::New();
-						//elem.cellLocator  ->SetDataSet(appendPoly->GetOutput());
-						//elem.cellLocator  ->BuildLocator();
-						//elem.cellLocator  ->LazyEvaluationOn();
-						//cellPicker->AddLocator(elem.cellLocator);
-
-						//worldPicker->AddLocator(elem.cellLocator);
 					}
 				}
 
@@ -547,13 +595,6 @@ public:
 						appendPoly->AddInputData(newSphere->GetOutput());
 						appendPoly->Update();
 
-						//vtkSmartPointer<vtkTransform> transformm = vtkSmartPointer<vtkTransform>::New();
-						//transformm->Translate(beforepts[0], beforepts[1], beforepts[2]);
-
-						//vtkSmartPointer<vtkTransformPolyDataFilter> transformPoly = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-						//transformPoly->SetInputData(appendPoly->GetOutput());
-						//transformPoly->SetTransform(transformm);
-						//transformPoly->Update();
 						a->widgets.at(i).at(j).actor->SetPosition(beforepts[0], beforepts[1], beforepts[2]);
 
 						//myPoly->SetPoints(points);
@@ -570,214 +611,9 @@ public:
 						//worldPicker->AddLocator(elem.cellLocator);
 					}
 				}
-
-				//for (int i = 0; i < a->widgets.size(); i++)	// Vector of Vector of Widget Elems (n sets of separate Widgets)
-				//{
-				//	//std::cout << "\n----";
-				//	//std::cout << "\n" << widgets[i].size() << "\n";
-
-				//	for (int j = 1; j < a->widgets[i].size(); j++)
-				//	{
-				//		break;
-				//		//double *pts = widgets.at(i).at(j).endpoints->GetPoint(0);
-				//		//std::cout << pts[0] << ", " << pts[1] << ", " << pts[2] << "\n";
-
-				//		// get j-1 and j points to link together to make plane
-				//		double *beforepts = a->widgets.at(i).at(j-1).endpoints->GetPoint(0);
-				//		double *pts = a->widgets.at(i).at(j).endpoints->GetPoint(0);
-
-				//		double *beforenorm = a->widgets.at(i).at(j-1).normals->GetPoint(0);
-				//		double *norm = a->widgets.at(i).at(j).normals->GetPoint(0);
-
-				//		float avgnorm[3];
-				//		avgnorm[0] = (beforenorm[0] + norm[0]) / 2.0f;
-				//		avgnorm[1] = (beforenorm[1] + norm[1]) / 2.0f;
-				//		avgnorm[2] = (beforenorm[2] + norm[2]) / 2.0f;
-
-				//		//widgets.at(i).at(j-1).marked = true;
-				//		//widgets.at(i).at(j).marked = true;
-
-				//		// if at least one not marked
-				//		if (a->widgets.at(i).at(j-1).marked == false || a->widgets.at(i).at(j).marked == false)
-				//		{
-				//			a->widgets.at(i).at(j-1).marked = true;
-				//			a->widgets.at(i).at(j).marked = true;
-
-				//			float beforetoafter[3];
-				//			beforetoafter[0] = pts[0] - beforepts[0];
-				//			beforetoafter[1] = pts[1] - beforepts[1];
-				//			beforetoafter[2] = pts[2] - beforepts[2];
-
-				//			// Draw the plane connecting
-				//			vtkSmartPointer<vtkLineSource> line2 = vtkSmartPointer<vtkLineSource>::New();
-				//			line2->SetPoint1(0, 0, 0);
-				//			line2->SetPoint2(beforetoafter[0], beforetoafter[1], beforetoafter[2]);
-
-				//			vtkSmartPointer<vtkTubeFilter> tube2 = vtkSmartPointer<vtkTubeFilter>::New();
-				//			tube2->SetInputConnection(line2->GetOutputPort());
-				//			tube2->SetRadius(tubeWidth); //default is .5
-				//			tube2->SetNumberOfSides(50);
-				//			tube2->Update();
-
-				//			vtkSmartPointer<vtkTransform> transform2 = vtkSmartPointer<vtkTransform>::New();
-				//			transform2->Translate(beforepts[0], beforepts[1], beforepts[2]);
-				//
-				//			vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter2 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-				//			transformFilter2->SetInputData(tube2->GetOutput());
-				//			transformFilter2->SetTransform(transform2);
-				//			transformFilter2->Update();
-				//
-				//			vtkSmartPointer<vtkPolyDataMapper> mapper2 =vtkSmartPointer<vtkPolyDataMapper>::New();
-				//			mapper2->SetInputConnection(transformFilter2->GetOutputPort());
-
-				//			vtkSmartPointer<vtkActor> actor2 = vtkSmartPointer<vtkActor>::New();
-				//			actor2->SetMapper(mapper2);
-				//			actor2->PickableOff();
-				//			actor2->GetProperty()->SetDiffuseColor(0, 1, .5);
-
-				//			a->renderer->AddActor(actor2);
-
-				//			// Draw a line from first to second point (where second point is now avg of two normals)
-				//			// Draw the plane connecting
-
-				//			vtkSmartPointer<vtkLineSource> line3 = vtkSmartPointer<vtkLineSource>::New();
-				//			line3->SetPoint1(0, 0, 0);
-				//			line3->SetPoint2(beforetoafter[0] + avgnorm[0], beforetoafter[1] + avgnorm[1], beforetoafter[2] + avgnorm[2]);
-
-				//			vtkMath::Normalize(avgnorm);
-				//			vtkMath::Normalize(beforenorm);
-
-				//			double aa[3];
-				//			double bb[3];
-				//			double cc[3];
-
-				//			bb[0] = beforetoafter[0];
-				//			bb[1] = beforetoafter[1];
-				//			bb[2] = beforetoafter[2];
-				//
-
-				//			aa[0] = beforetoafter[0] + avgnorm[0];//beforetoafter[0];
-				//			aa[1] = beforetoafter[1] + avgnorm[1];//beforetoafter[1];
-				//			aa[2] = beforetoafter[2] + avgnorm[2];//beforetoafter[2];
-
-				//			//cross((c-a),(b-a))
-
-				//			vtkMath::Cross(bb, aa, cc);
-
-				//			std::cout << aa[0] << aa[1] << aa[2] << std::endl;
-				//			std::cout << bb[0] << bb[1] << bb[2] << std::endl;
-				//			std::cout << cc[0] << cc[1] << cc[2] << std::endl;
-
-				//
-				//			vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-				//			points->InsertNextPoint(0, 0, 0);
-				//			points->InsertNextPoint(beforetoafter[0], beforetoafter[1], beforetoafter[2]);
-				//			points->InsertNextPoint(beforetoafter[0]+avgnorm[0],beforetoafter[1]+avgnorm[1],beforetoafter[2]+avgnorm[2]);
-				//			points->InsertNextPoint(avgnorm[0], avgnorm[1], avgnorm[2]);
-
-				//			// Create a quad on the four points
-				//			vtkSmartPointer<vtkQuad> quad = vtkSmartPointer<vtkQuad>::New();
-				//			quad->GetPointIds()->SetId(0,0);
-				//			quad->GetPointIds()->SetId(1,1);
-				//			quad->GetPointIds()->SetId(2,2);
-				//			quad->GetPointIds()->SetId(3,3);
-
-				//			// Create a cell array to store the quad in
-				//			vtkSmartPointer<vtkCellArray> quads = vtkSmartPointer<vtkCellArray>::New();
-				//			quads->InsertNextCell(quad);
-
-				//			// Create a polydata to store everything in
-				//			vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-
-				//			// Add the points and quads to the dataset
-				//			polydata->SetPoints(points);
-				//			polydata->SetPolys(quads);
-
-				//			vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
-				//			//planeSource->SetCenter(beforetoafter[0] + avgnorm[0], beforetoafter[1] + avgnorm[1], beforetoafter[2] + avgnorm[2]);
-				//			planeSource->SetCenter(0,0,0);
-				//			//planeSource->SetNormal(cc);
-				//			//planeSource->set
-				//			planeSource->SetNormal(cc);
-				//			//planeSource->SetOrigin(0, 0, 0);
-				//			//planeSource->SetPoint1(aa);
-				//			//planeSource->SetPoint1(bb);
-				//			planeSource->Update();
-
-				//			vtkSmartPointer<vtkTubeFilter> tube3 = vtkSmartPointer<vtkTubeFilter>::New();
-				//			tube3->SetInputConnection(line3->GetOutputPort());
-				//			tube3->SetRadius(tubeWidth); //default is .5
-				//			tube3->SetNumberOfSides(50);
-				//			tube3->Update();
-
-				//			vtkSmartPointer<vtkTransform> transform3 = vtkSmartPointer<vtkTransform>::New();
-				//			transform3->Translate(beforepts[0], beforepts[1], beforepts[2]);
-
-				//			vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter3 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-				//			//transformFilter3->SetInputData(tube3->GetOutput());
-				//			//transformFilter3->SetInputData(planeSource->GetOutput());
-				//			transformFilter3->SetInputData(polydata);
-				//			transformFilter3->SetTransform(transform3);
-				//			transformFilter3->Update();
-
-				//			vtkSmartPointer<vtkPolyDataMapper> mapper3 =vtkSmartPointer<vtkPolyDataMapper>::New();
-				//			mapper3->SetInputConnection(transformFilter3->GetOutputPort());
-
-				//			vtkSmartPointer<vtkActor> actor3 = vtkSmartPointer<vtkActor>::New();
-				//			actor3->SetMapper(mapper3);
-				//			actor3->PickableOff();
-				//			actor3->GetProperty()->SetDiffuseColor(0, 0., 1);
-				//			actor3->GetProperty()->SetOpacity(0.2);
-
-				//			a->renderer->AddActor(actor3);
-
-				//			// Draw a line from second to second point + avgnorm
-				//			// Draw the plane connecting
-
-				//			vtkSmartPointer<vtkLineSource> line4 = vtkSmartPointer<vtkLineSource>::New();
-				//			line4->SetPoint1(beforetoafter[0], beforetoafter[1], beforetoafter[2]);
-				//			line4->SetPoint2(beforetoafter[0] + avgnorm[0], beforetoafter[1] + avgnorm[1], beforetoafter[2] + avgnorm[2]);
-
-				//			vtkSmartPointer<vtkTubeFilter> tube4 = vtkSmartPointer<vtkTubeFilter>::New();
-				//			tube4->SetInputConnection(line4->GetOutputPort());
-				//			tube4->SetRadius(tubeWidth); //default is .5
-				//			tube4->SetNumberOfSides(50);
-				//			tube4->Update();
-
-				//			vtkSmartPointer<vtkTransform> transform4 = vtkSmartPointer<vtkTransform>::New();
-				//			transform4->Translate(beforepts[0], beforepts[1], beforepts[2]);
-
-				//			vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter4 = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-				//			transformFilter4->SetInputData(tube4->GetOutput());
-				//			transformFilter4->SetTransform(transform4);
-				//			transformFilter4->Update();
-
-				//			vtkSmartPointer<vtkPolyDataMapper> mapper4 =vtkSmartPointer<vtkPolyDataMapper>::New();
-				//			mapper4->SetInputConnection(transformFilter4->GetOutputPort());
-
-				//			vtkSmartPointer<vtkActor> actor4 = vtkSmartPointer<vtkActor>::New();
-				//			actor4->SetMapper(mapper4);
-				//			actor4->PickableOff();
-				//			actor4->GetProperty()->SetDiffuseColor(0, 0., 1);
-
-				//			a->renderer->AddActor(actor4);
-
-				//		}
-
-				//	}
-				//}
-				//	}
 			}
-
 			a->renderer->Render();
-			//vtkSmartPointer<vtkMapper> mapper = vtkSmartPointer<vtkMapper>::New();
-			//mapper->SetInputConnection(sphere->GetOutputPort());
 		}
-		//OnMouseMove();
-
-		//a->updateMouseShader();
-		//a->updateDisplay();
-		//throw std::exception("The method or operation is not implemented.");
 		vtkInteractorStyleTrackballCamera::OnKeyPress();
 	}
 
@@ -788,28 +624,8 @@ public:
 	/// ----------------------------------------------------------------------------
 	virtual void OnMouseMove()  override
 	{
-		// update shader
-		//a->updateMat();
-
 		int x = this->Interactor->GetEventPosition()[0];
 		int y = this->Interactor->GetEventPosition()[1];
-
-		//this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],
-		//	this->Interactor->GetEventPosition()[1], 0,  // always zero.
-		//	this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-
-		//a->mouse[0] = this->Interactor->GetEventPosition()[0];
-		//a->mouse[1] = this->Interactor->GetEventPosition()[1];
-		//a->mouse[2] = 0;
-
-		//worldPicker->GetActor()
-
-		//worldPicker->Pick(this->Interactor->GetEventPosition()[0],
-		//		this->Interactor->GetEventPosition()[1], 0,  // always zero.
-		//		this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-
-		//this->Interactor->GetPicker()->GetPickPosition(a->mouse);
-		//worldPicker->GetPickPosition(a->mouse);
 
 		cellPicker->Pick(this->Interactor->GetEventPosition()[0],
 			this->Interactor->GetEventPosition()[1], 0,  // always zero.
@@ -878,8 +694,6 @@ public:
 							a->mywidgets.at(i).avgnormal->InsertNextPoint(normalssum[0], normalssum[1], normalssum[2]);
 						}
 
-						//a->clickedWidgetActor->SetPosition(a->mouse);
-
 						// Run through all widgets and update actors
 						for (int i = 0; i < a->mywidgets.size(); i++)	// Vector of Vector of Widget Elems (n sets of separate Widgets)
 						{
@@ -892,18 +706,6 @@ public:
 								if (!myActor)
 								{
 									a->mywidgets.at(i).elems.at(j).actor = vtkSmartPointer<vtkActor>::New();
-
-									//vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-									//vtkSmartPointer<vtkQuad> quad = vtkSmartPointer<vtkQuad>::New();
-									//vtkSmartPointer<vtkCellArray> quads = vtkSmartPointer<vtkCellArray>::New();
-									//quads->InsertNextCell(quad);
-									//vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-									//polydata->SetPoints(points);
-									//polydata->SetPolys(quads);
-
-									//vtkSmartPointer<vtkPolyDataMapper> tempMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-									//tempMapper->SetInputData(polydata);
-									//tempMapper->Update();
 
 									//a->mywidgets.at(i).elems.at(j).actor->SetMapper(tempMapper);
 									a->renderer->AddActor(a->mywidgets.at(i).elems.at(j).actor);
@@ -1011,30 +813,6 @@ public:
 			}
 		}
 
-		//std::cout << a->mouse[0] << ", " << a->mouse[1] << ", " << a->mouse[2] << std::endl;
-
-		//if (worldPicker->GetActor())
-		//;std::cout << worldPicker->GetActor()->GetProperty()->GetOpacity() << std::endl;
-		//else
-		//;std::cout << "M" << std::endl;
-
-		//std::cout << a->mouse[0] << ", " << a->mouse[1] << ", " << a->mouse[2] << std::endl;
-
-		// move cursor
-
-		//const vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-		//transform->Translate(a->mouse[0], a->mouse[1], a->mouse[2]+1);
-
-		//transform->Scale(2, 2, 2);
-
-		//a->mainCursor->SetUserTransform(transform);
-
-		//a->renderer->GetActors()->GetLastActor()->transform
-		//a->renderer->GetActors()->GetLastActor()->Transform(transform);
-		//a->renderer->GetActors()->GetLastActor()->
-
-		//a->meshes[a->selectedIndex].actor->GetMapper()->GetOutputDataObject()
-
 		if (a->meshes.size() > 0)
 		{
 			
@@ -1046,50 +824,6 @@ public:
 			float avg = (diffx + diffy + diffz) / 3.0;
 			a->mouseSize = avg / a->brushDivide;
 		}
-
-		//if (this->GetCurrentRenderer())
-		//				this->GetCurrentRenderer()->Render();
-
-		//a->updateMouseShader();
-		//a->updateDisplay();
-
-		//a->myPicker->PickFromListOn();
-		//a->myPicker->GetPickList()->RemoveAllItems();
-		//a->myPicker->AddPickList(a->meshes[0].actor);
-
-		//pointPicker->Pick(this->Interactor->GetEventPosition()[0],
-		//this->Interactor->GetEventPosition()[1], 0,  // always zero.
-		//this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-
-		/*switch (this->State)
-		{
-		case VTKIS_ROTATE:
-		this->FindPokedRenderer(x, y);
-		this->Rotate();
-		this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
-		break;
-
-		case VTKIS_PAN:
-		this->FindPokedRenderer(x, y);
-		this->Pan();
-		this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
-		break;
-
-		case VTKIS_DOLLY:
-		this->FindPokedRenderer(x, y);
-		this->Dolly();
-		this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
-		break;
-
-		case VTKIS_SPIN:
-		this->FindPokedRenderer(x, y);
-		this->Spin();
-		this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
-		break;
-		default:
-
-		break;
-		}*/
 		vtkInteractorStyleTrackballCamera::OnMouseMove();
 	}
 
@@ -1169,12 +903,9 @@ public:
 				a->norm1[2] = cellPicker->GetPickNormal()[2];
 
 				// only do if creation == true
-
-				std::cout << "start dragging\n";
+				//std::cout << "start dragging\n";
 			}
 
-
-			//return;
 			// If actor single-clicked is one of the widgets
 			//for (int i = 0; i < a->mywidgets.size(); i++)
 			//{
@@ -1257,43 +988,6 @@ public:
 			// forward events
 			vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 		}
-
-		//vtkSmartPointer<vtkWorldPointPicker> pickerType = vtkSmartPointer<vtkWorldPointPicker>::New();
-		//this->Interactor->SetPicker(pickerType);
-
-		//std::cout << "Picking pixel: " << this->Interactor->GetEventPosition()[0] << " " << this->Interactor->GetEventPosition()[1] << std::endl;
-
-		//this->Interactor->GetPicker()->Pick(this->Interactor->GetEventPosition()[0],
-		//	this->Interactor->GetEventPosition()[1],
-		//	0,  // always zero.
-		//	this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-		//double picked[3];
-		//
-		////((vtkCellPicker*)this->Interactor->GetPicker())->GetPickNormal(picked);
-		//this->Interactor->GetPicker()->GetPickPosition(picked);
-
-		//this->Interactor->GetPicker()->GetPickPosition(picked);
-
-		//this->Interactor->GetPickingManager()
-		//std::cout << "Picked value: " << picked[0] << " " << picked[1] << " " << picked[2] << std::endl;
-		//std::cout << "Mouse value: " << a->mouse[0] << " " << a->mouse[1] << " " << a->mouse[2] << std::endl;
-
-		//vtkSphereSource * ss = vtkSphereSource::New();
-		//ss->SetRadius(0.1);
-		//ss->SetCenter(picked[0], picked[1], picked[2]);
-		//ss->Update();
-
-		//vtkPolyDataMapper *pp = vtkPolyDataMapper::New();
-		//pp->SetInputData(ss->GetOutput());
-
-		//vtkActor * xx = vtkActor::New();
-		//xx->SetMapper(pp);
-
-		//
-		//a->renderer->AddActor(xx);
-		//this->Interactor->GetPicker()->get
-		// Forward events
-		//vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
 	}
 	////----------------------------------------------------------------------------
 	/// <summary> Called when [left button up].
@@ -1319,11 +1013,11 @@ public:
 				return sqrtf( pow(pos2[2] - pos1[2], 2.0f) + pow(pos2[1] - pos1[1], 2.0f) + pow(pos2[0] - pos1[0], 2.0f) );
 			};
 			
-			if (dist(a->pos1, a->pos2) < 0.2)
-			{
-				std::cout << "stop dragging NO GOOD\n";
-				return;
-			}
+			//if (dist(a->pos1, a->pos2) < 0.05)
+			//{
+				//std::cout << "stop dragging NO GOOD\n";
+				//return;
+			//}
 			// Otherwise, good
 
 			MyElem elem;
@@ -1331,69 +1025,37 @@ public:
 			elem.p1.point = vtkVector3f(a->pos1[0], a->pos1[1], a->pos1[2]);
 			elem.p1.normal = vtkVector3f(a->norm1[0], a->norm1[1], a->norm1[2]);
 
-			//elem.p1.point = vtkSmartPointer<vtkPoints>::New();
-			//elem.p1.point->InsertNextPoint(a->pos1);
-			//elem.p1.normal = vtkSmartPointer<vtkPoints>::New();
-			//elem.p1.normal->InsertNextPoint(a->norm1);
-
 			elem.p2.point = vtkVector3f(a->pos2[0], a->pos2[1], a->pos2[2]);
 			elem.p2.normal = vtkVector3f(a->norm2[0], a->norm2[1], a->norm2[2]);
-
-			//elem.p2.point = vtkSmartPointer<vtkPoints>::New();
-			//elem.p2.point->InsertNextPoint(a->pos2);
-			//elem.p2.normal = vtkSmartPointer<vtkPoints>::New();
-			//elem.p2.normal->InsertNextPoint(a->norm2);
-
-			a->myelems.push_back(elem);
 
 			vtkSmartPointer<MySuperquadricSource> superquad = vtkSmartPointer<MySuperquadricSource>::New();
 			superquad->SetToroidal(false);
 			superquad->SetThetaResolution(32);
 			superquad->SetPhiResolution(32);
 
-			//float normx = (elem.p1.normal->GetPoint(0)[0] + elem.p2.normal->GetPoint(0)[0]) / 2.0f;
-			//float normy = (elem.p1.normal->GetPoint(0)[1] + elem.p2.normal->GetPoint(0)[1]) / 2.0f;
-			//float normz = (elem.p1.normal->GetPoint(0)[2] + elem.p2.normal->GetPoint(0)[2]) / 2.0f;
-
-			//superquad->SetCenter((elem.p1.point->GetPoint(0)[0] + elem.p2.point->GetPoint(0)[0]) / 2.0f,
-//				(elem.p1.point->GetPoint(0)[1] + elem.p2.point->GetPoint(0)[1]) / 2.0f,
-				//(elem.p1.point->GetPoint(0)[2] + elem.p2.point->GetPoint(0)[2]) / 2.0f);
-
-			//superquad->SetCenter( (elem.p1.point.X() + elem.p2.point.X()) / 2.0f,
-			//	(elem.p1.point.Y() + elem.p2.point.Y()) / 2.0f,
-			//	(elem.p1.point.Z() + elem.p2.point.Z()) / 2.0f );
-				//;
-
-
-
-			//superquad->SetCenter((elem.p1.point->GetPoint(0)[0] + elem.p2.point->GetPoint(0)[0]) / 2.0f ,
-				//(elem.p1.point->GetPoint(0)[1] + elem.p2.point->GetPoint(0)[1]) / 2.0f ,
-				//(elem.p1.point->GetPoint(0)[2] + elem.p2.point->GetPoint(0)[2]) / 2.0f );
-
-
-			//superquad->SetScale(dist(a->pos1, a->pos2), 0.1, 0.1);
-
-
-			 
-			//superquad->SetScale(dist(a->pos1, a->pos2), .1, .1);
-
-			
 			superquad->SetPhiRoundness(0.25);
 			superquad->SetThetaRoundness(0.25);
 			superquad->Update();
 
-			// vtk does row-major matrix operations
+			// Get forward/up/right vectors
+			vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
+				(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
+				(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f
+				);
+			forward.Normalize();
 
+			vtkVector3f right = vtkVector3f(
+				elem.p2.point.GetX() - elem.p1.point.GetX(),
+				elem.p2.point.GetY() - elem.p1.point.GetY(),
+				elem.p2.point.GetZ() - elem.p1.point.GetZ()
+				);
+			right.Normalize();
+
+			vtkVector3f up = forward.Cross(right);
+			up.Normalize();
+
+			// vtk does row-major matrix operations
 			vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-			//transform->Translate((elem.p1.point.X() + elem.p2.point.X()) / 2.0f,
-				//(elem.p1.point.Y() + elem.p2.point.Y()) / 2.0f,
-				//(elem.p1.point.Z() + elem.p2.point.Z()) / 2.0f);
-			//double elements[16] = {
-			//	dist(a->pos1, a->pos2), 0, 0, (elem.p1.point.GetX() + elem.p2.point.GetX()) / 2.0f,
-			//	0, .1, 0, (elem.p1.point.GetY() + elem.p2.point.GetY()) / 2.0f,
-			//	0, 0, .1, (elem.p1.point.GetZ() + elem.p2.point.GetZ()) / 2.0f,
-			//	0, 0, 0, 1
-			//};
 
 			double elements3[16] = {
 				1, 0, 0, (elem.p1.point.GetX() + elem.p2.point.GetX()) / 2.0f,
@@ -1402,27 +1064,12 @@ public:
 				0, 0, 0, 1
 			};
 
-			float rads = vtkMath::RadiansFromDegrees(45.0);
-
-			vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
-				(elem.p1.normal.GetY() + elem.p2.normal.GetZ()) / 2.0f,
-				(elem.p1.normal.GetY() + elem.p2.normal.GetZ()) / 2.0f
-				);
-
-			std::cout << forward.GetX() << "," << forward.GetY() << "," << forward.GetZ() << "\n";
-			std::cout << forward.Normalize() << "\n";
-			std::cout << forward.GetX() << "," << forward.GetY() << "," << forward.GetZ() << "\n";
-			std::cout << forward.Norm() << "\n";
-			vtkVector3f right = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
-				(elem.p1.normal.GetY() + elem.p2.normal.GetZ()) / 2.0f,
-				(elem.p1.normal.GetY() + elem.p2.normal.GetZ()) / 2.0f
-				);
-
+			//float rads = vtkMath::RadiansFromDegrees(45.0);
 
 			double elements2[16] = {
-				cosf(rads), -sinf(rads), 0, 0,
-				sinf(rads), cosf(rads), 0, 0,
-				0, 0, 1, 0, 
+				right.GetX(), up.GetX(), forward.GetX(), 0,
+				right.GetY(), up.GetY(), forward.GetY(), 0,
+				right.GetZ(), up.GetZ(), forward.GetZ(), 0,
 				0, 0, 0, 1
 			};
 
@@ -1432,25 +1079,18 @@ public:
 				0, 0, .1, 0,
 				0, 0, 0, 1
 			};
-			//vtkSmartPointer<vtkMatrix4x4> elementsMat = vtkSmartPointer<vtkMatrix4x4>::New();
-			//for (int i = 0; i < 4; i++)
-				//for (int j = 0; j < 4; j++)
-					//elementsMat->SetElement(i, j, elements[i * 4 + j]);
-			//elementsMat->SetElement(0, 0)
 
 			transform->SetMatrix(elements1);
 
 			transform->PostMultiply();
 			transform->Concatenate(elements2);
 			transform->Concatenate(elements3);
-			//transform->Scale(dist(a->pos1, a->pos2), .1, .1);
-
+		
 			//transform->Concatenate()
 			vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 			transformFilter->SetTransform(transform);
 			transformFilter->SetInputData(superquad->GetOutput());
 			transformFilter->Update();
-
 
 			vtkSmartPointer<vtkPolyDataMapper> smapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 			smapper->SetInputData(transformFilter->GetOutput());
@@ -1458,19 +1098,22 @@ public:
 			vtkSmartPointer<vtkActor> sactor = vtkSmartPointer<vtkActor>::New();
 			sactor->SetMapper(smapper);
 			sactor->GetProperty()->SetDiffuseColor(1, .5, .5);
-			sactor->GetProperty()->SetOpacity(.5);
+			sactor->GetProperty()->SetOpacity(.6);
+			sactor->GetProperty()->BackfaceCullingOn();
+			sactor->PickableOff();
 
 			a->renderer->AddActor(sactor);
-			
-			//std::cout << a->myelems.size() << "\n";
 
-			//float x = a->pos1[0];
-			//float y = a->pos1[1];
-			//float z = a->pos1[2];
+			elem.actor = sactor;
+			elem.source = superquad;
+			elem.transformFilter = transformFilter;
+
+			a->myelems.push_back(elem);
+
 			auto addSphere = [](additive *a, float x, float y, float z){
 				float  mouseSizeDivide = 5.0;
 
-				if (a->meshes.size() > 0)
+				if (a->meshes.size() > 0 && a->selectedIndex != -1)
 				{
 					vtkPolyData* thepolydata = vtkPolyData::SafeDownCast(a->meshes.at(a->selectedIndex).actor->GetMapper()->GetInput());
 					float diffx = thepolydata->GetBounds()[1] - thepolydata->GetBounds()[0];	// diff in maxx and minx
@@ -1499,6 +1142,7 @@ public:
 
 				vtkSmartPointer<vtkActor> actors = vtkSmartPointer<vtkActor>::New();
 				actors->SetMapper(mapper);
+				actors->GetProperty()->SetDiffuseColor(1, 1, 0);
 				actors->SetPickable(false);
 
 				a->renderer->AddActor(actors);
@@ -1507,7 +1151,6 @@ public:
 			addSphere(a, a->pos2[0], a->pos2[1], a->pos2[2]);
 
 		}
-
 		// set all widgets back to pickable, and all meshes pickable
 		//for (int i = 0; i < a->widgets.size(); i++)
 		//{
