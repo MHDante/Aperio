@@ -25,10 +25,10 @@
 #include "Utility.h"
 
 #include "vtkCollectionIterator.h"
-#include "vtkShader.h"
-#include "vtkGLSLShader.h"
-#include "vtkXMLShader.h"
-#include "vtkXMLMaterial.h"
+//#include "vtkShader.h"
+//#include "vtkGLSLShader.h"
+//#include "vtkXMLShader.h"
+//#include "vtkXMLMaterial.h"
 #include "vtkXMLDataElement.h"
 #include "vtkOpenGLExtensionManager.h"
 #include "vtkgl.h"
@@ -243,6 +243,8 @@ public:
 	std::vector<MyWidget> mywidgets;
 
 	std::vector<MyElem> myelems;
+
+	carve::csg::CSG csg;
 
 	//------------------------------------------------------------------------
 private:

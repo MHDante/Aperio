@@ -549,55 +549,16 @@ void additive::readFile(std::string filename)
 	//qDebug() << "end create\n";
 	//Utility::end_clock('a');
 
-	//auto makecubef = [](float size, const carve::math::Matrix &t) -> unique_ptr<carve::mesh::MeshSet<3> > {
-	//	vector<carve::geom3d::Vector> vertices;
-
-	//	vertices.push_back(carve::geom::VECTOR(+size, +size, +size));
-	//	vertices.push_back(carve::geom::VECTOR(-size, +size, +size));
-	//	vertices.push_back(carve::geom::VECTOR(-size, -size, +size));
-	//	vertices.push_back(carve::geom::VECTOR(+size, -size, +size));
-	//	vertices.push_back(carve::geom::VECTOR(+size, +size, -size));
-	//	vertices.push_back(carve::geom::VECTOR(-size, +size, -size));
-	//	vertices.push_back(carve::geom::VECTOR(-size, -size, -size));
-	//	vertices.push_back(carve::geom::VECTOR(+size, -size, -size));
-
-	//	vector<int> f;
-	//	int numfaces = 0;
-
-	//	f.push_back(4);
-	//	f.push_back(0); f.push_back(1); f.push_back(2); f.push_back(3);
-	//	numfaces++;
-	//	f.push_back(4);
-	//	f.push_back(7); f.push_back(6); f.push_back(5); f.push_back(4);
-	//	numfaces++;
-	//	f.push_back(4);
-	//	f.push_back(0); f.push_back(4); f.push_back(5); f.push_back(1);
-	//	numfaces++;
-	//	f.push_back(4);
-	//	f.push_back(1); f.push_back(5); f.push_back(6); f.push_back(2);
-	//	numfaces++;
-	//	f.push_back(4);
-	//	f.push_back(2); f.push_back(6); f.push_back(7); f.push_back(3);
-	//	numfaces++;
-	//	f.push_back(4);
-	//	f.push_back(3); f.push_back(7); f.push_back(4); f.push_back(0);
-	//	numfaces++;
-
-	//	unique_ptr<carve::mesh::MeshSet<3> > poly(new carve::mesh::MeshSet<3>(vertices, numfaces, f));
-	//	//unique_ptr<carve::mesh::MeshSet<3> > poly(new carve::mesh::MeshSet<3>(vertices, numfaces, f));
-
-	//	return poly;
-	//};
-
 	//qDebug() << "start cube \n";
-	//unique_ptr<carve::mesh::MeshSet<3> > second = makecubef(1.2, carve::math::Matrix::ROT(0.0, .2, .3, .4));
+	unique_ptr<carve::mesh::MeshSet<3> > first = makeCube(5, carve::math::Matrix::IDENT());
+	unique_ptr<carve::mesh::MeshSet<3> > second = makeCube(5, carve::math::Matrix::ROT(1, 0, 1, 0));
 	//qDebug() << "end cube\n";
 	//
 	//Utility::start_clock('a');
 	//qDebug() << "start compute\n";		// 11 secs (on luigi in Debug, 0.8 release)
 	//carve::csg::CSG csg;
-	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT); // slow but accurate
-	//unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(first.get(), second.get(), carve::csg::CSG::A_MINUS_B, nullptr, carve::csg::CSG::CLASSIFY_EDGE));
+	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT); // slow but accurate
+	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(first.get(), second.get(), carve::csg::CSG::A_MINUS_B, nullptr, carve::csg::CSG::CLASSIFY_EDGE));
 	//qDebug() << "end compute\n";
 	//Utility::end_clock('a');
 	//
@@ -606,19 +567,19 @@ void additive::readFile(std::string filename)
 	//qDebug() << "start adding points # " << c->vertex_storage.size() << "\n";	// 0.016 seconds
 
 	///// Converting c back to vtk points and faces
-	//vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-	//points->SetNumberOfPoints(c->vertex_storage.size());	// allocate memory
+	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+	points->SetNumberOfPoints(c->vertex_storage.size());	// allocate memory
 
-	//boost::unordered_map<carve::mesh::MeshSet<3>::vertex_t*, uint> vertexToIndex_map;	// vertex index map
+	boost::unordered_map<carve::mesh::MeshSet<3>::vertex_t*, uint> vertexToIndex_map;	// vertex index map
 
-	//auto iter = begin(c->vertex_storage);
-	//for (int k = 0; iter != end(c->vertex_storage); ++k, ++iter) {
-	//
-	//	carve::mesh::MeshSet<3>::vertex_t *vertex = &(*iter);
+	auto iter = begin(c->vertex_storage);
+	for (int k = 0; iter != end(c->vertex_storage); ++k, ++iter) {
+	
+		carve::mesh::MeshSet<3>::vertex_t *vertex = &(*iter);
 
-	//	points->SetPoint(k, vertex->v.x, vertex->v.y, vertex->v.z);
-	//	vertexToIndex_map[vertex] = k;
-	//}
+		points->SetPoint(k, vertex->v.x, vertex->v.y, vertex->v.z);
+		vertexToIndex_map[vertex] = k;
+	}
 	//cout<<" points done";
 	//qDebug() << "end adding points\n";
 	//Utility::end_clock('a');
@@ -627,21 +588,21 @@ void additive::readFile(std::string filename)
 
 	//qDebug() << "start adding faces";	// 0.37 seconds see if you can change insertnextcell to setcell?
 
-	//vtkSmartPointer<vtkCellArray> polygons = vtkSmartPointer<vtkCellArray>::New();
-	//vtkSmartPointer<vtkPolygon> polygon = vtkSmartPointer<vtkPolygon>::New();
+	vtkSmartPointer<vtkCellArray> polygons = vtkSmartPointer<vtkCellArray>::New();
+	vtkSmartPointer<vtkPolygon> polygon = vtkSmartPointer<vtkPolygon>::New();
 
-	//for (auto face_iter = c->faceBegin(); face_iter != c->faceEnd(); ++face_iter) {
-	//	carve::mesh::MeshSet<3>::face_t *f = *face_iter;
-	//	polygon->GetPointIds()->SetNumberOfIds(f->nVertices());
+	for (auto face_iter = c->faceBegin(); face_iter != c->faceEnd(); ++face_iter) {
+		carve::mesh::MeshSet<3>::face_t *f = *face_iter;
+		polygon->GetPointIds()->SetNumberOfIds(f->nVertices());
 
-	//	// nVertices = nEdges since half edge
-	//	int j = 0;
-	//	for (auto e_iter = f->begin(); e_iter != f->end(); ++e_iter) {
-	//		polygon->GetPointIds()->SetId (j++, vertexToIndex_map.at(e_iter->vert) );
-	//	}
-	//	polygons->InsertNextCell(polygon);
-	//
-	//}
+		// nVertices = nEdges since half edge
+		int j = 0;
+		for (auto e_iter = f->begin(); e_iter != f->end(); ++e_iter) {
+			polygon->GetPointIds()->SetId (j++, vertexToIndex_map.at(e_iter->vert) );
+		}
+		polygons->InsertNextCell(polygon);
+	
+	}
 	//cout << polygons->GetNumberOfCells() << endl;
 
 	//qDebug() << "end adding faces\n";
@@ -650,24 +611,25 @@ void additive::readFile(std::string filename)
 
 	//Utility::start_clock('a');
 	//qDebug() << "start vtkPolyData\n";
-	//vtkSmartPointer<vtkPolyData> polygonPolyData = vtkSmartPointer<vtkPolyData>::New();
-	//polygonPolyData->SetPoints(points);
-	//polygonPolyData->SetPolys(polygons);
+	vtkSmartPointer<vtkPolyData> polygonPolyData = vtkSmartPointer<vtkPolyData>::New();
+	polygonPolyData->SetPoints(points);
+	polygonPolyData->SetPolys(polygons);
 	//qDebug() << "end vtkPolyData \n";
 	//Utility::end_clock('a');
 
 	//// Create a mapper and actor
-	//vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	//mapper->SetInput(polygonPolyData);
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(polygonPolyData);
 
-	//vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	//actor->SetMapper(mapper);
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
 
+	renderer->AddActor(actor);
 	//// Now replace mesh too
 	//renderer->GetViewProps()->ReplaceItem(myIndex, actor);
 	//meshes[myIndex].actor = actor;
 
-	qDebug() << "end processing data \n";
+	//qDebug() << "end processing data \n";
 	Utility::end_clock('z');
 }
 //-------------------------------------------------------------------------------------

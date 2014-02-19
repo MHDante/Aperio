@@ -41,7 +41,7 @@
 
 #include <vtkOBJReader.h>
 #include <vtkJPEGReader.h>
-#include <vtkShaderProgram.h>
+//#include <vtkShaderProgram.h>
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
