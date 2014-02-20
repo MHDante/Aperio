@@ -37,6 +37,7 @@
 #include "vtkTransform.h"
 
 #include "vtkVector.h"
+#include "CarveConnector.h"
 
 //-----------------------------------------------------------------------------
 /// <summary> Class MouseInteractorStylePP, contains key press, mouse events etc.
@@ -101,6 +102,36 @@ public:
 			a->meshes[a->selectedIndex].opacity = 0;
 			a->meshes[a->selectedIndex].actor->GetProperty()->SetOpacity(0);
 			a->updateOpacitySliderAndList();
+		}
+		if (this->Interactor->GetKeyCode() == 'k')
+		{
+			CarveConnector connector;
+			vtkSmartPointer<vtkPolyData> thepolydata(vtkPolyData::SafeDownCast(a->meshes[0].actor->GetMapper()->GetInput()));
+			vtkSmartPointer<vtkPolyData> thepolydata2(vtkPolyData::SafeDownCast(a->myelems[0].source->GetOutput()));
+			 
+			
+			
+			// Make MeshSet from vtkPolyData
+			std::unique_ptr<carve::mesh::MeshSet<3> > first(CarveConnector::vtkPolyDataToMeshSet(thepolydata));
+			std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::vtkPolyDataToMeshSet(thepolydata2));
+			//1unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(10, carve::math::Matrix::IDENT()));
+
+			std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::performDifference(first, second));
+
+			vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
+
+			// Create a mapper and actor
+			vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+			mapper->SetInputData(c_poly);
+
+			vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+			actor->GetProperty()->SetDiffuseColor(a->meshes[0].color.r, a->meshes[0].color.b, a->meshes[0].color.b);
+			actor->GetProperty()->SetAmbientColor(a->meshes[0].color.r, a->meshes[0].color.b, a->meshes[0].color.b);
+			actor->SetMapper(mapper);
+
+			// Now replace mesh too
+			a->renderer->GetViewProps()->ReplaceItem(0, actor);
+			a->meshes[0].actor = actor;
 		}
 		if (this->Interactor->GetKeyCode() == '+')
 		{
@@ -1098,8 +1129,8 @@ public:
 			vtkSmartPointer<vtkActor> sactor = vtkSmartPointer<vtkActor>::New();
 			sactor->SetMapper(smapper);
 			sactor->GetProperty()->SetDiffuseColor(1, .5, .5);
-			sactor->GetProperty()->SetOpacity(.6);
-			sactor->GetProperty()->BackfaceCullingOn();
+			//sactor->GetProperty()->SetOpacity(.6);
+			//sactor->GetProperty()->BackfaceCullingOn();
 			sactor->PickableOff();
 
 			a->renderer->AddActor(sactor);

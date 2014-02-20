@@ -144,6 +144,8 @@ int MySuperquadricSource::RequestData(
 	// get the info object
 	vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
+	//todo:hello
+
 	// get the ouptut
 	vtkPolyData *output = vtkPolyData::SafeDownCast(
 		outInfo->Get(vtkDataObject::DATA_OBJECT()));

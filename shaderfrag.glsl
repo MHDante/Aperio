@@ -52,11 +52,39 @@ void phongLighting()
 	//final_color = vec4(mouse.x, 0, 0, 1);
 }
 
+void toon()
+{
+	vec4 col = gl_Color;
+
+	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  
+	vec3 L = normalize(gl_LightSource[0].position.xyz - v);   // surf2Light
+	vec3 R = normalize(-reflect(L,n));  // Reflection of surf2Light and normal
+	
+	float intensity = dot(n, normalize(L));
+    if(intensity < 0)
+        intensity = 0;
+ 
+    // Discretize the intensity, based on a few cutoff points
+    if (intensity > 0.95)
+        final_color = vec4(1.0,1,1,1.0) * col;
+   // else if (intensity > 0.7)
+     //   final_color = vec4(0.9,0.9,0.9,1.0) * col;
+    else if (intensity > 0.5)
+        final_color = vec4(0.7,0.7,0.7,1.0) * col;
+   // else if (intensity > 0.25)
+     //   final_color = vec4(0.5,0.5,0.5,1.0) * col;
+    else if (intensity > 0.05)
+        final_color = vec4(0.35,0.35,0.35,1.0) * col;
+    else
+        final_color = vec4(0.1,0.1,0.1,1.0) * col;
+}
+
 // ---------------- Main function ----------------------//
 void main (void)  
 {
-	phongLighting();
-
+	//phongLighting();
+	toon();
+	
 	// convert mouse world coords to view coords (so same as v)
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
 	

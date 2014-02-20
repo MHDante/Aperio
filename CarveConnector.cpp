@@ -54,6 +54,11 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::performDifference(unique_pt
 	carve::csg::CSG csg;
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT); // slow but accurate
 
+	///csg.compute(a.get(), b.get(), carve::csg::CSG:A_MINUS_B, null
+		
+		//carve::csg::CSG::
+
+	std::cout << "stop";
 	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), carve::csg::CSG::A_MINUS_B, nullptr, carve::csg::CSG::CLASSIFY_EDGE));
 	return c;
 }

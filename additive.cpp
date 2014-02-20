@@ -123,7 +123,8 @@ void additive::slot_afterShowWindow()
 	renderWindow->SetMultiSamples(4);
 
 	renderer = vtkSmartPointer<vtkRenderer>::New();
-	float bgcolor[3] = { 39, 50, 67 };
+	//float bgcolor[3] = { 39, 50, 67 };
+	float bgcolor[3] = { 109, 92, 73};
 	renderer->SetBackground(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0);
 
 	renderWindow->AddRenderer(renderer);
