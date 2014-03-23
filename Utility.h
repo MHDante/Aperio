@@ -18,6 +18,10 @@
 #include <string>
 #include <stdarg.h>
 
+#include <vtkTextureMapToSphere.h>
+#include <vtkTextureMapToCylinder.h>
+#include <vtkTextureMapToPlane.h>
+
 /// <summary>
 /// Utility namespace: contains general utility functions
 /// </summary>
@@ -52,6 +56,16 @@ namespace Utility
 	/// <summary> Display a windows Information MessageBox </summary>
 	/// <param name="text">The message</param>
 	void messagebox(std::string text);
+
+	/// <summary> VTK method to convert source/filter to vtkActor (Makes mapper and actor) </summary>
+	/// <param name="source">Source/Filter to convert and r,g,b,a (colour and opacity)</param>
+	/// <return name="source">Resulting Actor</param>
+	vtkSmartPointer<vtkActor> sourceToActor(vtkSmartPointer<vtkPolyData> source, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f);
+
+	/// <summary> VTK method to generate Texture coordinates and attach to vtkPolyData's point data </summary>
+	/// <param name="source">Polydata to generate texture coordinates for</param>
+	void generateTexCoords(vtkSmartPointer<vtkPolyData> source);
+
 }
 
 #endif

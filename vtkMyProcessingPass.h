@@ -72,6 +72,8 @@ public:
 	vtkTypeMacro(vtkMyProcessingPass, vtkImageProcessingPass);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
+	void setShaderFile(std::string filename, bool frag);
+
 	//BTX
 	// Description:
 	// Perform rendering according to a render state \p s.
@@ -94,14 +96,16 @@ protected:
 	// Destructor.
 	virtual ~vtkMyProcessingPass();
 
+	void RenderDelegate2(const vtkRenderState *s, int width, int height, int newWidth, int newHeight, vtkFrameBufferObject *fbo, vtkTextureObject *target);
+
 	// Description:
 	// Graphics resources.
 	vtkFrameBufferObject *FrameBufferObject;
 	vtkTextureObject *Pass1; // render target for the scene
-	vtkTextureObject *Gx1; // render target 0 for the first shader
-	vtkTextureObject *Gy1; // render target 1 for the first shader
-	vtkShaderProgram2 *Program1; // shader to compute Gx1 and Gy1
 	vtkShaderProgram2 *Program2; // shader to compute |G| from Gx1 and Gy1
+
+	std::stringstream bufferV;
+	std::stringstream bufferF;
 
 private:
 	vtkMyProcessingPass(const vtkMyProcessingPass&);  // Not implemented.

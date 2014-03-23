@@ -17,6 +17,8 @@
 // Inherited from
 #include "vtkInteractorStyleTrackballCamera.h"
 
+#include "vtkMyShaderPass.h"
+
 // Additional includes
 #include <vtkCellPicker.h>
 #include <vtkLineSource.h>
@@ -74,6 +76,7 @@ public:
 		dragging = false;
 		creation = false;
 
+		
 		//this->PickingManagedOn();
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -103,35 +106,68 @@ public:
 			a->meshes[a->selectedIndex].actor->GetProperty()->SetOpacity(0);
 			a->updateOpacitySliderAndList();
 		}
+		if (this->Interactor->GetKeyCode() == '1')
+		{
+			a->opaqueP->updateFragmentShader("shader.frag");
+		}
 		if (this->Interactor->GetKeyCode() == 'k')
 		{
+			int selectedindex = a->selectedIndex;
+			int eselectedindex = a->myelems.size() - 1;
+
 			CarveConnector connector;
-			vtkSmartPointer<vtkPolyData> thepolydata(vtkPolyData::SafeDownCast(a->meshes[0].actor->GetMapper()->GetInput()));
-			vtkSmartPointer<vtkPolyData> thepolydata2(vtkPolyData::SafeDownCast(a->myelems[0].source->GetOutput()));
-			 
-			
-			
+			vtkSmartPointer<vtkPolyData> thepolydata(vtkPolyData::SafeDownCast(a->meshes[selectedindex].actor->GetMapper()->GetInput()));
+			thepolydata = CarveConnector::cleanVtkPolyData(thepolydata);
+
+			vtkSmartPointer<vtkPolyData> mypoly(vtkPolyData::SafeDownCast(a->myelems[eselectedindex].actor->GetMapper()->GetInput()));			
+			vtkSmartPointer<vtkPolyData> thepolydata2 = CarveConnector::cleanVtkPolyData(mypoly);
+
 			// Make MeshSet from vtkPolyData
 			std::unique_ptr<carve::mesh::MeshSet<3> > first(CarveConnector::vtkPolyDataToMeshSet(thepolydata));
 			std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::vtkPolyDataToMeshSet(thepolydata2));
-			//1unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(10, carve::math::Matrix::IDENT()));
+			//std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(55, carve::math::Matrix::IDENT()));
 
 			std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::performDifference(first, second));
-
 			vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
+			Utility::generateTexCoords(c_poly);
+
+			vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
+			dataset->SetInputData(c_poly);
+			dataset->ComputePointNormalsOn();
+			dataset->ComputeCellNormalsOff();
+			dataset->SplittingOn();
+			dataset->SetFeatureAngle(60);
+			dataset->Update();
+
+			a->meshes[selectedindex].cellLocator.Take(vtkCellLocator::New());
+			a->meshes[selectedindex].cellLocator->SetDataSet(dataset->GetOutput());
+			a->meshes[selectedindex].cellLocator->BuildLocator();
+			a->meshes[selectedindex].cellLocator->LazyEvaluationOn();
+
+			// Better remove old locator too
+			a->interactorstyle->cellPicker->AddLocator(a->meshes[selectedindex].cellLocator);
+
 
 			// Create a mapper and actor
-			vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			mapper->SetInputData(c_poly);
+			vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(dataset->GetOutput(), a->meshes[selectedindex].color.r,
+				a->meshes[selectedindex].color.g,
+				a->meshes[selectedindex].color.b,
+				a->meshes[selectedindex].opacity);
 
-			vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-			actor->GetProperty()->SetDiffuseColor(a->meshes[0].color.r, a->meshes[0].color.b, a->meshes[0].color.b);
-			actor->GetProperty()->SetAmbientColor(a->meshes[0].color.r, a->meshes[0].color.b, a->meshes[0].color.b);
-			actor->SetMapper(mapper);
+			//actor->GetProperty()->SetTexture(0, a->colorTexture);
+
+			//actor->GetProperty()->SetDiffuseColor(a->meshes[a->selectedIndex].color.r, a->meshes[0].color.b, a->meshes[0].color.b);
+			//actor->GetProperty()->SetAmbientColor(a->meshes[0].color.r, a->meshes[0].color.b, a->meshes[0].color.b);
+			
 
 			// Now replace mesh too
-			a->renderer->GetViewProps()->ReplaceItem(0, actor);
-			a->meshes[0].actor = actor;
+			a->renderer->GetViewProps()->ReplaceItem(selectedindex, actor);
+			a->meshes[selectedindex].actor = actor;
+
+			// Remove superquadric
+			a->renderer->RemoveActor(a->myelems[eselectedindex].actor);
+
+			// Remove from list as well (myelems)
 		}
 		if (this->Interactor->GetKeyCode() == '+')
 		{
@@ -212,7 +248,7 @@ public:
 
 				//a->superquad->SetSize(0.5);
 				//a->superquad->SetThickness(.333);
-				
+
 				a->superquad->SetPhiRoundness(0.5);
 				//a->superquad->SetThickness(0.43);
 				a->superquad->SetThetaRoundness(a->myexp);
@@ -242,7 +278,7 @@ public:
 			//a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
 			a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
 			a->superquad->Update();
-			
+
 			//a->superquad->Update();
 
 
@@ -273,9 +309,10 @@ public:
 			//
 			a->renderer->AddActor(xx);
 		}
-		if (this->Interactor->GetKeyCode() == 'u')
+		if (this->Interactor->GetKeyCode() == 'u' && a->myelems.size() > 0)
 		{
-			for (int i = 0; i < a->myelems.size(); i++)
+			int i = a->myelems.size() - 1;
+			//for (int i = 0; i < a->myelems.size(); i++)
 			{
 				vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
@@ -294,9 +331,10 @@ public:
 				a->myelems.at(i).actor->GetMapper()->Update();
 			}
 		}
-		if (this->Interactor->GetKeyCode() == 'o')
+		if (this->Interactor->GetKeyCode() == 'o' && a->myelems.size() > 0)
 		{
-			for (int i = 0; i < a->myelems.size(); i++)
+			int i = a->myelems.size() - 1;
+			//for (int i = 0; i < a->myelems.size(); i++)
 			{
 				vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
@@ -315,12 +353,19 @@ public:
 				a->myelems.at(i).actor->GetMapper()->Update();
 			}
 		}
-		if (this->Interactor->GetKeyCode() == 'e')
+		if (this->Interactor->GetKeyCode() == '0')
 		{
-			for (int i = 0; i < a->myelems.size(); i++)
-			{				
+			a->shadingnum = (a->shadingnum + 1) % 3;
+		}
+		if (this->Interactor->GetKeyCode() == 'e' && a->myelems.size() > 0)
+		{
+			
+			int i = a->myelems.size() - 1;
+
+			//for (int i = 0; i < a->myelems.size(); i++)
+			{
 				vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
-				
+
 				double elements1[16] = {
 					1, 0, 0, 0,
 					0, 1.1, 0, 0,
@@ -341,9 +386,10 @@ public:
 			int x = 30000;
 			std::cout << x << "\n";
 		}
-		if (this->Interactor->GetKeyCode() == 'q')
+		if (this->Interactor->GetKeyCode() == 'q' && a->myelems.size() > 0)
 		{
-			for (int i = 0; i < a->myelems.size(); i++)
+			int i = a->myelems.size() - 1;
+			//for (int i = 0; i < a->myelems.size(); i++)
 			{
 				vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
@@ -374,7 +420,7 @@ public:
 			// Pick from this location.
 			cellPicker->Pick(this->Interactor->GetEventPosition()[0], this->Interactor->GetEventPosition()[1], 0,
 				this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-		
+
 			vtkActor *pickedActor = cellPicker->GetActor();
 
 			if (pickedActor == nullptr)
@@ -386,7 +432,7 @@ public:
 				double poss[3];
 				cellPicker->GetPickPosition(poss);
 
-				vtkPolyData* thepolydata = vtkPolyData::SafeDownCast(pickedActor->GetMapper()->GetInput());		
+				vtkPolyData* thepolydata = vtkPolyData::SafeDownCast(pickedActor->GetMapper()->GetInput());
 
 				double normal[3];
 				cellPicker->GetPickNormal(normal);
@@ -666,7 +712,7 @@ public:
 		cellPicker->GetPickNormal(a->mouseNorm);
 
 		vtkSmartPointer<vtkActor> actorHovered = cellPicker->GetActor();
-		
+
 		vtkInteractorStyleTrackballCamera::OnMouseMove();
 		return;
 		if (actorHovered)
@@ -846,7 +892,7 @@ public:
 
 		if (a->meshes.size() > 0)
 		{
-			
+
 			vtkPolyData* thepolydata = vtkPolyData::SafeDownCast(a->meshes.at(a->selectedIndex).actor->GetMapper()->GetInput());
 			float diffx = thepolydata->GetBounds()[1] - thepolydata->GetBounds()[0];	// diff in maxx and minx
 			float diffy = thepolydata->GetBounds()[3] - thepolydata->GetBounds()[2];	// diff in maxx and minx
@@ -858,7 +904,7 @@ public:
 		vtkInteractorStyleTrackballCamera::OnMouseMove();
 	}
 
-	virtual void OnLeftButtonDown() override
+	virtual void OnLeftButtonDown() 
 	{
 		// ---- Checking for double clicks
 		this->NumberOfClicks++;
@@ -877,6 +923,32 @@ public:
 		if (moveDistance > this->ResetPixelDistance)
 		{
 			this->NumberOfClicks = 1;
+		}
+
+		if (this->NumberOfClicks == 1)
+		{
+			cellPicker->Pick(this->Interactor->GetEventPosition()[0],
+				this->Interactor->GetEventPosition()[1],
+				0,  // always zero.
+				this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+			
+			vtkSmartPointer<vtkActor> actorSingle = cellPicker->GetActor();
+			if (actorSingle)
+			{
+				// If double clicked on actor, check if dbl-clicked mesh
+				std::vector<CustomMesh>::iterator it = std::find(a->meshes.begin(), a->meshes.end(), actorSingle);
+
+				if (it != a->meshes.end())
+				{
+					a->meshes[a->selectedIndex].selected = 0;
+					it->selected = 1;
+
+					int newindex = it._Ptr - &a->meshes[0];
+					a->selectedIndex = newindex;
+
+					a->updateOpacitySliderAndList();
+				}
+			}
 		}
 
 		if (this->NumberOfClicks == 2)
@@ -916,7 +988,7 @@ public:
 			this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 
 		vtkSmartPointer<vtkActor> actorSingle = cellPicker->GetActor();
-		if (actorSingle)
+		if (actorSingle && GetAsyncKeyState(VK_CONTROL))
 		{
 			// If actor selected is one of the CustomMesh
 			auto it = std::find(a->meshes.begin(), a->meshes.end(), actorSingle.GetPointer());
@@ -1016,8 +1088,39 @@ public:
 		}
 		else
 		{
-			// forward events
-			vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+			// forward events (Default VTK code!)
+			this->FindPokedRenderer(this->Interactor->GetEventPosition()[0],
+				this->Interactor->GetEventPosition()[1]);
+
+			if (this->CurrentRenderer == NULL)
+			{
+				return;
+			}
+
+			//this->GrabFocus(this->EventCallbackCommand);
+			//this->GrabFocus( (vtkCommand*) vtkInteractorStyleTrackballCamera::EventCallbackCommand);
+			if (this->Interactor->GetShiftKey())
+			{
+				if (this->Interactor->GetControlKey())
+				{
+					this->StartDolly();
+				}
+				else
+				{
+					this->StartPan();
+				}
+			}
+			else
+			{
+				if ((GetKeyState(VK_MENU) & 0x1000))	// Alt key down
+				{
+					this->StartSpin();
+				}
+				else
+				{
+					this->StartRotate();
+				}
+			}
 		}
 	}
 	////----------------------------------------------------------------------------
@@ -1041,18 +1144,19 @@ public:
 
 			auto dist = [](float pos1[3], float pos2[3]) -> float
 			{
-				return sqrtf( pow(pos2[2] - pos1[2], 2.0f) + pow(pos2[1] - pos1[1], 2.0f) + pow(pos2[0] - pos1[0], 2.0f) );
+				return sqrtf(pow(pos2[2] - pos1[2], 2.0f) + pow(pos2[1] - pos1[1], 2.0f) + pow(pos2[0] - pos1[0], 2.0f));
 			};
-			
-			//if (dist(a->pos1, a->pos2) < 0.05)
-			//{
-				//std::cout << "stop dragging NO GOOD\n";
-				//return;
-			//}
+
+
+			if (dist(a->pos1, a->pos2) < 0.05)
+			{
+			//std::cout << "stop dragging NO GOOD\n";
+				return;
+			}
 			// Otherwise, good
 
 			MyElem elem;
-			
+
 			elem.p1.point = vtkVector3f(a->pos1[0], a->pos1[1], a->pos1[2]);
 			elem.p1.normal = vtkVector3f(a->norm1[0], a->norm1[1], a->norm1[2]);
 
@@ -1116,7 +1220,7 @@ public:
 			transform->PostMultiply();
 			transform->Concatenate(elements2);
 			transform->Concatenate(elements3);
-		
+
 			//transform->Concatenate()
 			vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 			transformFilter->SetTransform(transform);

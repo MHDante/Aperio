@@ -33,6 +33,7 @@
 #define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
 
 #include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderer.h>
@@ -58,4 +59,4 @@
 
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
-
+#include <vtkTriangleFilter.h>

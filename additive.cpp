@@ -1,10 +1,16 @@
 #include "stdafx.h"		// Precompiled header files
 #include "additive.h"
 
+#include "CustomDepthPeelingPass.h"
+
 // Additional includes
 #include <vtkSphereSource.h>
 #include <vtkPointPicker.h>
 #include <vtkPolyDataNormals.h>
+#include <vtkFloatArray.h>
+#include <vtkPainterDeviceAdapter.h>
+#include <vtkShaderDeviceAdapter2.h>
+#include <vtkGLSLShaderDeviceAdapter2.h>
 
 // Custom
 #include "MyInteractorStyle.h"
@@ -55,13 +61,14 @@
 #include "vtkKdTree.h"
 #include "vtkModifiedBSPTree.h"
 
-#include "vtkPolyDataSilhouette.h"
+//#include "vtkPolyDataSilhouette.h"
 
 #include "vtkMyProcessingPass.h"
 
 #include <vtkOpenGLRenderWindow.h>
 
 #include <vtkSmoothPolyDataFilter.h>
+#include <vtkOpenGLProperty.h>
 
 #include "obj_parser.h"
 #include "CarveConnector.h"
@@ -97,9 +104,12 @@ void additive::slot_afterShowWindow()
 	update_orig_size();
 
 	// Set up instance variables
-	fps = 50.0f;
+	fps = 50;
+	//fname = "organs brain 250k.obj";
 	fname = "heart 256k.obj";
+	
 	preview = false;
+	shadingnum = 0;
 
 	pause = false;
 
@@ -119,12 +129,16 @@ void additive::slot_afterShowWindow()
 	timer->start();
 
 	vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-	renderWindow->SetAlphaBitPlanes(1);
-	renderWindow->SetMultiSamples(4);
-
+	renderWindow->AlphaBitPlanesOn();
+	renderWindow->DoubleBufferOn();
+	renderWindow->SetMultiSamples(0);
+		
 	renderer = vtkSmartPointer<vtkRenderer>::New();
 	//float bgcolor[3] = { 39, 50, 67 };
-	float bgcolor[3] = { 109, 92, 73};
+	float bgcolor[3] = { 109, 92, 73 };
+	//float bgcolor[3] = { 67, 118,145};
+	float factor = 0.7;
+	bgcolor[0] *= factor; bgcolor[1] *= factor; bgcolor[2] *= factor;
 	renderer->SetBackground(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0);
 
 	renderWindow->AddRenderer(renderer);
@@ -132,7 +146,7 @@ void additive::slot_afterShowWindow()
 	// Dynamically create a new QVTKWidget (and set render window to it)
 	qv = new QVTKWidget(this);
 	qv->SetRenderWindow(renderWindow);
-	
+
 	// Add a grid layout to mainWidget on-form and add QVTKWidget to it
 	ui.mainWidget->setLayout(new QGridLayout(ui.mainWidget));
 	ui.mainWidget->layout()->setMargin(2);
@@ -143,9 +157,7 @@ void additive::slot_afterShowWindow()
 
 	vtkSmartPointer<vtkSequencePass> seq = vtkSmartPointer<vtkSequencePass>::New();
 
-	vtkSmartPointer<vtkLightsPass> lightsP = vtkSmartPointer<vtkLightsPass>::New();
-
-	vtkSmartPointer<vtkMyShaderPass> opaqueP = vtkSmartPointer<vtkMyShaderPass>::New();
+	opaqueP = vtkSmartPointer<vtkMyShaderPass>::New();
 	opaqueP->initialize(this, ShaderPassType::PASS_OPAQUE);
 
 	vtkSmartPointer<vtkMyShaderPass> transP = vtkSmartPointer<vtkMyShaderPass>::New();
@@ -157,15 +169,18 @@ void additive::slot_afterShowWindow()
 	//vtkSmartPointer<vtkMyShaderPass> silhP = vtkSmartPointer<vtkMyShaderPass>::New();
 	//silhP->initialize(this, ShaderPassType::PASS_SILHOUETTE);
 
-	//vtkSmartPointer<vtkDepthPeelingPass> peelP = vtkSmartPointer<vtkDepthPeelingPass>::New();
-	//peelP->SetMaximumNumberOfPeels(4);
-	//peelP->SetOcclusionRatio(0.1);
-	//peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
+	
+	vtkSmartPointer<CustomDepthPeelingPass> peelP = vtkSmartPointer<CustomDepthPeelingPass>::New();
+	peelP->SetMaximumNumberOfPeels(4);
+	peelP->SetOcclusionRatio(0.5);
+	peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
 
 	// Put all passes into a collection then into a sequence
 	vtkSmartPointer<vtkRenderPassCollection> passes = vtkSmartPointer<vtkRenderPassCollection>::New();
-	passes->AddItem(lightsP);
-	//passes->AddItem(silhP);
+	//passes->AddItem(vtkSmartPointer<vtkCameraPass>::New());
+	//passes->AddItem(vtkClearZPass::New());
+	//passes->AddItem(vtkSmartPointer<vtkLightsPass>::New());
+	////passes->AddItem(silhP);
 	passes->AddItem(opaqueP);
 	//passes->AddItem(peelP);
 	passes->AddItem(transP);
@@ -174,15 +189,22 @@ void additive::slot_afterShowWindow()
 	seq->SetPasses(passes);
 	cameraP->SetDelegatePass(seq);
 
-	//vtkSmartPointer<vtkSobelGradientMagnitudePass> sobelP = vtkSmartPointer<vtkSobelGradientMagnitudePass>::New();
-	//sobelP->SetDelegatePass(cameraP);
 	//vtkGaussianBlurPass* blurP = vtkGaussianBlurPass::New();
 	//blurP->SetDelegatePass(cameraP);
 
-	vtkSmartPointer<vtkMyProcessingPass> myProcessingPass = vtkSmartPointer<vtkMyProcessingPass>::New();
-	myProcessingPass->SetDelegatePass(cameraP);
+	//vtkSmartPointer<vtkSobelGradientMagnitudePass> sobelP = vtkSmartPointer<vtkSobelGradientMagnitudePass>::New();
+	//sobelP->SetDelegatePass(fxaaP);
 
-	vtkOpenGLRenderer::SafeDownCast(renderer)->SetPass(cameraP);
+	vtkSmartPointer<vtkMyProcessingPass> fxaaP = vtkSmartPointer<vtkMyProcessingPass>::New();
+	fxaaP->setShaderFile("shader_fxaa.vert", false);
+	fxaaP->setShaderFile("shader_fxaa.frag", true);
+	fxaaP->SetDelegatePass(cameraP);
+
+	vtkSmartPointer<vtkMyProcessingPass> bloomP = vtkSmartPointer<vtkMyProcessingPass>::New();
+	bloomP->setShaderFile("shader_bloom.frag", true);
+	bloomP->SetDelegatePass(fxaaP);
+
+	vtkOpenGLRenderer::SafeDownCast(renderer)->SetPass(bloomP);
 
 	vtkSmartPointer<QVTKInteractor> renderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
 	renderWindowInteractor->SetRenderWindow(qv->GetRenderWindow());
@@ -268,7 +290,6 @@ void additive::readFile(std::string filename)
 	myelems.clear();
 	meshes.clear();
 
-
 	qDebug() << " - reading file - \n";
 
 	//read jpeg, instant
@@ -276,7 +297,7 @@ void additive::readFile(std::string filename)
 	jpgReader->SetFileName("luigi.jpg");
 	jpgReader->Update();
 
-	vtkSmartPointer<vtkTexture> colorTexture = vtkSmartPointer<vtkTexture>::New();
+	colorTexture = vtkSmartPointer<vtkTexture>::New();
 	colorTexture->SetInputConnection(jpgReader->GetOutputPort());
 	colorTexture->InterpolateOn();
 
@@ -298,7 +319,7 @@ void additive::readFile(std::string filename)
 
 		// Create faces
 		vtkSmartPointer<vtkCellArray> polygons = vtkSmartPointer<vtkCellArray>::New();
-		
+
 		for (int j = 0; j < parser.themeshes.at(i).polys.size(); j++)
 		{
 			vtkSmartPointer<vtkPolygon> polygon = vtkSmartPointer<vtkPolygon>::New();
@@ -309,7 +330,7 @@ void additive::readFile(std::string filename)
 
 			polygons->InsertNextCell(polygon);
 		}
-		
+
 		// Make polygon data
 		if (points->GetNumberOfPoints() > 0)
 		{
@@ -317,6 +338,21 @@ void additive::readFile(std::string filename)
 			polydata->SetPoints(points);
 			polydata->SetPolys(polygons);
 
+			// Create texture coordinates
+			Utility::generateTexCoords(polydata);
+
+			// Create attributes for vertices
+			//vtkSmartPointer<vtkFloatArray> weights = vtkSmartPointer<vtkFloatArray>::New();
+			//weights->SetNumberOfComponents(3);
+			//weights->SetName("weights");
+
+			//float tuple[3] = { 5, 5, 5};
+			//for (int i = 0; i < polydata->GetNumberOfPoints(); i++)
+			//	weights->InsertNextTuple(tuple);
+
+			//polydata->GetPointData()->SetScalars(weights);
+			
+			
 			objectMeshCollection->AddItem(polydata);
 		}
 	}
@@ -326,19 +362,20 @@ void additive::readFile(std::string filename)
 	renderer->RemoveAllLights();
 
 	vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
-	//light->SetLightTypeToHeadlight();		// Headlights are located at camera position (CameraLights do not have to be)	
-	//light->SetLightTypeToSceneLight();	
-	light->SetLightTypeToHeadlight();
-
+	light->SetLightTypeToHeadlight();		// Headlights are located at camera position (CameraLights do not have to be)	
+	//light->SetPositional(true);
+	//light->SetPosition(50, 50, 50);
 	float amb = 0.2; //0.2
 	float diff = 0.6; //0.6
 	float spec = 1.0; //1.0
-	
+
 	light->SetAmbientColor(amb, amb, amb);
 	light->SetDiffuseColor(diff, diff, diff);
 	light->SetSpecularColor(spec, spec, spec);
 
 	light->SetPosition(0, 0, 0);	// Light centered at camera origin (view space)
+
+	//light->set
 	renderer->AddLight(light);
 
 	//srand(time(nullptr));
@@ -370,6 +407,8 @@ void additive::readFile(std::string filename)
 		//objectOBBTree->SetDataSet(nextMesh);
 		//objectOBBTree->BuildLocator();
 		//CommonData::objectOBBTrees.push_back(objectOBBTree);
+
+		//vtkPolyData *s = new vtkPolyData(*nextMesh);
 
 		// Compute normals/toggle on/off
 		vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
@@ -417,29 +456,77 @@ void additive::readFile(std::string filename)
 
 		interactorstyle->cellPicker->AddLocator(meshes[z].cellLocator);
 
-		// Make mapper and actors
-		vtkSmartPointer<vtkPolyDataMapper> const mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		mapper->SetInputData(dataset->GetOutput());
-
-		meshes[z].actor = vtkSmartPointer<vtkActor>::New();
-		meshes[z].actor->SetMapper(mapper);
 		
-		// Set actor properties
-		meshes[z].actor->GetProperty()->BackfaceCullingOff();
-		meshes[z].actor->GetProperty()->SetInterpolationToPhong(); 
 
-		meshes[z].actor->GetProperty()->SetAmbientColor(r, g, b);
-		meshes[z].actor->GetProperty()->SetAmbient(1.0);
-		//meshes[z].actor->GetProperty()->SetColor(r, g, b);	// sets gl_Color? (Both ambient and diffuse colours are affected) - set to white for textures
+		// Make mapper and actors
+		//vtkSmartPointer<vtkPolyDataMapper> const mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		//mapper->SetInputData(dataset->GetOutput());
 
-		meshes[z].actor->GetProperty()->SetDiffuseColor(r, g, b);
-		meshes[z].actor->GetProperty()->SetDiffuse(1.0);
+		//meshes[z].actor = vtkSmartPointer<vtkActor>::New();
+		//meshes[z].actor->SetMapper(mapper);
 
-		meshes[z].actor->GetProperty()->SetSpecular(0.15);
-		meshes[z].actor->GetProperty()->SetSpecularPower(15);
+		meshes[z].actor = Utility::sourceToActor(dataset->GetOutput(), r, g, b, 1.0);
 
-		meshes[z].actor->GetProperty()->SetOpacity(1.0);	// myopacity
+		// Add shader
+		shaderProgram = vtkSmartPointer<vtkShaderProgram2>::New();
+
+		vtkSmartPointer<vtkShader2> shader = vtkSmartPointer<vtkShader2>::New();
+		vtkSmartPointer<vtkShader2> shader2 = vtkSmartPointer<vtkShader2>::New();
+
+		std::ifstream file1("shader.vert");
+		std::stringstream buffer1;
+		buffer1 << file1.rdbuf();
+
+		shader->SetSourceCode(buffer1.str().c_str());
+
+		std::ifstream file2("shader.frag");
+		std::stringstream buffer2;
+		buffer2 << file2.rdbuf();
+
+		shader2->SetSourceCode(buffer2.str().c_str());
+
+		shader->SetType(VTK_SHADER_TYPE_VERTEX);
+		shader2->SetType(VTK_SHADER_TYPE_FRAGMENT);
+
+		shaderProgram->GetShaders()->AddItem(shader);
+		shaderProgram->GetShaders()->AddItem(shader2);
+
+		//shaderProgram->SetContext(glContext);
+		shader->SetContext(shaderProgram->GetContext());
+		shader2->SetContext(shaderProgram->GetContext());
+
+		shaderProgram->Build();
+
+		//vtkSmartPointer<vtkGLSLShaderDeviceAdapter2> adapter = vtkSmartPointer<vtkGLSLShaderDeviceAdapter2>::New();
+		//adapter->SetShaderProgram(shaderProgram);
+		
+
+
+		//std::cout << loc << "\n";
+		//vtkSmartPointer<vtkGLSLShaderDeviceAdapter2> adapter = vtkSmartPointer<vtkGLSLShaderDeviceAdapter2>::New();
+		//adapter->SetShaderProgram(shaderProgram);
+		//adapter->
+		//float att[3] = { 5, 5, 5 };
+		//adapter->SendAttribute("weights", 3, VTK_FLOAT, att);
+
+		//int loc = shaderProgram->GetAttributeLocation("weights");
+
+		//float att[3] = {5, 5, 5};
+
+		//vtkOpenGLRenderWindow::SafeDownCast(renderer->GetRenderWindow())->GetPainterDeviceAdapter()->SendAttribute(0, 3, VTK_FLOAT, att);
+		//vtkOpenGLRenderer::SafeDownCast(renderer)->SetShaderProgram(shaderProgram);
+		
+		//vtkOpenGLRenderer::SafeDownCast(renderer)->SetShaderProgram(shaderProgram);
+
+		//vtkOpenGLProperty::SafeDownCast(meshes[z].actor->GetProperty())->ShadingOff();
+		//vtkOpenGLProperty::SafeDownCast(meshes[z].actor->GetProperty())->GlobalWarningDisplayOff();
+		//vtkOpenGLProperty::SafeDownCast(meshes[z].actor->GetProperty())->SetPropProgram(shaderProgram);
+		
+		//meshes[z].actor->GetProperty()->ShadingOn();
+
 		//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture);
+
+
 
 		mouse[0] = 1;
 		mouse[1] = 1;
@@ -467,7 +554,7 @@ void additive::readFile(std::string filename)
 	for (int i = 0; i < meshes.size(); i++)
 	{
 		QListWidgetItem* item = new QListWidgetItem(meshes[i].name.c_str(), ui.listWidget);
-		
+
 		item->setCheckState(Qt::Checked);
 		ui.listWidget->addItem(item);
 		//ui.listWidget->itemAt(0, i)->setCheckState(Qt::Checked);

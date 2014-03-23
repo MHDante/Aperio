@@ -52,14 +52,11 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::makeCube(float size, const 
 unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::performDifference(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b)
 {
 	carve::csg::CSG csg;
-	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT); // slow but accurate
+	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
+	//csg.hooks.registerHook(new carve::csg::CarveHoleResolver, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
+	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
 
-	///csg.compute(a.get(), b.get(), carve::csg::CSG:A_MINUS_B, null
-		
-		//carve::csg::CSG::
-
-	std::cout << "stop";
-	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), carve::csg::CSG::A_MINUS_B, nullptr, carve::csg::CSG::CLASSIFY_EDGE));
+	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), carve::csg::CSG::OP::A_MINUS_B, NULL, carve::csg::CSG::CLASSIFY_TYPE::CLASSIFY_EDGE));
 	return c;
 }
 //----------------------------------------------------------------------------------------------------
@@ -70,13 +67,18 @@ vtkSmartPointer<vtkPolyData> CarveConnector::meshSetToVTKPolyData(unique_ptr<car
 	points->SetNumberOfPoints(c->vertex_storage.size());	// allocate memory
 
 	boost::unordered_map<carve::mesh::MeshSet<3>::vertex_t*, uint> vertexToIndex_map;	// vertex index map
-	auto iter = begin(c->vertex_storage);
-	for (int k = 0; iter != end(c->vertex_storage); ++k, ++iter) {
+	auto iter = c->vertex_storage.begin();
+	for (int k = 0; iter != c->vertex_storage.end(); ++k, ++iter) {
 
 		carve::mesh::MeshSet<3>::vertex_t *vertex = &(*iter);
 
-		points->SetPoint(k, vertex->v.x, vertex->v.y, vertex->v.z);
+		//points->SetPoint(k, vertex->v.x, vertex->v.y, vertex->v.z);
 		vertexToIndex_map[vertex] = k;
+	}
+
+	for (int k = 0; k < c->vertex_storage.size(); k++)
+	{
+		points->SetPoint(k, c->vertex_storage[k].v[0], c->vertex_storage[k].v[1], c->vertex_storage[k].v[2]);
 	}
 	// Create polygons (faces)
 	vtkSmartPointer<vtkCellArray> polygons = vtkSmartPointer<vtkCellArray>::New();
@@ -117,6 +119,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::vtkPolyDataToMeshSet(vtkSma
 
 	// Then make MeshSet Faces 
 	vtkSmartPointer<vtkCellArray> polys = thepolydata->GetPolys();
+
 	polys->InitTraversal();
 
 	std::vector<int> f;
@@ -142,6 +145,28 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::vtkPolyDataToMeshSet(vtkSma
 	// Construct MeshSet from vertices and faces
 	unique_ptr<carve::mesh::MeshSet<3> > first(new carve::mesh::MeshSet<3>(vertices, numfaces, f));
 	return first;
+}
+//---------------------------------------------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> CarveConnector::cleanVtkPolyData(vtkSmartPointer<vtkPolyData> &thepolydata)
+{
+	thepolydata->GetPointData()->SetTCoords(nullptr);
+	thepolydata->GetPointData()->SetNormals(nullptr);
+
+	vtkSmartPointer<vtkTriangleFilter> filter = vtkSmartPointer<vtkTriangleFilter>::New();
+	filter->SetInputData(thepolydata.GetPointer());
+	filter->PassLinesOff();
+	filter->PassVertsOff();
+	filter->Update();
+
+	vtkSmartPointer<vtkCleanPolyData> clean = vtkSmartPointer<vtkCleanPolyData>::New();
+	clean->SetInputData(filter->GetOutput());
+	clean->ConvertStripsToPolysOn();
+	clean->PointMergingOn();
+	clean->Update();
+
+	vtkSmartPointer<vtkPolyData> result(clean->GetOutput());
+
+	return result;
 }
 
 

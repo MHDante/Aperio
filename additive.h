@@ -24,6 +24,8 @@
 // Custom
 #include "Utility.h"
 
+class vtkMyShaderPass;
+
 #include "vtkCollectionIterator.h"
 //#include "vtkShader.h"
 //#include "vtkGLSLShader.h"
@@ -50,6 +52,7 @@
 #include <QtGui/QMessageBox>
 
 #include <vtkVector.h>
+#include "CarveConnector.h"
 
 class MyInteractorStyle;
 
@@ -205,12 +208,16 @@ public:
 	int toon;
 	float myexp;
 	float myn;
+	int shadingnum;
 
 	float pos1[3];
 	float pos2[3];
 
 	float norm1[3];
 	float norm2[3];
+
+	vtkSmartPointer<vtkTexture> colorTexture;
+	vtkSmartPointer<vtkShaderProgram2> shaderProgram;
 
 	QRect _orig_size;
 	bool preview;
@@ -244,6 +251,8 @@ public:
 
 	std::vector<MyElem> myelems;
 
+	vtkSmartPointer<vtkMyShaderPass> opaqueP;
+
 	//------------------------------------------------------------------------
 private:
 	/// <summary> The UI object (access QWidgets from here) </summary>
@@ -263,7 +272,7 @@ private:
 
 	/// <summary> Filename of currently opened file </summary>
 	std::string fname;
-
+	
 	/////////////////////////////////////// PUBLIC SLOTS //////////////////////////////////////////////////////////////////
 	public slots:
 
@@ -355,7 +364,7 @@ private:
 			options);
 
 		pause = false;
-
+	
 		if (!fileName.isEmpty())
 		{
 			path = QFileInfo(fileName).path(); // store path for next time
@@ -418,7 +427,7 @@ private:
 		float actualopacity = i / 100.0f;
 		float opacity;
 
-		opacity = actualopacity *0.4f;
+		opacity = actualopacity *0.5f; //0.4f
 		if (i >= 100)
 			opacity = 1;
 

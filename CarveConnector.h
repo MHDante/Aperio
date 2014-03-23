@@ -1,6 +1,10 @@
 #ifndef CARVE_CONNECTOR_H
 #define CARVE_CONNECTOR_H
 
+#include <vtkCleanPolyData.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkFillHolesFilter.h>
+
 using namespace std;
 
 class CarveConnector
@@ -40,6 +44,15 @@ public:
 	/// <param name="mesh">vtkPolyData to convert </param>
 	/// <returns>Resulting MeshSet in Carve format</returns>
 	static unique_ptr<carve::mesh::MeshSet<3> > vtkPolyDataToMeshSet(vtkSmartPointer<vtkPolyData> &thepolydata);
+
+	//-------------------------------------------------------------------------------------------------------------
+	/// <summary> Cleans vtkPolyData (triangulate and remove duplicate vertices before giving to Carve)
+	/// </summary>
+	/// <param name="mesh">vtkPolyData to clean </param>
+	/// <returns>Resulting clean vtkPolydata </returns>
+	static vtkSmartPointer<vtkPolyData> cleanVtkPolyData(vtkSmartPointer<vtkPolyData> &thepolydata);
+
+
 };
 
 #endif

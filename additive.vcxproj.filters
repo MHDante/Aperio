@@ -92,6 +92,9 @@
     <ClCompile Include="CarveConnector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CustomDepthPeelingPass.cpp">
+      <Filter>Header Files\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="additive.h">
@@ -137,6 +140,9 @@
     </ClInclude>
     <ClInclude Include="CarveConnector.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CustomDepthPeelingPass.h">
+      <Filter>Header Files\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

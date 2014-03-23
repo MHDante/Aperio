@@ -404,7 +404,7 @@ int MySuperquadricSource::RequestData(
 	output->GetPointData()->SetNormals(newNormals);
 	newNormals->Delete();
 
-	output->GetPointData()->SetTCoords(newTCoords);
+	//output->GetPointData()->SetTCoords(newTCoords);
 	newTCoords->Delete();
 
 	output->SetStrips(newPolys);

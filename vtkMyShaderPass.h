@@ -49,6 +49,8 @@ public:
 	vtkTypeMacro(vtkMyShaderPass, vtkDefaultPass);
 	void PrintSelf(ostream& os, vtkIndent indent);
 
+	void updateFragmentShader(std::string filename);
+
 	//BTX
 	// Description:
 	// Perform rendering according to a render state \p s.
