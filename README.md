@@ -19,8 +19,8 @@ These pages document the use of the application.
 
 #### Important Links (dependencies)
 
-Written using C++11 (Requires Visual Studio 2010 or higher) <br />
+Written using C++11 (Requires Visual Studio 2013 or higher) <br />
 Visualization Toolkit 6.1.0 (algorithms and rendering), [http://www.vtk.org/](http://www.vtk.org/) <br />
-Qt 4.85 (GUI), [http://qt-project.org/](http://qt-project.org/) <br />
+Qt 5.3.0 (GUI), [http://qt-project.org/](http://qt-project.org/) <br />
 Carve CSG (Latest) (Boolean operations), [http://carve-csg.com/](http://carve-csg.com/) <br />
 Graphics card with GLSL shader support (OpenGL 2.1 or higher)
