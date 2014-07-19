@@ -14,23 +14,14 @@
 
 #include "tiny_obj_loader.h"
 
+class illustrator;	// Forward declarations
+class CustomMesh;
+
 /// <summary>
 /// Utility namespace: contains general utility functions
 /// </summary>
 namespace Utility
 {
-	/// <summary> Struct representing a color (contains 3 floats: r, g, b) - red, green, blue
-	/// </summary>
-	struct myColor
-	{
-		/// <summary> a float representing the red component(the user can decide the range of values) </summary>
-		float r;
-		/// <summary> a float representing the green component(the user can decide the range of values) </summary>
-		float g;
-		/// <summary> a float representing the blue component(the user can decide the range of values) </summary>
-		float b;
-	};
-
 	/// Functions ---------------------------------------------------------------------------------
 
 	/// <summary>
@@ -72,6 +63,8 @@ namespace Utility
 	/// <param name="vertex_and_frag">vertex and fragment shader filenames (nullstring is default, meaning none, so no reloads)</param>
 	void updateShader(vtkShaderProgram2* shaderProgram, std::string vert = "", std::string frag = "");
 
-
+	/// <summary> Add to meshes collection (returns the CustomMesh) </summary>
+	/// <param name="vertex_and_frag"></param>
+	CustomMesh& addMesh(illustrator *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity);
 }
 #endif

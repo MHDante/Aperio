@@ -37,6 +37,8 @@
 #include <vtkNew.h>
 #include <vtkPolyData.h>
 
+#include <vtkColor.h>
+
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderWindow.h>
 #include "vtkCamera.h"

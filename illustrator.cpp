@@ -68,21 +68,23 @@ void illustrator::slot_afterShowWindow()
 	firsttime = true;
 
 	// Set up instance variables
-	fps = 1000;
+	fps = 50.0;
 	std::string fname = "hearttest.obj";
+	//std::string fname = "organs brain 250K.obj";
 
 	// QT Variables
 	pause = false;
 	preview = false;
 
 	// Uniforms
+	wiggle = true;
 	shadingnum = 0;		// Toon/normal, etc.
 	peerInside = 0;
 	brushDivide = 15.0;
 	myexp = 2;
 
 	difftrans = 1.0;
-	shininess = 128;
+	shininess = ui.verticalSlider->value();
 	darkness = 1.2;
 
 	QApplication::processEvents();
@@ -94,7 +96,8 @@ void illustrator::slot_afterShowWindow()
 
 	QTimer* timer;
 	timer = new QTimer(this);
-	timer->setInterval(0);// 1000.0 / fps);
+	timer->setInterval(1000.0 / fps);
+	timer->setTimerType(Qt::TimerType::PreciseTimer);
 	timer->start();
 
 	QTimer* timer2;				// few times a second
@@ -116,10 +119,11 @@ void illustrator::slot_afterShowWindow()
 	renderWindow->SetMultiSamples(0);
 
 	renderer = vtkSmartPointer<vtkRenderer>::New();
-	renderer->GetActiveCamera()->SetClippingRange(1.0, 1000);
+	renderer->GetActiveCamera()->SetClippingRange(0.01, 1000);
 
 	//float bgcolor[3] = { 39, 50, 67 };
-	float bgcolor[3] = { 109, 92, 73 };
+	//float bgcolor[3] = { 109, 92, 73 };
+	float bgcolor[3] = { 235, 235, 235 };
 	float factor = 0.7;
 	bgcolor[0] *= factor; bgcolor[1] *= factor; bgcolor[2] *= factor;
 	renderer->SetBackground(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0);
@@ -176,12 +180,12 @@ void illustrator::slot_afterShowWindow()
 	ssaoP->setShaderFile("shader_ssao.frag", true);
 	ssaoP->SetDelegatePass(cameraP);
 
-	//vtkSmartPointer<vtkMyOutlinePass> outlineP = vtkSmartPointer<vtkMyOutlinePass>::New();	
-	//outlineP->setShaders();
-	//outlineP->SetDelegatePass(cameraP);
+	//vtkSmartPointer<vtkMyProcessingPass> dotP = vtkSmartPointer<vtkMyProcessingPass>::New();
+	//dotP->setShaderFile("shader_dot.frag", true);
+	//dotP->SetDelegatePass(ssaoP);
 
 	vtkSmartPointer<vtkMyProcessingPass> fxaaP = vtkSmartPointer<vtkMyProcessingPass>::New();
-	fxaaP->setShaderFile("shader_fxaa.vert", false);
+	//fxaaP->setShaderFile("shader_fxaa.vert", false);
 	fxaaP->setShaderFile("shader_fxaa.frag", true);
 	fxaaP->SetDelegatePass(ssaoP);
 
@@ -205,27 +209,30 @@ void illustrator::slot_afterShowWindow()
 	QApplication::processEvents();
 
 	// Connect all signals to slots
-	connect(ui.btnHello, SIGNAL(clicked()), this, SLOT(slot_buttonclicked()));
-	connect(ui.btnColor, SIGNAL(clicked()), this, SLOT(slot_colorclicked()));
+	connect(ui.btnHello, &QPushButton::clicked, this, &illustrator::slot_buttonclicked);
+	connect(ui.btnColor, &QPushButton::clicked, this, &illustrator::slot_colorclicked);
 
-	connect(colorDialog, SIGNAL(currentColorChanged(const QColor &)), this, SLOT(slot_colorchanged(const QColor &)));
+	connect(colorDialog, &QColorDialog::currentColorChanged, this, &illustrator::slot_colorchanged);
 
-	connect(timer, SIGNAL(timeout()), this, SLOT(slot_timeout()));
-	connect(timer2, SIGNAL(timeout()), this, SLOT(slot_timeout2()));
-	connect(ui.actionOpen, SIGNAL(triggered()), this, SLOT(slot_open()));
-	connect(ui.actionExit, SIGNAL(triggered()), this, SLOT(slot_exit()));
-	connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(slot_about()));
-	connect(ui.actionPreview, SIGNAL(triggered()), this, SLOT(slot_preview()));
+	connect(timer, &QTimer::timeout, this, &illustrator::slot_timeout);
+	connect(timer2, &QTimer::timeout, this, &illustrator::slot_timeout2);
+	connect(ui.actionOpen, &QAction::triggered, this, &illustrator::slot_open);
+	connect(ui.actionExit, &QAction::triggered, this, &illustrator::slot_exit);
+	
+	connect(ui.actionAbout, &QAction::triggered, this, &illustrator::slot_about);
+	connect(ui.actionPreview, &QAction::triggered, this, &illustrator::slot_preview);
+	connect(ui.actionFull_Screen, &QAction::triggered, this, &illustrator::slot_fullScreen);
 
-	connect(ui.menuFile, SIGNAL(aboutToShow()), this, SLOT(slot_menuclick()));
-	connect(ui.menuHelp, SIGNAL(aboutToShow()), this, SLOT(slot_menuclick()));
+	connect(ui.menuFile, &QMenu::aboutToShow, this, &illustrator::slot_menuclick);
+	connect(ui.menuHelp, &QMenu::aboutToShow, this, &illustrator::slot_menuclick);
 
-	connect(ui.horizontalSlider, SIGNAL(valueChanged(int)), this, SLOT(slot_valueChanged(int)));
-	connect(ui.verticalSlider, SIGNAL(valueChanged(int)), this, SLOT(slot_valueChangedV(int)));
-	connect(ui.verticalSlider_2, SIGNAL(valueChanged(int)), this, SLOT(slot_valueChangedV2(int)));
+	connect(ui.horizontalSlider, &QSlider::valueChanged, this, &illustrator::slot_valueChanged);
+	connect(ui.verticalSlider, &QSlider::valueChanged, this, &illustrator::slot_valueChangedV);
+	connect(ui.verticalSlider_2, &QSlider::valueChanged, this, &illustrator::slot_valueChangedV2);
 
-	connect(ui.listWidget, SIGNAL(itemEntered(QListWidgetItem *)), this, SLOT(slot_listitementered(QListWidgetItem *)));
-	connect(ui.listWidget, SIGNAL(currentRowChanged(int)), this, SLOT(slot_listitemclicked(int)));
+	connect(ui.listWidget, &QListWidget::itemEntered, this, &illustrator::slot_listitementered);
+	connect(ui.listWidget, &QListWidget::currentRowChanged, this, &illustrator::slot_listitemclicked);
+
 	readFile(fname);
 }
 // ------------------------------------------------------------------------
@@ -276,8 +283,6 @@ void illustrator::readFile(std::string filename)
 
 	// Reset values for new file
 	toon = 0;
-
-	selectedIndex = 0;	// Get rid of these eventually
 	hoveredIndex = 0;
 
 	renderer->RemoveAllViewProps();	// Remove from renderer, clear listwidget, clear vectors
@@ -289,16 +294,19 @@ void illustrator::readFile(std::string filename)
 
 	//read jpeg, instant
 	vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New();
-	jpgReader->SetFileName("luigi.jpg");
+	jpgReader->SetFileName("metal.jpg");
 	jpgReader->Update();
 
 	colorTexture = vtkSmartPointer<vtkTexture>::New();
 	colorTexture->SetInputConnection(jpgReader->GetOutputPort());
 	colorTexture->InterpolateOn();
 
+	if (path.isEmpty())				// Set path if it is empty
+		path = QDir::currentPath();
+
 	// Tiny OBJ reader
 	std::vector<tinyobj::shape_t> shapes;
-	std::string err = tinyobj::LoadObj(shapes, filename.c_str());
+	std::string err = tinyobj::LoadObj(shapes, filename.c_str(), (path + "\\").toStdString().c_str());
 
 	if (!err.empty()) {
 		std::cerr << err << std::endl;
@@ -399,6 +407,16 @@ void illustrator::readFile(std::string filename)
 			b = 0.622222;
 		}
 
+		if (tinyobj::info::matFileExists)
+		{			
+			if (z == 0)	// Only print this once
+				std::cout << "Material file found. Using colours from .mtl file.\n";
+
+			r = shapes.at(z).material.diffuse[0];
+			g = shapes.at(z).material.diffuse[1];
+			b = shapes.at(z).material.diffuse[2];
+		}
+
 		//printf("c_atrDex %f %f %f\n", r, g, b);
 		//vtkSmartPointer<vtkOBBTree> objectOBBTree = vtkSmartPointer<vtkOBBTree>::New();
 		//objectOBBTree->SetDataSet(nextMesh);
@@ -422,28 +440,9 @@ void illustrator::readFile(std::string filename)
 		//depthSort->SortScalarsOff();
 		//depthSort->Update();
 
-		// Add mesh to custom meshes vector
-		meshes.push_back(CustomMesh());
-		//system("pause");
-		meshes[z].opacity = 1.0;	// myopacity
+		vtkColor3f c(r, g, b);
 
-		meshes[z].color.r = r;
-		meshes[z].color.g = g;
-		meshes[z].color.b = b;
-		meshes[z].name = groupname;
-		meshes[z].selected = 0;
-
-		// Add cell locator for mesh to cellpicker and to mesh
-		meshes[z].cellLocator = vtkSmartPointer<vtkCellLocator>::New();
-		meshes[z].cellLocator->SetDataSet(dataset->GetOutput());
-		meshes[z].cellLocator->BuildLocator();
-		meshes[z].cellLocator->LazyEvaluationOn();
-
-		interactorstyle->cellPicker->AddLocator(meshes[z].cellLocator);
-
-		// Make mapper and actors
-		meshes[z].actor = Utility::sourceToActor(dataset->GetOutput(), r, g, b, 1.0);
-		//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture);
+		Utility::addMesh(this, dataset->GetOutput(), z, groupname, c, 1.0);
 
 		// Make default shaders
 		//shaderProgram = Utility::buildShader(renderer->GetRenderWindow(), "shader.vert", "shader.frag");
@@ -459,6 +458,9 @@ void illustrator::readFile(std::string filename)
 		renderer->ResetCamera();
 		qv->GetRenderWindow()->Render();
 	}
+
+	// Added meshes, now set selectedMesh to last one (Might have to update this for future selections)
+	selectedMesh = meshes.end();	// Reset selectedMesh to nothing
 
 	if (firsttime)
 		firsttime = false;
@@ -476,30 +478,40 @@ void illustrator::readFile(std::string filename)
 //-------------------------------------------------------------------------------------
 void illustrator::slot_listitemclicked(int i)
 {
-	if (selectedIndex > -1 && selectedIndex < meshes.size())	// Reset Mesh's previous selected index object to not selected
-		meshes[selectedIndex].selected = 0;
+	if (i == -1)
+		return;
 
-	selectedIndex = i;
+	for (int k = 0; k < meshes.size(); k++)
+		meshes[k].selected = false;	// Reset all selectedMesh's selection parameter to false
 
-	if (selectedIndex > -1 && selectedIndex < meshes.size())
-		meshes[selectedIndex].selected = 1;						// New object selected
+	std::string itemString = ui.listWidget->item(i)->text().toStdString();	// get new selectedMesh string from list
+	selectedMesh = getMeshByName(itemString);
+
+	selectedMesh->selected = true;		// Set new selectedMesh's selection parameter to true
 
 	updateOpacitySliderAndList();
 }
 //-------------------------------------------------------------------------------------
 void illustrator::updateOpacitySliderAndList()
 {
-	if (selectedIndex < meshes.size())
+	if (selectedMesh != meshes.end())
 	{
-		ui.horizontalSlider->setValue(meshes[selectedIndex].opacity * 100);
+		ui.horizontalSlider->setValue(selectedMesh->opacity * 100);
 
-		if (ui.listWidget->selectedItems().size() > 0)
-			ui.listWidget->selectedItems().at(0)->setSelected(false);
+		ui.listWidget->clearSelection();	// unselect all previous selected items in list
 
-		ui.listWidget->item(selectedIndex)->setSelected(true);
-		ui.listWidget->scrollToItem(ui.listWidget->selectedItems().at(0));
+		if (selectedMesh != meshes.end())
+		{
+			auto item = getListItemByName(selectedMesh->name);
+			
+			if (item)
+			{
+				item->setSelected(true);
+				ui.listWidget->scrollToItem(item);
 
-		Utility::myColor mycol = meshes[selectedIndex].color;
-		colorDialog->setCurrentColor(QColor(mycol.r * 255, mycol.g * 255, mycol.b * 255));
+				vtkColor3f mycol = selectedMesh->color;
+				colorDialog->setCurrentColor(QColor(mycol.GetRed() * 255, mycol.GetGreen() * 255, mycol.GetBlue() * 255));
+			}
+		}
 	}
 }

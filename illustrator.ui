@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>illustrator</string>
+   <string>Aperio</string>
   </property>
   <property name="styleSheet">
    <string notr="true">QWidget{
@@ -306,6 +306,9 @@ background: #82766A;
       <width>151</width>
       <height>20</height>
      </rect>
+    </property>
+    <property name="placeholderText">
+     <string/>
     </property>
    </widget>
    <widget class="QWidget" name="mainWidget" native="true">

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'illustrator.ui'
 **
-** Created by: Qt User Interface Compiler version 5.3.0
+** Created by: Qt User Interface Compiler version 5.3.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -449,7 +449,7 @@ public:
 
     void retranslateUi(QMainWindow *illustratorClass)
     {
-        illustratorClass->setWindowTitle(QApplication::translate("illustratorClass", "illustrator", 0));
+        illustratorClass->setWindowTitle(QApplication::translate("illustratorClass", "Aperio", 0));
         actionPreview->setText(QApplication::translate("illustratorClass", "Toggle Preview", 0));
         actionPreview->setShortcut(QApplication::translate("illustratorClass", "P", 0));
         actionOpen->setText(QApplication::translate("illustratorClass", "Open", 0));
@@ -461,6 +461,7 @@ public:
         btnHello->setText(QApplication::translate("illustratorClass", "Light: 1", 0));
         label->setText(QApplication::translate("illustratorClass", "Opacity:", 0));
         pushButton->setText(QApplication::translate("illustratorClass", "Search", 0));
+        lineEdit->setPlaceholderText(QString());
         checkBox->setText(QApplication::translate("illustratorClass", "Skeletals", 0));
         checkBox_2->setText(QApplication::translate("illustratorClass", "Muscle", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("illustratorClass", "Systems", 0));

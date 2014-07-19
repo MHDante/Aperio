@@ -16,8 +16,7 @@ void main()
    {
         for (int j = 0; j < 8; j++)
         {
-			//sum += texture2D(source, texcoord + vec2(j-3, i-3)*0.004) * 0.075;
-			sum += texture2D(source, texcoord + vec2(j-3, i-3)*0.008) * 0.06;
+			sum += texture2D(source, texcoord + vec2(j-3, i-3)*0.004) * 0.075;
         }
    }
    

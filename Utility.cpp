@@ -9,6 +9,9 @@
 // VTK Includes
 #include <vtkShader2Collection.h>
 
+#include "illustrator.h"
+#include "MyInteractorStyle.h"
+
 // Utility Variables -------------------------------------------------------------------------
 namespace Utility
 {
@@ -191,5 +194,33 @@ vtkSmartPointer<vtkPolyData> Utility::objToVtkPolyData(tinyobj::shape_t &shape)
 		//Utility::generateTexCoords(polydata);
 	}
 	return polydata;
+}
+//--------------------------------------------------------------------------------------------------------
+CustomMesh& Utility::addMesh(illustrator *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity)
+{
+	// Add mesh to custom meshes vector
+	a->meshes.push_back(CustomMesh());
+	//system("pause");
+	a->meshes[z].opacity = opacity;	// myopacity
+
+	a->meshes[z].color.Set(color.GetRed(), color.GetGreen(), color.GetBlue());
+	a->meshes[z].name = groupname;
+	a->meshes[z].selected = 0;
+
+	// Add cell locator for mesh to cellpicker and to mesh
+	a->meshes[z].cellLocator = vtkSmartPointer<vtkCellLocator>::New();
+	a->meshes[z].cellLocator->SetDataSet(source);
+	a->meshes[z].cellLocator->BuildLocator();
+	a->meshes[z].cellLocator->LazyEvaluationOn();
+
+	a->interactorstyle->cellPicker->AddLocator(a->meshes[z].cellLocator);
+
+	// Make mapper and actors
+	a->meshes[z].actor = Utility::sourceToActor(source, color.GetRed(), color.GetGreen(), color.GetBlue(), opacity);
+	//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture);
+
+	a->meshes[z].generated = false;
+
+	return a->meshes[z];
 }
 

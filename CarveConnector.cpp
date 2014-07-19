@@ -49,7 +49,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::makeCube(float size, const 
 	return poly;
 }
 //-------------------------------------------------------------------------------------------------
-unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::performDifference(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b)
+unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b, carve::csg::CSG::OP op)
 {
 	carve::csg::CSG csg;
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
@@ -57,7 +57,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::performDifference(unique_pt
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::EDGE_DIVISION_BIT);
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::RESULT_FACE_BIT);
 
-	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), carve::csg::CSG::A_MINUS_B, NULL, carve::csg::CSG::CLASSIFY_EDGE));
+	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), op, NULL, carve::csg::CSG::CLASSIFY_EDGE));
 	return c;
 }
 //----------------------------------------------------------------------------------------------------

@@ -34,6 +34,9 @@ in "Graphics Gems III", David Kirk, ed., Academic Press, 1992.
 
 #include <math.h>
 
+// Custom includes
+#include "Utility.h"
+
 vtkStandardNewMacro(MySuperquadricSource);
 
 static void evalSuperquadric(double u, double v,
@@ -404,7 +407,11 @@ int MySuperquadricSource::RequestData(
 	output->GetPointData()->SetNormals(newNormals);
 	newNormals->Delete();
 
-	//output->GetPointData()->SetTCoords(newTCoords);
+	output->GetPointData()->SetTCoords(newTCoords);
+
+	//Utility::generateTexCoords(output);
+
+	
 	newTCoords->Delete();
 
 	output->SetStrips(newPolys);

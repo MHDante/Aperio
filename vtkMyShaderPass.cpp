@@ -106,6 +106,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	}
 	int source = 0;	// potential source texture
 
+	uniforms->SetUniformit("wiggle", 1, &a->wiggle);
 	uniforms->SetUniformf("mouse", 3, mousepos);
 	uniforms->SetUniformf("mouseSize", 1, &a->mouseSize);
 	uniforms->SetUniformi("peerInside", 1, &a->peerInside);
@@ -131,20 +132,32 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 		vtkProp *p = s->GetPropArray()[i];
 
 		// Find actor inside CustomMesh vector (using lambda to compare CustomMesh's actor pointer with vtkActor's pointer)
-		auto it = std::find_if(a->meshes.begin(), a->meshes.end(),
-			[=](CustomMesh &c) { return c.actor.GetPointer() == vtkActor::SafeDownCast(p); });
+		auto it = a->getMeshByActorRaw(vtkActor::SafeDownCast(p));
 
 		if (it != a->meshes.end())
 		{
 			// Found the CustomMesh object mapped to this actor (actor is a subclass of prop)
-			uniforms->SetUniformi("selected", 1, &it->selected);
+			uniforms->SetUniformit("selected", 1, &it->selected);
+
+			bool iselem = false;
+			uniforms->SetUniformit("iselem", 1, &iselem);
 		}
 		else
 		{
 			// Do another find here to see if mesh is part of widget elements
-			//
-			// Else,
-			// Not found the CustomMesh object, must be extra objects
+			auto it2 = a->getElemByActorRaw(vtkActor::SafeDownCast(p));
+
+			if (it2 != a->myelems.end())
+			{
+				// Actor belongs to our Elements array (myelems)
+				bool iselem = true;
+				uniforms->SetUniformit("iselem", 1, &iselem);
+			}
+			else
+			{ 
+				// Else,
+				// Not found the CustomMesh object, must be extra objects
+			}
 		}
 
 		if (p->HasKeys(s->GetRequiredKeys()))
@@ -152,8 +165,8 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 			int rendered;
 
 			a->shaderProgram->SetUniformVariables(uniforms);
-			vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->shaderProgram);
-			//a->shaderProgram->Use();
+			//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->shaderProgram); // Dangerous, constantly allocs
+			a->shaderProgram->Use();
 
 			if (passType == ShaderPassType::PASS_TRANSLUCENT)
 			{
@@ -171,6 +184,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				this->NumberOfRenderedProps += rendered;
 			}
 			//a->shaderProgram->Restore();
+			
 		}
 		++i;
 	}

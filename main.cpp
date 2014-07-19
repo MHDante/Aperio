@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 // ***********************************************************************
-// Assembly         : Mesh Illustrator
+// Assembly         : Aperio
 // Author           : David Tran
 // Created          : 03-10-2013
 //
@@ -52,7 +52,7 @@ null reference exceptions when accessing non-existing objects
 
 \subsection intro Introduction
 
-Mesh Illustrator is a 3D anatomical or other mesh browser allowing slidable superquadrics to be stretched
+Aperio is a 3D anatomical or other mesh browser allowing slidable superquadrics to be stretched
 and placed onto surfaces as a way of marking up areas to be illustratively manipulated
 (transformed or deformed in a manner for the purpose of illustration and understanding). The marked areas can
 then be cut, peeled, split, deformed or act as hinges or constraints for exploders etc. Additionally, elements can
@@ -65,7 +65,7 @@ experience and just want to break apart a complicated system for the goal of bet
 between parts in the 3D system. It can be used by medical professionals on anatomical data or even be extended
 for use as an immediate rigging tool on other polygonal meshes.
 
-<p>These pages document the source code of Mesh Illustrator.
+<p>These pages document the source code of Aperio.
 
 \subsection links Important Links (dependencies)
 
@@ -82,6 +82,19 @@ Graphics card with GLSL Shader Support (OpenGL 3.0 or higher)
 
 #include <QSplashScreen>
 
+#include <qtconcurrentrun.h>
+#include <QFutureWatcher>
+
+class Manager
+{
+public:
+	void go(std::string name)
+	{
+		//for (int i = 0; i < 10; i++)
+			std::cout << "hello" << name;
+	}
+};
+
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
@@ -90,12 +103,34 @@ int main(int argc, char *argv[])
 	QPixmap pixmap("splash.png");
 	QSplashScreen splash(pixmap, Qt::WindowStaysOnTopHint);
 	splash.setWindowOpacity(0.8);
+
+	QRect newPos = splash.geometry();
+	newPos.adjust(0, -50, 0, -50);
+	splash.setGeometry(newPos);
+
 	splash.show();
 	a.processEvents();
 
 	illustrator w;
 	w.show();
 	//splash.finish(&w);
+
+	Manager *manager = new Manager();
+	
+	std::string s = "Alice";
+	std::string s2 = "Bob";
+
+	//QFuture<void> f1 = QtConcurrent::run(hello, QString("Alice"));
+	//QFuture<void> f2 = QtConcurrent::run(hello, QString("Bob"));
+	QFuture<void> f1 = QtConcurrent::run(manager, &Manager::go, s);
+	QFuture<void> f2 = QtConcurrent::run(manager, &Manager::go, s2);
+
+	//f1.waitForFinished();
+	//f2.waitForFinished();
+
+	QFutureWatcher<void> futureWatcher;
+	futureWatcher.setFuture(f2);
+	QObject::connect(&futureWatcher, &QFutureWatcher<void>::finished, [] { std::cout << "We are done";  });
 
 	return a.exec();
 }

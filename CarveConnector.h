@@ -34,7 +34,7 @@ public:
 	/// <param name="a">First Element (second element subtracts from this)</param>
 	/// <param name="b">Second Element</param>
 	/// <returns>Resulting boolean MeshSet</returns>
-	static unique_ptr<carve::mesh::MeshSet<3> > performDifference(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b);
+	static unique_ptr<carve::mesh::MeshSet<3> > perform(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b, carve::csg::CSG::OP op);
 
 	//-------------------------------------------------------------------------------------------------------------
 	/// <summary> Converts Carve MeshSet to vtkPolyData

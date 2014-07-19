@@ -8,7 +8,8 @@
 //#extension GL_EXT_geometry_shader4 : enable
 
 uniform float time;
-uniform int selected;
+uniform bool selected;
+uniform bool wiggle;
 
 out vec3 n;
 out vec3 v;
@@ -16,7 +17,7 @@ out vec3 original_v;
 
 // Values
 const float pi = 3.14159;
-float waterHeight = 0.1f;
+float waterHeight = 0.0f;
 int numWaves = 8;
 
 float amplitude[8];
@@ -71,7 +72,7 @@ vec3 waveNormal(float x, float y) {
 
 void water()
 {
-   float a = 0.3;
+   float a = 0.01;
    amplitude[0] = a;
    amplitude[1] = a;
    amplitude[2] = a;
@@ -136,7 +137,7 @@ void main()
     //worldNormal = waveNormal(pos.x, pos.y);
     //eyeNormal = gl_NormalMatrix * worldNormal;
 	
-	if (selected == 1)
+	if (selected == true && wiggle == true)
 		water();
 	;
 	

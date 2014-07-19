@@ -13,7 +13,6 @@ in vec3 original_v;
 
 uniform vec3 mouse;
 uniform float mouseSize;
-uniform int selected;
 uniform int peerInside;
 
 uniform float myexp;
@@ -24,6 +23,9 @@ uniform float difftrans;
 uniform int shininess;
 
 uniform float darkness;
+
+uniform bool selected;
+uniform bool iselem;
 
 // Global variables
 vec4 final_color;
@@ -139,6 +141,13 @@ void phongLighting(int i)
 	//final_color =  final_color + vec4(vec3(gl_FrontMaterial.emission + Iamb + Idiff + Ispec + diffuseTranslucency + forwardTranslucency ), gl_Color.a);
 	//final_color = vec4(myspecular + diffuseTranslucency + forwardTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
 	final_color = vec4(myspecular +  difftrans * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
+	
+	if (iselem == true)
+		final_color = vec4(myspecular +  difftrans * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a) * texture2D(source, gl_TexCoord[0].st);
+		//gl_FragColor =  * vec4(1, 1, 1, 0.5);
+
+	//final_color = vec4(0.5, 0, 0, 1);
+	//final_color = texture2D(source, gl_TexCoord[0].st);
 }
 
 // ---------------- Toon Shader ----------------------//
@@ -252,7 +261,7 @@ void main()
 	float d = pow(pow(abs(v.y - mouseV.y) / 1.0, 2.0 / ee) + pow(abs(v.x - mouseV.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(v.z - mouseV.z) / 1.0, 2.0 / nn) - 1.0;
 	//float d = pow(pow(abs(original_v.y - mouseV.y) / 1.0, 2.0/ee) + pow(abs(original_v.x - mouseV.x) / 1.0, 2.0/ee), ee/nn) + pow(abs(original_v.z - mouseV.z) / 1.0, 2.0/nn) - 1.0;
 	
-	if (selected == 1)	// if selected
+	if (selected == true)	// if selected
 	{
 		vec3 _OutlineColor = vec3(0, 0, 0);
 		float _UnlitOutlineThickness = 0.8;
@@ -266,9 +275,11 @@ void main()
 			//final_color = vec4(gl_LightSource[0].diffuse.xyz * vec3(_OutlineColor), 1);
 		}
 
-		if (d < mouseSize && peerInside == 1)
+		if (d < 0.1 && peerInside == 1)
 		{
-			discard;
+			//discard;
+			final_color = final_color * vec4(1, 1, 0, 1);
+			gl_FragColor =  final_color;
 		}
 		else
 		{

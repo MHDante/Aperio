@@ -1,5 +1,5 @@
 // ****************************************************************************
-// Mesh Illustrator
+// Aperio
 // ----------------------------------------------------------------------------
 // Main QT window file, contains interactive events and main code
 // Header file contains slots, (functions called in response to signals, such
@@ -71,14 +71,21 @@ struct CustomMesh
 	/// <summary> Mesh's name (group name) </summary>
 	std::string name;
 	/// <summary> Mesh's color </summary>
-	Utility::myColor color;
+	vtkColor3f color;
 	/// <summary> Mesh's actor, contains Mapper->GetOutput() - vtkPolyData </summary>
 	vtkSmartPointer<vtkActor> actor;
 	/// <summary> Mesh's CellLocator, Important for speeding up raycast/picking (BuildLocator must be called with new CustomMesh)_</summary>
 	vtkSmartPointer<vtkCellLocator> cellLocator;
 
+	// Whether or not it is a generated mesh (cut piece) or original piece
+	bool generated;
+	// Generated piece properties:
+	vtkVector3f snormal;	// Superquadric normal 
+	vtkVector3f sup;		// Superquadric up vector
+	vtkVector3f hingePivot; // Superquadric initial position is hinge
+
 	// Custom properties
-	int selected;
+	bool selected;
 };
 // ----------------------------------------------------------------------------------------
 /// <summary> Main window class 
@@ -100,6 +107,7 @@ public:
 	double mouse[3];				// Put in struct later	- on mouse move updated
 	double mouseNorm[3];			// Put in struct later - on mouse move updated
 
+	bool wiggle;
 	float mouseSize;				// Recompute from bounds
 	float brushDivide;				// division factor for mouseSize
 	int peerInside;
@@ -148,7 +156,7 @@ public:
 	std::vector<MyElem> myelems;
 
 	/// <summary> Currently selected mesh index </summary>
-	int selectedIndex;
+	vector<CustomMesh>::iterator selectedMesh;
 
 	vtkSmartPointer<MySuperquadricSource> superquad;	// The red one on screen
 
@@ -209,17 +217,17 @@ public slots:
 	/// </summary>
 	void slot_colorchanged(const QColor & color)
 	{
-		if (selectedIndex != -1 && selectedIndex < meshes.size())
+		if (selectedMesh != meshes.end())
 		{
 			float r = color.red() / 255.0;
 			float g = color.green() / 255.0;
 			float b = color.blue() / 255.0;
 
-			meshes.at(selectedIndex).actor->GetProperty()->SetDiffuseColor(r, g, b);
-			meshes.at(selectedIndex).actor->GetProperty()->SetAmbientColor(r, g, b);
+			selectedMesh->actor->GetProperty()->SetDiffuseColor(r, g, b);
+			selectedMesh->actor->GetProperty()->SetAmbientColor(r, g, b);
 
-			Utility::myColor mycol = { r, g, b };
-			meshes.at(selectedIndex).color = mycol;
+			vtkColor3f mycol(r, g, b);
+			selectedMesh->color = mycol;
 		}
 	}
 	// ------------------------------------------------------------------------
@@ -231,9 +239,11 @@ public slots:
 
 		messageBox.setIconPixmap(QPixmap("about.png"));
 
-		messageBox.setWindowTitle("About Mesh Illustrator");
-		messageBox.setText("Mesh Illustrator ");
-		messageBox.setInformativeText("1.0.0.2 (Released 01-18-2014) \n\nCopyright © 2011-2014 David Tran\n");
+		QChar co(169);
+
+		messageBox.setWindowTitle("About Aperio");
+		messageBox.setText("Aperio");
+		messageBox.setInformativeText("1.0.0.3 (Released 07-11-2014) \n\nCopyright " + QString(co) + " 2011-2014 David Tran\n");
 		messageBox.setWindowOpacity(.85);
 		messageBox.setStyleSheet("background: rgba(0, 0, 0, 255); color: white; selection-color: black;");
 
@@ -266,6 +276,11 @@ public slots:
 	{
 		if (GetAsyncKeyState(VK_ESCAPE))
 			exit(0);
+
+		// Control wiggle
+		wiggle = true;
+		if (GetAsyncKeyState(VK_CONTROL))
+			wiggle = false;
 
 		if (!pause)
 			qv->update();
@@ -367,8 +382,11 @@ public slots:
 		// if opacity = 0, disabled
 		// if opacity > 0, enabled
 
-		meshes[selectedIndex].opacity = actualopacity;
-		meshes[selectedIndex].actor->GetProperty()->SetOpacity(opacity);
+		if (selectedMesh != meshes.end())
+		{
+			selectedMesh->opacity = actualopacity;
+			selectedMesh->actor->GetProperty()->SetOpacity(opacity);
+		}
 	}
 
 	// ------------------------------------------------------------------------
@@ -396,6 +414,95 @@ public slots:
 
 	// Public Methods ----------------------------------------------------------------------------------------------
 public:
+
+	/// <summary> Obtain CustomMesh by name
+	/// </summary>
+	/// <param name="name">Name of object (string) </param>
+	std::vector<CustomMesh>::iterator getMeshByName(std::string name)
+	{
+		auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c) { return c.name.compare(name) == 0; });		
+		return it;
+	}
+
+	/// <summary> Obtain CustomMesh by vtkActor smartpointer
+	/// </summary>
+	/// <param name="name">vtkActor SmartPointer to compare with all CustomMeshes' actors</param>
+	std::vector<CustomMesh>::iterator getMeshByActor(vtkSmartPointer<vtkActor> actor)
+	{
+		auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c) 
+			{ return c.actor.GetPointer() == actor.GetPointer(); });
+		return it;
+	}
+
+	/// <summary> Obtain CustomMesh by vtkActor raw pointer
+	/// </summary>
+	/// <param name="name">vtkActor raw pointer to compare with all CustomMeshes' actors</param>
+	std::vector<CustomMesh>::iterator getMeshByActorRaw(vtkActor* actor)
+	{
+		auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c)
+		{ return c.actor.GetPointer() == actor; });
+		return it;
+	}
+
+	/// <summary> Obtain Widget/Element by vtkActor raw pointer
+	/// </summary>
+	/// <param name="name">vtkActor raw pointer to compare with all myelems' actors</param>
+	std::vector<MyElem>::iterator getElemByActorRaw(vtkActor* actor)
+	{
+		auto it = std::find_if(myelems.begin(), myelems.end(), [=](MyElem &e)
+		{ return e.actor.GetPointer() == actor; });
+		return it;
+	}
+
+	/// <summary> Obtain ListItem and QListWidget by name
+	/// </summary>
+	/// <param name="name">Name of item (string) </param>
+	QListWidgetItem* getListItemByName(std::string name)
+	{
+		for (int i = 0; i < ui.listWidget->count(); i++) {
+			std::string itemString = ui.listWidget->item(i)->text().toStdString();
+
+			if (itemString.compare(name) == 0)	// If list item text == selected item text
+			{
+				return ui.listWidget->item(i);
+			}
+		}
+		return nullptr;
+	}
+
+	/// <summary> Add to list a new item with name
+	/// </summary>
+	/// <param name="name">Name of item (string) </param>
+	void addToList(std::string name)
+	{
+		QListWidgetItem* item = new QListWidgetItem(name.c_str(), ui.listWidget);
+
+		item->setCheckState(Qt::Checked);
+		ui.listWidget->addItem(item);
+	}
+
+	/// <summary> Replace old actor by new actor in Renderer
+	/// </summary>
+	/// <param name="oldActor">Reference to old actor </param>
+	/// <param name="newActor">Reference to new actor </param>
+	void replaceActor(vtkSmartPointer<vtkActor> oldActor, vtkSmartPointer<vtkActor> newActor )
+	{
+		// Now replace mesh too
+		vtkPropCollection* actors = renderer->GetViewProps();
+		actors->InitTraversal();
+
+		vtkProp* current_actor = nullptr;
+		int i = -1;
+		while ((current_actor = actors->GetNextProp()) != nullptr)
+		{
+			i++;
+			if (vtkActor::SafeDownCast(current_actor) == oldActor)	// Find selectedMesh's old actor to replace (Found)
+			{
+				renderer->GetViewProps()->ReplaceItem(i, newActor);
+				break;
+			}
+		}
+	}
 
 	/// <summary> Event called when window resized (resizes qvtkwidget)	
 	/// </summary>

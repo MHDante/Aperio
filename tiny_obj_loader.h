@@ -12,6 +12,12 @@
 
 namespace tinyobj {
 
+	class info
+	{
+	public:
+		static bool matFileExists;
+	};
+
 	typedef struct
 	{
 		std::string name;
@@ -23,6 +29,9 @@ namespace tinyobj {
 		float emission[3];
 		float shininess;
 		float ior;                // index of refraction
+		float dissolve;           // 1 == opaque; 0 == fully transparent
+		// illumination model (see http://www.fileformat.info/format/material/)
+		int illum;
 
 		std::string ambient_texname;
 		std::string diffuse_texname;
@@ -46,6 +55,31 @@ namespace tinyobj {
 		mesh_t       mesh;
 	} shape_t;
 
+	class MaterialReader
+	{
+	public:
+		MaterialReader(){}
+		virtual ~MaterialReader(){}
+
+		virtual std::string operator() (
+			const std::string& matId,
+			std::map<std::string, material_t>& matMap) = 0;
+	};
+
+	class MaterialFileReader :
+		public MaterialReader
+	{
+	public:
+		MaterialFileReader(const std::string& mtl_basepath) : m_mtlBasePath(mtl_basepath) {}
+		virtual ~MaterialFileReader() {}
+		virtual std::string operator() (
+			const std::string& matId,
+			std::map<std::string, material_t>& matMap);
+
+	private:
+		std::string m_mtlBasePath;
+	};
+
 	/// Loads .obj from a file.
 	/// 'shapes' will be filled with parsed shape data
 	/// The function returns error string.
@@ -56,6 +90,19 @@ namespace tinyobj {
 		const char* filename,
 		const char* mtl_basepath = NULL);
 
-};
+	/// Loads object from a std::istream, uses GetMtlIStreamFn to retrieve
+	/// std::istream for materials.
+	/// Returns empty string when loading .obj success.
+	std::string LoadObj(
+		std::vector<shape_t>& shapes,   // [output]
+		std::istream& inStream,
+		MaterialReader& readMatFn);
+
+	/// Loads materials into std::map
+	/// Returns an empty string if successful
+	std::string LoadMtl(
+		std::map<std::string, material_t>& material_map,
+		std::istream& inStream);
+}
 
 #endif  // _TINY_OBJ_LOADER_H

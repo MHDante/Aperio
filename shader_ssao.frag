@@ -3,180 +3,182 @@
 	SSAO Post-process Shader : Screen Space Ambient Occlusion Shader 
 *******************************************************************/
 
-/*
-SSAO GLSL shader v1.2
-assembled by Martins Upitis (martinsh) (devlog-martinsh.blogspot.com)
-original technique is made by Arkano22 (www.gamedev.net/topic/550699-ssao-no-halo-artifacts/)
-
-changelog:
-1.2 - added fog calculation to mask AO. Minor fixes.
-1.1 - added spiral sampling method from here:
-(http://www.cgafaq.info/wiki/Evenly_distributed_points_on_sphere)
-*/
-
+/**
+ * @author alteredq / http://alteredqualia.com/
+ *
+ * Screen-space ambient occlusion shader
+ * - ported from
+ *   SSAO GLSL shader v1.2
+ *   assembled by Martins Upitis (martinsh) (http://devlog-martinsh.blogspot.com)
+ *   original technique is made by ArKano22 (http://www.gamedev.net/topic/550699-ssao-no-halo-artifacts/)
+ * - modifications
+ * - modified to use RGBA packed depth texture (use clear color 1,1,1,1 for depth pass)
+ * - refactoring and optimizations
+ */
+ 
 uniform sampler2D sourceDepth;
 uniform sampler2D source;
+uniform vec2 frameBufSize;        // texture width, height
 
-uniform vec2 frameBufSize;
+float cameraNear = 0.02;
+float cameraFar = 1000.0;
 
-//uniform sampler2D bgl_DepthTexture;
-//uniform sampler2D bgl_RenderedTexture;
+float fogNear = 0.1;
+float fogFar = 1000.0;
 
-#define PI    3.14159265
+bool fogEnabled = false;  // attenuate AO with linear fog
+bool onlyAO = false;      // use only ambient occlusion pass?
 
-float width = frameBufSize.x; //texture width
-float height = frameBufSize.y; //texture height
+float aoClamp = 0.5;    // depth clamp - reduces haloing at screen edges
+float lumInfluence = 0.5;  // how much luminance affects occlusion
 
-vec2 texCoord = gl_TexCoord[0].st;
+vec2 vUv = gl_TexCoord[0].st;
 
-//------------------------------------------
-//general stuff
+// #define PI 3.14159265
+#define DL 2.399963229728653  // PI * ( 3.0 - sqrt( 5.0 ) )
+#define EULER 2.718281828459045
 
-//make sure that these two values are the same for your camera, otherwise distances will be wrong.
+// helpers
 
-float znear = 0.05; //Z-near
-float zfar = 1000.0; //Z-far
+float width = frameBufSize.x;   // texture width
+float height = frameBufSize.y;  // texture height
 
-//user variables
-int samples = 32; //ao sample count
+float cameraFarPlusNear = cameraFar + cameraNear;
+float cameraFarMinusNear = cameraFar - cameraNear;
+float cameraCoef = 2.0 * cameraNear;
 
-float radius = 10.0; //ao radius
-float aoclamp = 0.45; //depth clamp - reduces haloing at screen edges
-bool noise = false; //use noise instead of pattern for sample dithering
-float noiseamount = 0.001; //dithering amount
+// user variables
 
-float diffarea = 0.45; //self-shadowing reduction
-float gdisplace = 0.6; //gauss bell center
-float aowidth = 1.0; //gauss bell width
+const int samples = 32;     // ao sample count
+const float radius = 7.5;  // ao radius
 
-bool mist = true; //use mist?
-float miststart = 0.0; //mist start
-float mistend = 1000.0; //mist end
+const bool useNoise = false;      // use noise instead of pattern for sample dithering
+const float noiseAmount = 0.0003; // dithering amount
 
-bool onlyAO = false; //use only ambient occlusion pass?
-float lumInfluence = 0.4; //how much luminance affects occlusion
+const float diffArea = 0.4;   // self-shadowing reduction
+const float gDisplace = 0.4;  // gauss bell center
 
-//--------------------------------------------------------
+const vec3 onlyAOColor = vec3( 1.0, 0.7, 0.5 );
+// const vec3 onlyAOColor = vec3( 1.0, 1.0, 1.0 );
 
-vec2 rand(vec2 coord) //generating noise/pattern texture for dithering
-{
-    float noiseX = ((fract(1.0-coord.s*(width/2.0))*0.25)+(fract(coord.t*(height/2.0))*0.75))*2.0-1.0;
-    float noiseY = ((fract(1.0-coord.s*(width/2.0))*0.75)+(fract(coord.t*(height/2.0))*0.25))*2.0-1.0;
-    
-    if (noise)
-    {
-        noiseX = clamp(fract(sin(dot(coord ,vec2(12.9898,78.233))) * 43758.5453),0.0,1.0)*2.0-1.0;
-        noiseY = clamp(fract(sin(dot(coord ,vec2(12.9898,78.233)*2.0)) * 43758.5453),0.0,1.0)*2.0-1.0;
-    }
-    return vec2(noiseX,noiseY)*noiseamount;
+// RGBA depth
+float unpackDepth( const in vec4 rgba_depth ) {
+	const vec4 bit_shift = vec4( 1.0 / ( 256.0 * 256.0 * 256.0 ), 1.0 / ( 256.0 * 256.0 ), 1.0 / 256.0, 1.0 );
+	float depth = dot( rgba_depth, bit_shift );
+	return depth;
 }
 
-float doMist()
-{
-    float zdepth = texture2D(sourceDepth,texCoord.xy).x;
-    float depth = -zfar * znear / (zdepth * (zfar - znear) - zfar);
-    return clamp((depth-miststart)/mistend,0.0,1.0);
+// generating noise / pattern texture for dithering
+vec2 rand( const vec2 coord ) {
+	vec2 noise;
+
+	if ( useNoise ) {
+		float nx = dot ( coord, vec2( 12.9898, 78.233 ) );
+		float ny = dot ( coord, vec2( 12.9898, 78.233 ) * 2.0 );
+		noise = clamp( fract ( 43758.5453 * sin( vec2( nx, ny ) ) ), 0.0, 1.0 );
+	} else {
+		float ff = fract( 1.0 - coord.s * ( width / 2.0 ) );
+		float gg = fract( coord.t * ( height / 2.0 ) );
+		noise = vec2( 0.25, 0.75 ) * vec2( ff ) + vec2( 0.75, 0.25 ) * gg;
+	}
+	return ( noise * 2.0  - 1.0 ) * noiseAmount;
 }
 
-float readDepth(in vec2 coord) 
-{
-    if (gl_TexCoord[0].x<0.0||gl_TexCoord[0].y<0.0) return 1.0;
-    return (2.0 * znear) / (zfar + znear - texture2D(sourceDepth, coord ).x * (zfar-znear));
+float doFog() {
+	float zdepth = unpackDepth( texture2D( sourceDepth, vUv ) );
+	float depth = -cameraFar * cameraNear / ( zdepth * cameraFarMinusNear - cameraFar );
+
+	return smoothstep( fogNear, fogFar, depth );
 }
 
-float compareDepths(in float depth1, in float depth2,inout int far)
-{   
-    float garea = aowidth; //gauss bell width    
-    float diff = (depth1 - depth2)*100.0; //depth difference (0-100)
-    //reduce left bell width to avoid self-shadowing 
-    if (diff<gdisplace)
-    {
-    garea = diffarea;
-    }else{
-    far = 1;
-    }
-    
-    float gauss = pow(2.7182,-2.0*(diff-gdisplace)*(diff-gdisplace)/(garea*garea));
-    return gauss;
-}   
+float readDepth( const in vec2 coord ) {
+	// return ( 2.0 * cameraNear ) / ( cameraFar + cameraNear - unpackDepth( texture2D( sourceDepth, coord ) ) * ( cameraFar - cameraNear ) );
+	return cameraCoef / ( cameraFarPlusNear - unpackDepth( texture2D( sourceDepth, coord ) ) * cameraFarMinusNear );
+}
 
-float calAO(float depth,float dw, float dh)
-{   
-    //float dd = (1.0-depth)*radius;
-    float dd = radius;
-    float temp = 0.0;
-    float temp2 = 0.0;
-    float coordw = gl_TexCoord[0].x + dw*dd;
-    float coordh = gl_TexCoord[0].y + dh*dd;
-    float coordw2 = gl_TexCoord[0].x - dw*dd;
-    float coordh2 = gl_TexCoord[0].y - dh*dd;
-    
-    vec2 coord = vec2(coordw , coordh);
-    vec2 coord2 = vec2(coordw2, coordh2);
-    
-    int far = 0;
-    temp = compareDepths(depth, readDepth(coord),far);
-    //DEPTH EXTRAPOLATION:
-    if (far > 0)
-    {
-        temp2 = compareDepths(readDepth(coord2),depth,far);
-        temp += (1.0-temp)*temp2;
-    }
-    
-    return temp;
-} 
+float compareDepths( const in float depth1, const in float depth2, inout int far ) {
 
-void main(void)
-{
-    vec2 noise = rand(texCoord); 
-    float depth = readDepth(texCoord);
-    
-    float w = (1.0 / width)/clamp(depth,aoclamp,1.0)+(noise.x*(1.0-noise.x));
-    float h = (1.0 / height)/clamp(depth,aoclamp,1.0)+(noise.y*(1.0-noise.y));
-    
-    float pw;
-    float ph;
-    
-    float ao;
-    
-    float dl = PI*(3.0-sqrt(5.0));
-    float dz = 1.0/float(samples);
-    float l = 0.0;
-    float z = 1.0 - dz/2.0;
-    
-    for (int i = 0; i <= samples; i ++)
-    {     
-        float r = sqrt(1.0-z);
-        
-        pw = cos(l)*r;
-        ph = sin(l)*r;
-        ao += calAO(depth,pw*w,ph*h);        
-        z = z - dz;
-        l = l + dl;
-    }
-    
-    ao /= float(samples);
-    ao = 1.0-ao;    
-    
-    if (mist)
-    {
-    ao = mix(ao, 1.0,doMist());
-    }
-    
-    vec3 color = texture2D(source,texCoord).rgb;
-    
-    vec3 lumcoeff = vec3(0.299,0.587,0.114);
-    float lum = dot(color.rgb, lumcoeff);
-    vec3 luminance = vec3(lum, lum, lum);
-    
-	vec3 final = vec3(color*mix(vec3(ao),vec3(1.0),luminance*lumInfluence));//mix(color*ao, white, luminance)
-    
-    if (onlyAO)
-    {
-    final = vec3(mix(vec3(ao),vec3(1.0),luminance*lumInfluence)); //ambient occlusion only
-    }
-    
-    
-    gl_FragColor = vec4(final,1.0); 
-    
+	float garea = 2.0;                         // gauss bell width
+	float diff = ( depth1 - depth2 ) * 100.0;  // depth difference (0-100)
+
+	// reduce left bell width to avoid self-shadowing
+	if ( diff < gDisplace ) {
+		garea = diffArea;
+	} else {
+		far = 1;
+	}
+	float dd = diff - gDisplace;
+	float gauss = pow( EULER, -2.0 * dd * dd / ( garea * garea ) );
+	return gauss;
+}
+
+float calcAO( float depth, float dw, float dh ) {
+
+	float dd = radius - depth * radius;
+	vec2 vv = vec2( dw, dh );
+
+	vec2 coord1 = vUv + dd * vv;
+	vec2 coord2 = vUv - dd * vv;
+
+	float temp1 = 0.0;
+	float temp2 = 0.0;
+
+	int far = 0;
+	temp1 = compareDepths( depth, readDepth( coord1 ), far );
+
+	// DEPTH EXTRAPOLATION
+	if ( far > 0 ) {
+		temp2 = compareDepths( readDepth( coord2 ), depth, far );
+		temp1 += ( 1.0 - temp1 ) * temp2;
+	}
+	return temp1;
+}
+
+void main() {
+
+	vec2 noise = rand( vUv );
+	float depth = readDepth( vUv );
+
+	float tt = clamp( depth, aoClamp, 1.0 );
+
+	float w = ( 1.0 / width )  / tt + ( noise.x * ( 1.0 - noise.x ) );
+	float h = ( 1.0 / height ) / tt + ( noise.y * ( 1.0 - noise.y ) );
+
+	float pw;
+	float ph;
+
+	float ao;
+
+	float dz = 1.0 / float( samples );
+	float z = 1.0 - dz / 2.0;
+	float l = 0.0;
+
+	for ( int i = 0; i <= samples; i ++ ) {
+		float r = sqrt( 1.0 - z );
+
+		pw = cos( l ) * r;
+		ph = sin( l ) * r;
+		ao += calcAO( depth, pw * w, ph * h );
+		z = z - dz;
+		l = l + DL;
+	}
+
+	ao /= float( samples );
+	ao = 1.0 - ao;
+
+	if ( fogEnabled ) {
+		ao = mix( ao, 1.0, doFog() );
+	}
+	vec3 color = texture2D( source, vUv ).rgb;
+
+	vec3 lumcoeff = vec3( 0.299, 0.587, 0.114 );
+	float lum = dot( color.rgb, lumcoeff );
+	vec3 luminance = vec3( lum );
+
+	vec3 final = vec3( color * mix( vec3( ao ), vec3( 1.0 ), luminance * lumInfluence ) );  // mix( color * ao, white, luminance )
+
+	if ( onlyAO ) {
+		final = onlyAOColor * vec3( mix( vec3( ao ), vec3( 1.0 ), luminance * lumInfluence ) );  // ambient occlusion only
+	}
+	gl_FragColor = vec4( final, 1.0 );
 }
