@@ -1,4 +1,4 @@
-# <img src="https://raw2.github.com/eternallite/MeshIllustrator/superquadrics/about_orig.png" valign="bottom" />Aperio  
+# <img src="https://raw2.github.com/eternallite/MeshIllustrator/master/about_orig.png" valign="bottom" />Aperio  
 
 Aperio is a 3D anatomical or other mesh browser allowing slidable superquadrics to be stretched 
 and placed onto surfaces as a way of marking up areas to be illustratively manipulated 
