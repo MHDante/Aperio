@@ -58,6 +58,8 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::m
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::RESULT_FACE_BIT);
 
 	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), op, NULL, carve::csg::CSG::CLASSIFY_EDGE));
+	// CLASSIFY_NORMAL
+
 	return c;
 }
 //----------------------------------------------------------------------------------------------------
