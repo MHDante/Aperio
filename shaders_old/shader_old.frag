@@ -32,10 +32,64 @@ vec4 final_color;
 
 const float PI = 3.141592653;
 
+float oren_nayar(float roughness, float albedo) {
+
+	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  	
+	vec3 L = normalize(gl_LightSource[0].position.xyz);   // surf2Light, for directional lights
+	vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
+	vec3 h = normalize(E + L);
+
+  float light_radiance = 1.0;
+
+  float cos_theta_i = dot(L, n);
+  float reflected_light;
+
+  // Regular lambert shading
+  if (roughness == 0.0) {
+    reflected_light =
+      albedo *
+      cos_theta_i *
+      light_radiance;
+    return reflected_light;
+  }
+
+  float v_dot_n = dot(E, n);
+
+  float theta_r = acos(v_dot_n);
+  float theta_i = acos(cos_theta_i);
+
+  float cos_phi_diff = dot(normalize(E - n * v_dot_n), 
+    normalize(L - n * cos_theta_i));
+  float max_zero_cos_phi_diff = max(0.0, cos_phi_diff);
+
+  float sigma_sq = roughness * roughness;
+
+  float A = 1.0 - 0.5 *
+    (sigma_sq / (sigma_sq + 0.33));
+  float B = 0.45 *
+    (sigma_sq / (sigma_sq + 0.09));
+
+  float alpha = max(theta_i, theta_r);
+  float beta = min(theta_i, theta_r);
+
+  reflected_light =
+    albedo *
+    cos_theta_i *
+    (A +
+      (B *
+        max_zero_cos_phi_diff *
+        sin(alpha) *
+        tan(beta)
+      )
+    ) * light_radiance;
+
+  return reflected_light;
+}
+
 //---Minnaert limb darkening diffuse term
-vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color) {
+vec3 minnaert(vec3 L, vec3 n, float k, vec3 col) {
 	float ndotl = max(0.0, dot(L, n));
-	return  light_color * pow(ndotl, k);
+	return col * pow(ndotl, k);
 }
 
 //--- Schlick constant
@@ -57,13 +111,49 @@ void phongLighting(int i)
 	vec4 theamb = gl_FrontMaterial.ambient;
 	theamb.b /= 1.4;
 	vec4 Iamb = (theamb * gl_LightSource[0].ambient);
+	
+	//calculate Diffuse Term:  
+	//vec4 Idiff =  ( (gl_FrontMaterial.diffuse * 0.5 + 0.3 * texture2D(source, gl_TexCoord[0].st) + 0.0) * gl_LightSource[0].diffuse *
+	//vec4 Idiff =  ( (gl_FrontMaterial.diffuse * texture2D(source, gl_TexCoord[0].st)) * gl_LightSource[0].diffuse *
+	//vec4 Idiff =  (gl_FrontMaterial.diffuse * gl_LightSource[i].diffuse *
+	//max(dot(n,L), 0.0));
+	//Idiff = clamp(Idiff, 0.0, 1.0);     
 
-	//--- Computation of forward scattered translucency: 
+	// calculate Specular Term:
+	//vec4 Ispec = gl_FrontMaterial.specular * gl_LightSource[i].specular * 
+	//pow(max(dot(R,E),0.0), gl_FrontMaterial.shininess);
+	//pow(max(dot(h,n),0.0), gl_FrontMaterial.shininess);
+	//Ispec = clamp(Ispec, 0.0, 1.0); 
+
+	//--- Fresnel equation (For specular reflection) - calculates specular term as well
+	vec3 specularReflection;
+	if (dot(n, L) < 0.0) // light source on the wrong side?
+	{
+		specularReflection = vec3(0, 0, 0);
+	}
+	else	// light source on the right side
+	{
+		vec3 halfwayDirection = normalize(L + E);
+		float indexofrefraction = 1.3;
+		float w = schlick(indexofrefraction, dot(halfwayDirection, E));
+		float att = 1.0;
+
+		specularReflection = att * gl_LightSource[i].specular.xyz * mix(gl_FrontMaterial.specular.xyz, vec3(1.0), w)
+			* pow(max(dot(R, E), 0.0), gl_FrontMaterial.shininess);
+		//* pow(max(dot(h,n),0.0), gl_FrontMaterial.shininess);
+	}
+	vec4 Ispec = vec4(specularReflection, 1);
+	Ispec = clamp(Ispec, 0.0, 1.0);
+
+	//--- Computation of translucent illumination: 
+	//vec3 _DiffuseTranslucentColor = gl_FrontMaterial.diffuse.rgb * 1.5;
+	//vec3 _DiffuseTranslucentColor = vec3(0.9, 0.9, 0.9);
 	vec3 _DiffuseTranslucentColor = vec3(1,1,1);
+	//vec3 _DiffuseTranslucentColor = vec3(.95,.95,.95);
 	vec3 _ForwardTranslucentColor = vec3(1, 1, 1);
 	float _Sharpness = 0.5f;
 
-	float att = 0.8;
+	float att = 0.2;
 	vec3 diffuseTranslucency = att * gl_LightSource[i].specular.rgb
 		* vec3(_DiffuseTranslucentColor)
 		* max(0.0, dot(L, -n));
@@ -81,17 +171,42 @@ void phongLighting(int i)
 
 	//--- Minnaert for darker diffuse (moon shading)
 	float roughness = darkness; // minnaert roughness  1.5 default (1.0 is lambert)
-	vec4 Idiff ;	
+	vec4 Idiff ;
+	/*
+	Idiff = 0.5*vec4(gl_FrontMaterial.diffuse.rgb * max(0.0, dot(L, n)), 1.0);
 
-	vec3 light_color = gl_LightSource[0].diffuse.rgb;
-	Idiff += vec4(minnaert(L, n, roughness, light_color), 0);
+	vec3 L2 = normalize(gl_LightSource[0].position.xyz + vec3(-50,0,0));   // 
+		
+	Idiff += 0.5*vec4(gl_FrontMaterial.diffuse.rgb * max(0.0, dot(L2, n)), 1.0);
+
+	vec3 L3 = normalize(gl_LightSource[0].position.xyz + vec3(0,-50,0));   // 
+		
+	Idiff += 0.5*vec4(gl_FrontMaterial.diffuse.rgb * max(0.0, dot(L3, n)), 1.0);
+	*/
+	
+	roughness = 1.0;
+
+	vec3 col = gl_LightSource[0].diffuse.rgb;
+	
+	vec3 L1 = normalize(gl_LightSource[0].position.xyz + vec3(20,0,0));
+	
+	Idiff = vec4(minnaert(L1, n, roughness, col), 1);
+	
+	vec3 L2 = normalize(gl_LightSource[0].position.xyz + vec3(-20,0,0));
+
+	col = vec3(0.5, 0.5, 0);
+	Idiff += vec4(minnaert(L2, n, roughness, col), 1);
+
+	vec3 L3 = normalize(gl_LightSource[0].position.xyz + vec3(0,20,0));
+
+	col = vec3(0.2, 0, 0);
+	Idiff += vec4(minnaert(L3, n, roughness, col), 1);
+
 	Idiff = vec4(Idiff.rgb * gl_FrontMaterial.diffuse.rgb, 1.0);
-
-	vec3 light_color2 = vec3(0.2f, 0.035f, 0.0f);
-	vec3 L2 = vec3(1, 1, 0.25);
-	Idiff += vec4(minnaert(L2, n, roughness, light_color2), 0);
-
+	
+	//Idiff = vec4(gl_Color.rgb * oren_nayar(0.0, 1.0), 1.0);
 	Idiff = clamp(Idiff, 0.0, 1.0);
+
 	
 	//--- Physically based shader for specular lighting (energy conservation - normalization)
 	//gl_FrontMaterial.shininess = shininess;
@@ -104,7 +219,7 @@ void phongLighting(int i)
 
 	float base = 1.0f - dot(h, L);    // Dot product of half vector and light vector. No need to saturate as it can't go above 90 degrees
 	float exponential = pow(base, 5.0f);
-	float specular_colour = 0.0025;
+	float specular_colour = 0.002;
 	float fresnel_term = specular_colour + (1.0f - specular_colour) * exponential;
 	
 	float alpha = 1.0f / (sqrt((PI / 4.0f) * shininess + (PI / 2.0f)));
@@ -115,10 +230,15 @@ void phongLighting(int i)
 	myspecular = clamp(myspecular, 0, 1);
 
 	//--- Final color
+	//final_color =  final_color + vec4(vec3(gl_FrontMaterial.emission + Iamb + Idiff + Ispec + diffuseTranslucency + forwardTranslucency ), gl_Color.a);
+	//final_color = vec4(myspecular + diffuseTranslucency + forwardTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
 	final_color = vec4(myspecular +  difftrans * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
 	
 	if (iselem == true)
 		final_color = vec4(myspecular +  difftrans * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a) * texture2D(source, gl_TexCoord[0].st);
+		//gl_FragColor =  * vec4(1, 1, 1, 0.5);
+
+	//final_color = vec4(0.5, 0, 0, 1);
 	//final_color = texture2D(source, gl_TexCoord[0].st);
 }
 
@@ -265,5 +385,8 @@ void main()
 	{
 		gl_FragColor = final_color;
 	}
+	
+	//gl_FragColor = vec4(gl_Color.rgb * oren_nayar(1.0, 3), gl_Color.a);
+
 }
 

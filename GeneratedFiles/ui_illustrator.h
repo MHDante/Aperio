@@ -354,7 +354,7 @@ public:
         verticalSlider_2->setObjectName(QStringLiteral("verticalSlider_2"));
         verticalSlider_2->setGeometry(QRect(290, 20, 22, 121));
         verticalSlider_2->setMaximum(96);
-        verticalSlider_2->setValue(26);
+        verticalSlider_2->setValue(0);
         verticalSlider_2->setOrientation(Qt::Vertical);
         verticalSlider_2->setInvertedAppearance(false);
         tabWidget = new QTabWidget(centralWidget);

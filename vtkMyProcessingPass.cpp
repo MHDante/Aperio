@@ -41,7 +41,8 @@ vtkMyProcessingPass::vtkMyProcessingPass()
 
 	// CUSTOM - Depth texture
 	this->Pass1Depth = 0;
-	this->Program2 = 0;
+
+	this->Program1 = 0;
 }
 // ----------------------------------------------------------------------------
 vtkMyProcessingPass::~vtkMyProcessingPass()
@@ -58,9 +59,9 @@ vtkMyProcessingPass::~vtkMyProcessingPass()
 	{
 		vtkErrorMacro(<< "Pass1Depth should have been deleted in ReleaseGraphicsResources().");
 	}
-	if (this->Program2 != 0)
+	if (this->Program1 != 0)
 	{
-		this->Program2->Delete();
+		this->Program1->Delete();
 	}
 }
 // ----------------------------------------------------------------------------
@@ -159,19 +160,19 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		glDrawBuffer(savedDrawBuffer);
 
 
-		if (this->Program2 == 0)
+		if (this->Program1 == 0)
 		{
-			this->Program2 = vtkShaderProgram2::New();
-			this->Program2->SetContext(static_cast<vtkOpenGLRenderWindow *>(this->FrameBufferObject->GetContext()));
+			this->Program1 = vtkShaderProgram2::New();
+			this->Program1->SetContext(static_cast<vtkOpenGLRenderWindow *>(this->FrameBufferObject->GetContext()));
 
 			if (bufferV.str().size() > 0)
 			{
 				vtkShader2 *shader = vtkShader2::New();
 				shader->SetType(VTK_SHADER_TYPE_VERTEX);
 				shader->SetSourceCode(bufferV.str().c_str());
-				shader->SetContext(this->Program2->GetContext());
+				shader->SetContext(this->Program1->GetContext());
 
-				this->Program2->GetShaders()->AddItem(shader);
+				this->Program1->GetShaders()->AddItem(shader);
 				shader->Delete();
 			}
 
@@ -180,15 +181,15 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 				vtkShader2 *shader2 = vtkShader2::New();
 				shader2->SetType(VTK_SHADER_TYPE_FRAGMENT);
 				shader2->SetSourceCode(bufferF.str().c_str());
-				shader2->SetContext(this->Program2->GetContext());
+				shader2->SetContext(this->Program1->GetContext());
 
-				this->Program2->GetShaders()->AddItem(shader2);
+				this->Program1->GetShaders()->AddItem(shader2);
 				shader2->Delete();
 			}
 		}
-		this->Program2->Build();
+		this->Program1->Build();
 
-		if (this->Program2->GetLastBuildStatus() != VTK_SHADER_PROGRAM2_LINK_SUCCEEDED)
+		if (this->Program1->GetLastBuildStatus() != VTK_SHADER_PROGRAM2_LINK_SUCCEEDED)
 		{
 			vtkErrorMacro("Couldn't build the shader program. At this point , it can be an error in a shader or a driver bug.");
 
@@ -217,7 +218,7 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-		vtkUniformVariables *var = this->Program2->GetUniformVariables();
+		vtkUniformVariables *var = this->Program1->GetUniformVariables();
 
 		float fsize[2] = { w, h };
 
@@ -225,11 +226,11 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		var->SetUniformi("sourceDepth", 1, &id1);
 		var->SetUniformf("frameBufSize", 2, fsize);
 
-		this->Program2->Use();
+		this->Program1->Use();
 
-		if (!this->Program2->IsValid())
+		if (!this->Program1->IsValid())
 		{
-			vtkErrorMacro(<< this->Program2->GetLastValidateLog());
+			vtkErrorMacro(<< this->Program1->GetLastValidateLog());
 		}
 
 		// Prepare blitting
@@ -250,7 +251,7 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 
 		tu->Free(id0);
 		tu->Free(id1);
-		this->Program2->Restore();
+		this->Program1->Restore();
 	}
 	else
 	{
@@ -381,9 +382,9 @@ void vtkMyProcessingPass::ReleaseGraphicsResources(vtkWindow *w)
 
 	this->Superclass::ReleaseGraphicsResources(w);
 
-	if (this->Program2 != 0)
+	if (this->Program1 != 0)
 	{
-		this->Program2->ReleaseGraphicsResources();
+		this->Program1->ReleaseGraphicsResources();
 	}
 
 	if (this->FrameBufferObject != 0)

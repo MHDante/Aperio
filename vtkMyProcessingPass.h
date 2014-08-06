@@ -70,7 +70,7 @@ protected:
 	// Graphics resources.
 	vtkFrameBufferObject *FrameBufferObject;
 	vtkTextureObject *Pass1; // render target for the scene
-	vtkShaderProgram2 *Program2; // shader to compute final result
+	vtkShaderProgram2 *Program1; // shader to compute final result
 
 	vtkTextureObject *Pass1Depth;	// CUSTOM - Depth texture object
 

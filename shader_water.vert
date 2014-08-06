@@ -117,7 +117,7 @@ void water()
 	vec4 pos = gl_Vertex;
     pos.z = waterHeight + waveHeight(pos.x, pos.y);
 	
-	final_position = gl_ModelViewProjectionMatrix * (gl_Vertex + pos*.035);
+	final_position = gl_ModelViewProjectionMatrix * (gl_Vertex + pos*.05 );
 }
 
 void main()  

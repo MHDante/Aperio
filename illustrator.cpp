@@ -85,7 +85,7 @@ void illustrator::slot_afterShowWindow()
 
 	difftrans = 1.0;
 	shininess = ui.verticalSlider->value();
-	darkness = 1.2;
+	darkness = (ui.verticalSlider_2->value() + 128) / 128.0f;
 
 	QApplication::processEvents();
 
