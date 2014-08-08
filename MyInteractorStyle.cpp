@@ -469,39 +469,6 @@ void MyInteractorStyle::OnKeyPress()
 		//a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
 		//a->myelems.at(i).actor->GetMapper()->Update();
 	}
-
-	if (a->myelems.size() > 0)	// Resize last superquad placed
-	{
-		int i = a->myelems.size() - 1;
-
-		double col[3];
-		a->myelems.at(i).actor->GetProperty()->GetAmbientColor(col);
-
-		if (this->Interactor->GetKeyCode() == 'a')
-			if (col[0] < 1.0)
-				col[0] += 0.1;
-		if (this->Interactor->GetKeyCode() == 'A')
-			if (col[0] >= 0.1)
-				col[0] -= 0.1;
-		if (this->Interactor->GetKeyCode() == 's')
-			if (col[1] < 1.0)
-				col[1] += 0.1;
-		if (this->Interactor->GetKeyCode() == 'S')
-			if (col[1] >= 0.1)
-				col[1] -= 0.1;
-		if (this->Interactor->GetKeyCode() == 'd')
-			if (col[2] < 1.0)
-				col[2] += 0.1;
-		if (this->Interactor->GetKeyCode() == 'D')
-			if (col[2] >= 0.1)
-				col[2] -= 0.1;
-		if (this->Interactor->GetKeyCode() == '7')
-			std::cout << col[0] << ", " << col[1] << "," << col[2] << "\n";
-
-		a->myelems.at(i).actor->GetProperty()->SetAmbientColor(col);
-		a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(col);
-	}
-
 	if (this->Interactor->GetKeyCode() == 'q' && a->myelems.size() > 0)	// Resize last superquad placed
 	{
 		int i = a->myelems.size() - 1;
