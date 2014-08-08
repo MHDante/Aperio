@@ -118,7 +118,9 @@ void phongLighting(int i)
 	final_color = vec4(myspecular +  difftrans * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
 	
 	if (iselem == true)
-		final_color = vec4(myspecular +  difftrans * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a) * texture2D(source, gl_TexCoord[0].st);
+		final_color = vec4(		
+		0*myspecular +  0.45*difftrans * diffuseTranslucency +  0* Idiff.xyz + 0.75 * texture2D(source, gl_TexCoord[0].st).rgb + vec3(0.0,0.0,0.0) + 0 * Iamb.xyz
+		, 0.5) ;
 	//final_color = texture2D(source, gl_TexCoord[0].st);
 }
 

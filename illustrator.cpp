@@ -294,7 +294,7 @@ void illustrator::readFile(std::string filename)
 
 	//read jpeg, instant
 	vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New();
-	jpgReader->SetFileName("metal.jpg");
+	jpgReader->SetFileName("9.jpg");
 	jpgReader->Update();
 
 	colorTexture = vtkSmartPointer<vtkTexture>::New();
