@@ -504,7 +504,7 @@ namespace tinyobj {
 		if (!matIStream)
 			info::matFileExists = false;
 		else
-			info::matFileExists = true;		
+			info::matFileExists = true;
 
 		return LoadMtl(matMap, matIStream);
 	}
@@ -595,23 +595,23 @@ namespace tinyobj {
 
 			// normal
 			/*if (token[0] == 'v' && token[1] == 'n' && isSpace((token[2]))) {
-				token += 3;
-				float x, y, z;
-				parseFloat3(x, y, z, token);
-				vn.push_back(x);
-				vn.push_back(y);
-				vn.push_back(z);
-				continue;
+			token += 3;
+			float x, y, z;
+			parseFloat3(x, y, z, token);
+			vn.push_back(x);
+			vn.push_back(y);
+			vn.push_back(z);
+			continue;
 			}
 
 			// texcoord
 			if (token[0] == 'v' && token[1] == 't' && isSpace((token[2]))) {
-				token += 3;
-				float x, y;
-				parseFloat2(x, y, token);
-				vt.push_back(x);
-				vt.push_back(y);
-				continue;
+			token += 3;
+			float x, y;
+			parseFloat2(x, y, token);
+			vt.push_back(x);
+			vt.push_back(y);
+			continue;
 			}*/
 
 			// face

@@ -115,12 +115,12 @@ void water()
    //gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;  
    
 	vec4 pos = gl_Vertex;
-    pos.z = waterHeight + waveHeight(pos.x, pos.y);
+    pos.z = pos.z + (waterHeight + waveHeight(pos.x, pos.y)) * 0.25;
 	
-	final_position = gl_ModelViewProjectionMatrix * (gl_Vertex + pos*.05 );
+	final_position = gl_ModelViewProjectionMatrix * (pos);
 }
 
-void main()  
+void propFuncVS()  
 {     
    	v = vec3(gl_ModelViewMatrix * gl_Vertex);       
     n = normalize(gl_NormalMatrix * gl_Normal);

@@ -10,7 +10,7 @@
 // Inherits from
 #include "vtkInteractorStyleTrackballCamera.h"
 
-class illustrator;	// Forward declarations
+class aperio;	// Forward declarations
 
 //-----------------------------------------------------------------------------------------
 /// <summary> Class MyInteractorStyle, contains direct key press, mouse events etc.
@@ -19,7 +19,7 @@ class MyInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
 public:
 	/// <summary> Pointer to the mainwindow class so we can access instance variables, etc. </summary>
-	illustrator * a;
+	aperio * a;
 	vtkSmartPointer<vtkCellPicker> cellPicker;
 
 private:
@@ -41,7 +41,7 @@ public:
 	//--------------------------------------------------------------------------------------------------
 	/// <summary> Used to initialize a pointer to the main QT window
 	/// </summary>
-	void initialize(illustrator *window);
+	void initialize(aperio *window);
 
 	//--------------------------------------------------------------------------------------------------
 	void setPickList(int z);

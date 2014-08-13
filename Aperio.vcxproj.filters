@@ -23,8 +23,20 @@
       <Extensions>moc;h;cpp</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
+    <Filter Include="Generated Files\Debug">
+      <UniqueIdentifier>{9ac4f2af-3cab-49cf-8490-3dc4a54cb00a}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Generated Files\Release">
+      <UniqueIdentifier>{10fa1b5b-c358-4d99-a925-f39dbdf82989}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
     <Filter Include="Generated Files\RelWithDebInfo">
-      <UniqueIdentifier>{23c3bbd7-58b4-496c-b92b-9df4fcf37439}</UniqueIdentifier>
+      <UniqueIdentifier>{6735f930-7635-4d6c-8148-e2cdb4686d40}</UniqueIdentifier>
+      <Extensions>cpp;moc</Extensions>
+      <SourceControlFiles>False</SourceControlFiles>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -34,19 +46,34 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="illustrator.cpp">
+    <ClCompile Include="aperio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\qrc_illustrator.cpp">
+    <ClCompile Include="GeneratedFiles\qrc_aperio.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="Utility.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="GeneratedFiles\RelWithDebInfo\moc_aperio.cpp">
+      <Filter>Generated Files\RelWithDebInfo</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_aperio.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_aperio.cpp">
+      <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="tiny_obj_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CarveConnector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MySuperquadricSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MyInteractorStyle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="vtkMyShaderPass.cpp">
@@ -55,30 +82,27 @@
     <ClCompile Include="vtkMyProcessingPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\RelWithDebInfo\moc_illustrator.cpp">
-      <Filter>Generated Files\RelWithDebInfo</Filter>
-    </ClCompile>
-    <ClCompile Include="CarveConnector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MyInteractorStyle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GeneratedFiles\ui_illustrator.h">
+    <ClInclude Include="GeneratedFiles\ui_aperio.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tiny_obj_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CarveConnector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MySuperquadricSource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MyInteractorStyle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vtkMyShaderPass.h">
@@ -87,25 +111,19 @@
     <ClInclude Include="vtkMyProcessingPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MyInteractorStyle.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CarveConnector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="illustrator.h">
+    <CustomBuild Include="aperio.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="illustrator.ui">
+    <CustomBuild Include="aperio.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="illustrator.qrc">
+    <CustomBuild Include="aperio.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="illustrator.rc" />
+    <ResourceCompile Include="Aperio.rc" />
   </ItemGroup>
 </Project>

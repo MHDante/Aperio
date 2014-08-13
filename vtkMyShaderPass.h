@@ -31,7 +31,7 @@
 #include <vtkRenderingOpenGLModule.h> // For export macro
 #include <vtkDefaultPass.h>
 
-class illustrator;	// pimpl
+class aperio;	// pimpl
 
 // Enumeration for RenderPass Type (opaque, translucency)
 struct ShaderPassType
@@ -58,12 +58,12 @@ public:
 	//vtkGetMacro(translucentPass, bool);
 	//vtkSetMacro(translucentPass, bool);
 
-	// The main variables initializer since constructors are not used (initializes illustrator class & PassType)
+	// The main variables initializer since constructors are not used (initializes aperio class & PassType)
 	// MUST be called first before running
-	void initialize(illustrator * window, ShaderPassType::T passType);
+	void initialize(aperio * window, ShaderPassType::T passType);
 
 	// My Custom variables
-	illustrator *a;
+	aperio *a;
 	vtkSmartPointer<vtkUniformVariables> uniforms;
 	ShaderPassType::T passType;
 

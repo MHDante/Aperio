@@ -3,8 +3,8 @@
 #include "MyInteractorStyle.h"
 
 // Custom
-#include "illustrator.h"
-#include "vtkMyShaderPass.h"
+#include "aperio.h"
+//#include "vtkMyShaderPass.h"
 #include "CarveConnector.h"
 
 // VTK Includes
@@ -29,7 +29,7 @@ MyInteractorStyle::MyInteractorStyle() : NumberOfClicks(0), ResetPixelDistance(5
 	//this->PickingManagedOn();
 }
 //---------------------------------------------------------------------------------------------------------------
-void MyInteractorStyle::initialize(illustrator *window)
+void MyInteractorStyle::initialize(aperio *window)
 {
 	this->a = window;
 }
@@ -58,8 +58,15 @@ void MyInteractorStyle::OnKeyPress()
 	{
 		if (a->selectedMesh != a->meshes.end())
 		{
-			a->selectedMesh->opacity = 0;
-			a->selectedMesh->actor->GetProperty()->SetOpacity(0);
+			float newopacity;
+
+			if (a->selectedMesh->opacity == 0)
+				newopacity = 100;
+			else
+				newopacity = 0;
+
+			a->selectedMesh->opacity = newopacity;
+			a->selectedMesh->actor->GetProperty()->SetOpacity(newopacity);
 			a->updateOpacitySliderAndList();
 		}
 	}
@@ -98,7 +105,7 @@ void MyInteractorStyle::OnKeyPress()
 		a->selectedMesh->cellLocator->SetDataSet(dataset->GetOutput());
 
 		// Create a mapper and actor
-		vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(dataset->GetOutput(), a->selectedMesh->color.GetRed(),
+		vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(a, dataset->GetOutput(), a->selectedMesh->color.GetRed(),
 			a->selectedMesh->color.GetGreen(),
 			a->selectedMesh->color.GetBlue(),
 			a->selectedMesh->opacity >= 1 ? 1 : a->selectedMesh->opacity * 0.5f);	// My opacity (Must change 0.5f)
@@ -156,18 +163,18 @@ void MyInteractorStyle::OnKeyPress()
 
 		//while (x < 60)
 		//{
-			x += 5;
+		x += 5;
 
-			vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-			transform->PostMultiply();
-			transform->Translate(-a->selectedMesh->hingePivot.GetX(), -a->selectedMesh->hingePivot.GetY(), -a->selectedMesh->hingePivot.GetZ());
-			transform->RotateWXYZ(-x, a->selectedMesh->sup.GetX(), a->selectedMesh->sup.GetY(),
-				a->selectedMesh->sup.GetZ());
-			transform->Translate(a->selectedMesh->hingePivot.GetX(), a->selectedMesh->hingePivot.GetY(), a->selectedMesh->hingePivot.GetZ());
+		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+		transform->PostMultiply();
+		transform->Translate(-a->selectedMesh->hingePivot.GetX(), -a->selectedMesh->hingePivot.GetY(), -a->selectedMesh->hingePivot.GetZ());
+		transform->RotateWXYZ(-x, a->selectedMesh->sup.GetX(), a->selectedMesh->sup.GetY(),
+			a->selectedMesh->sup.GetZ());
+		transform->Translate(a->selectedMesh->hingePivot.GetX(), a->selectedMesh->hingePivot.GetY(), a->selectedMesh->hingePivot.GetZ());
 
-			a->selectedMesh->actor->SetUserTransform(transform);
+		a->selectedMesh->actor->SetUserTransform(transform);
 
-			QApplication::processEvents();
+		QApplication::processEvents();
 		//}
 
 	}
@@ -231,8 +238,8 @@ void MyInteractorStyle::OnKeyPress()
 		// Update cell locator's dataset so program doesn't slow down after cutting
 		a->selectedMesh->cellLocator->SetDataSet(dataset->GetOutput());
 
-		vtkColor3f color(a->selectedMesh->color.GetRed(), 
-			a->selectedMesh->color.GetGreen(), 
+		vtkColor3f color(a->selectedMesh->color.GetRed(),
+			a->selectedMesh->color.GetGreen(),
 			a->selectedMesh->color.GetBlue());
 
 		// Run through list and see if name with + already exists, while it exists, add another + 
@@ -247,7 +254,7 @@ void MyInteractorStyle::OnKeyPress()
 		float opacity = a->selectedMesh->opacity >= 1 ? 1 : a->selectedMesh->opacity * 0.5f;
 
 		// Create a mapper and actor
-		vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(dataset->GetOutput(), color.GetRed(),
+		vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(a, dataset->GetOutput(), color.GetRed(),
 			color.GetGreen(), color.GetBlue(), opacity);	// My opacity (Must change 0.5f)
 
 		// Replace old actor with new actor
@@ -259,9 +266,9 @@ void MyInteractorStyle::OnKeyPress()
 			min(color.GetBlue() + 0.1, 1.0));
 
 		// Add second actor (the cut piece) to renderer (as well as to meshes vector)
-		CustomMesh & mesh = Utility::addMesh(a, datasetd->GetOutput(), a->meshes.size(), name , color, 1.0);
+		CustomMesh & mesh = Utility::addMesh(a, datasetd->GetOutput(), a->meshes.size(), name, color, 1.0);
 		mesh.generated = true;
-		
+
 		if (a->selectedMesh->generated)	// Piece we are cutting is already generated, so reuse snormal
 		{
 			mesh.snormal = vtkVector3f(a->selectedMesh->snormal.GetX(), a->selectedMesh->snormal.GetY(),
@@ -396,7 +403,7 @@ void MyInteractorStyle::OnKeyPress()
 
 			a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
 
-			vtkSmartPointer<vtkActor> sactor = Utility::sourceToActor(a->superquad->GetOutput(), 1, 1, 1, 1);
+			vtkSmartPointer<vtkActor> sactor = Utility::sourceToActor(a, a->superquad->GetOutput(), 1, 1, 1, 1);
 			sactor->PickableOff();
 
 			a->renderer->AddActor(sactor);
@@ -411,7 +418,7 @@ void MyInteractorStyle::OnKeyPress()
 	}
 	/*if (this->Interactor->GetKeyCode() == ' ')		// Toggle wiggle
 	{
-		a->wiggle = !a->wiggle;
+	a->wiggle = !a->wiggle;
 	}*/
 
 	//------------- Last superquad --------------------------------------------------------------------------
@@ -434,7 +441,7 @@ void MyInteractorStyle::OnKeyPress()
 		//a->myelems.at(i).actor->GetMapper()->Update();
 	}
 	if (this->Interactor->GetKeyCode() == 'o' && a->myelems.size() > 0)	// Resize last superquad placed
-	{	
+	{
 		int i = a->myelems.size() - 1;
 		vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
@@ -561,7 +568,7 @@ void MyInteractorStyle::OnLeftButtonDown()
 			}
 		}
 	}
-	
+
 	if (this->NumberOfClicks == 2)
 	{
 		// Double clicked
@@ -699,6 +706,7 @@ void MyInteractorStyle::OnLeftButtonUp()
 		superquad->SetThetaResolution(1);
 		superquad->SetPhiResolution(1);
 
+		//superquad->SetThickness(5);
 		superquad->SetPhiRoundness(0.0);
 		superquad->SetThetaRoundness(0.0);
 		superquad->Update();
@@ -757,10 +765,10 @@ void MyInteractorStyle::OnLeftButtonUp()
 		transformFilter->Update();
 
 		// TODO: superquad opacity
-		elem.actor = Utility::sourceToActor(transformFilter->GetOutput(), 1.0, 1.0, 1.0, 1.0);
+		elem.actor = Utility::sourceToActor(a, transformFilter->GetOutput(), 1.0, 1.0, 1.0, 1.0);
 		elem.actor->PickableOff();
-		
-		elem.actor->SetTexture(a->colorTexture);	
+
+		elem.actor->SetTexture(a->colorTexture);
 
 		elem.source = superquad;
 		elem.transformFilter = transformFilter;
@@ -769,7 +777,7 @@ void MyInteractorStyle::OnLeftButtonUp()
 
 		a->myelems.push_back(elem);
 
-		auto addSphere = [](illustrator *a, float x, float y, float z){
+		auto addSphere = [](aperio *a, float x, float y, float z){
 			float  mouseSizeDivide = 5.0;
 
 			if (a->selectedMesh != a->meshes.end())

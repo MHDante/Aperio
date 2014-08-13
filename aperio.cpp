@@ -1,9 +1,9 @@
-#include "stdafx.h"		// Precompiled header files
-#include "illustrator.h"
+#include "stdafx.h"
 
 // QT Includes
 #include <QLayout>
 #include <QDesktopWidget>
+#include <QVTKWidget.h>
 
 // VTK includes
 #include <vtkSphereSource.h>
@@ -11,12 +11,10 @@
 // Custom
 #include "tiny_obj_loader.h"
 #include "CarveConnector.h"
-
-//#include "CustomDepthPeelingPass.h"
 #include "MyInteractorStyle.h"
+#include "Utility.h"
 #include "vtkMyShaderPass.h"
 #include "vtkMyProcessingPass.h"
-//#include "vtkMyOutlinePass.h"
 
 // More VTK
 #include <vtkLightsPass.h>
@@ -32,28 +30,30 @@
 #include <vtkTranslucentPass.h>
 #include <vtkClearZPass.h>
 
+#include <vtkRenderPass.h>
+
 #include <vtkLight.h>
 
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
 
 using namespace std;
-#include "illustrator.h"
+#include "aperio.h"
 
 //-------------------------------------------------------------------------------------------------------------
-illustrator::illustrator(QWidget *parent)
+aperio::aperio(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
 
 	QTimer::singleShot(0, this, SLOT(slot_afterShowWindow()));
 }
-//-------------------------------------------------------------------------------------------------------------
-illustrator::~illustrator()
+///---------------------------------------------------------------------------------------
+aperio::~aperio()
 {
 }
 //-------------------------------------------------------------------------------------------------------------
-void illustrator::update_orig_size()
+void aperio::update_orig_size()
 {
 	_orig_size.setX(ui.mainWidget->geometry().x());
 	_orig_size.setY(ui.mainWidget->geometry().y());
@@ -61,7 +61,7 @@ void illustrator::update_orig_size()
 	_orig_size.setHeight(ui.mainWidget->geometry().height());
 }
 ///---------------------------------------------------------------------------------------
-void illustrator::slot_afterShowWindow()
+void aperio::slot_afterShowWindow()
 {
 	update_orig_size();
 
@@ -121,8 +121,6 @@ void illustrator::slot_afterShowWindow()
 	renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->GetActiveCamera()->SetClippingRange(0.01, 1000);
 
-	//float bgcolor[3] = { 39, 50, 67 };
-	//float bgcolor[3] = { 109, 92, 73 };
 	float bgcolor[3] = { 235, 235, 235 };
 	float factor = 0.7;
 	bgcolor[0] *= factor; bgcolor[1] *= factor; bgcolor[2] *= factor;
@@ -134,10 +132,35 @@ void illustrator::slot_afterShowWindow()
 	qv = new QVTKWidget(this);
 	qv->SetRenderWindow(renderWindow);
 
-	// Add a grid layout to mainWidget on-form and add QVTKWidget to it
 	ui.mainWidget->setLayout(new QGridLayout(ui.mainWidget));
 	ui.mainWidget->layout()->setMargin(2);
 	ui.mainWidget->layout()->addWidget(qv);
+
+	// Create main shader
+	// Shader Code
+	std::ifstream file_vert("shader_water.vert");
+	std::stringstream buffer_vert;
+	buffer_vert << file_vert.rdbuf();
+
+	std::ifstream file_frag("shader.frag");
+	std::stringstream buffer_frag;
+	buffer_frag << file_frag.rdbuf();
+
+	pgm = vtkSmartPointer<vtkShaderProgram2>::New();
+	//pgm->SetContext(renderer->GetRenderWindow());
+
+	vtkSmartPointer<vtkShader2> shaderV = vtkShader2::New();
+	shaderV->SetType(VTK_SHADER_TYPE_VERTEX);
+	shaderV->SetSourceCode(buffer_vert.str().c_str());
+	shaderV->SetContext(pgm->GetContext());
+
+	vtkSmartPointer<vtkShader2> shaderF = vtkShader2::New();
+	shaderF->SetType(VTK_SHADER_TYPE_FRAGMENT);
+	shaderF->SetSourceCode(buffer_frag.str().c_str());
+	shaderF->SetContext(pgm->GetContext());
+
+	pgm->GetShaders()->AddItem(shaderV);
+	pgm->GetShaders()->AddItem(shaderF);
 
 	// Prepare all the rendering passes for vtkMyShaderPass
 	vtkSmartPointer<vtkCameraPass> cameraP = vtkSmartPointer<vtkCameraPass>::New();
@@ -153,10 +176,10 @@ void illustrator::slot_afterShowWindow()
 	//vtkSmartPointer<vtkOpaquePass> opaqueP = vtkSmartPointer<vtkOpaquePass>::New();
 	//vtkSmartPointer<vtkTranslucentPass> transP = vtkSmartPointer<vtkTranslucentPass>::New();
 
-	//vtkSmartPointer<CustomDepthPeelingPass> peelP = vtkSmartPointer<CustomDepthPeelingPass>::New();
-	//peelP->SetMaximumNumberOfPeels(4);
-	//peelP->SetOcclusionRatio(0.5);
-	//peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
+	vtkSmartPointer<vtkDepthPeelingPass> peelP = vtkSmartPointer<vtkDepthPeelingPass>::New();
+	peelP->SetMaximumNumberOfPeels(2);
+	peelP->SetOcclusionRatio(5);
+	peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
 
 	// Put all passes into a collection then into a sequence
 	vtkSmartPointer<vtkRenderPassCollection> passes = vtkSmartPointer<vtkRenderPassCollection>::New();
@@ -194,6 +217,7 @@ void illustrator::slot_afterShowWindow()
 	bloomP->SetDelegatePass(fxaaP);
 
 	vtkOpenGLRenderer::SafeDownCast(renderer.GetPointer())->SetPass(bloomP);
+	//vtkOpenGLRenderer::SafeDownCast(renderer)->UseDepthPeelingOn();
 
 	// Render window interactor
 	vtkSmartPointer<QVTKInteractor> renderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
@@ -209,34 +233,34 @@ void illustrator::slot_afterShowWindow()
 	QApplication::processEvents();
 
 	// Connect all signals to slots
-	connect(ui.btnHello, &QPushButton::clicked, this, &illustrator::slot_buttonclicked);
-	connect(ui.btnColor, &QPushButton::clicked, this, &illustrator::slot_colorclicked);
+	connect(ui.btnHello, &QPushButton::clicked, this, &aperio::slot_buttonclicked);
+	connect(ui.btnColor, &QPushButton::clicked, this, &aperio::slot_colorclicked);
 
-	connect(colorDialog, &QColorDialog::currentColorChanged, this, &illustrator::slot_colorchanged);
+	connect(colorDialog, &QColorDialog::currentColorChanged, this, &aperio::slot_colorchanged);
 
-	connect(timer, &QTimer::timeout, this, &illustrator::slot_timeout);
-	connect(timer2, &QTimer::timeout, this, &illustrator::slot_timeout2);
-	connect(ui.actionOpen, &QAction::triggered, this, &illustrator::slot_open);
-	connect(ui.actionExit, &QAction::triggered, this, &illustrator::slot_exit);
-	
-	connect(ui.actionAbout, &QAction::triggered, this, &illustrator::slot_about);
-	connect(ui.actionPreview, &QAction::triggered, this, &illustrator::slot_preview);
-	connect(ui.actionFull_Screen, &QAction::triggered, this, &illustrator::slot_fullScreen);
+	connect(timer, &QTimer::timeout, this, &aperio::slot_timeout);
+	connect(timer2, &QTimer::timeout, this, &aperio::slot_timeout2);
+	connect(ui.actionOpen, &QAction::triggered, this, &aperio::slot_open);
+	connect(ui.actionExit, &QAction::triggered, this, &aperio::slot_exit);
 
-	connect(ui.menuFile, &QMenu::aboutToShow, this, &illustrator::slot_menuclick);
-	connect(ui.menuHelp, &QMenu::aboutToShow, this, &illustrator::slot_menuclick);
+	connect(ui.actionAbout, &QAction::triggered, this, &aperio::slot_about);
+	connect(ui.actionToggle, &QAction::triggered, this, &aperio::slot_preview);
+	connect(ui.actionFullScreen, &QAction::triggered, this, &aperio::slot_fullScreen);
 
-	connect(ui.horizontalSlider, &QSlider::valueChanged, this, &illustrator::slot_valueChanged);
-	connect(ui.verticalSlider, &QSlider::valueChanged, this, &illustrator::slot_valueChangedV);
-	connect(ui.verticalSlider_2, &QSlider::valueChanged, this, &illustrator::slot_valueChangedV2);
+	connect(ui.menuFile, &QMenu::aboutToShow, this, &aperio::slot_menuclick);
+	connect(ui.menuHelp, &QMenu::aboutToShow, this, &aperio::slot_menuclick);
 
-	connect(ui.listWidget, &QListWidget::itemEntered, this, &illustrator::slot_listitementered);
-	connect(ui.listWidget, &QListWidget::currentRowChanged, this, &illustrator::slot_listitemclicked);
+	connect(ui.horizontalSlider, &QSlider::valueChanged, this, &aperio::slot_valueChanged);
+	connect(ui.verticalSlider, &QSlider::valueChanged, this, &aperio::slot_valueChangedV);
+	connect(ui.verticalSlider_2, &QSlider::valueChanged, this, &aperio::slot_valueChangedV2);
+
+	connect(ui.listWidget, &QListWidget::itemEntered, this, &aperio::slot_listitementered);
+	connect(ui.listWidget, &QListWidget::currentRowChanged, this, &aperio::slot_listitemclicked);
 
 	readFile(fname);
 }
 // ------------------------------------------------------------------------
-void illustrator::resizeInternal(const QSize &newWindowSize, bool using_preview)
+void aperio::resizeInternal(const QSize &newWindowSize, bool using_preview)
 {
 	int marginWidth = 20;
 	int marginHeight = marginWidth * 3;	// extra border-width margin of qframe
@@ -268,16 +292,16 @@ void illustrator::resizeInternal(const QSize &newWindowSize, bool using_preview)
 	ui.mainWidget->setGeometry(newRect);
 }
 ///---------------------------------------------------------------------------------------
-void illustrator::resizeEvent(QResizeEvent * event)
+void aperio::resizeEvent(QResizeEvent * event)
 {
 	resizeInternal(event->size(), false);
 }
 ///---------------------------------------------------------------------------------------
-void illustrator::mouseMoveEvent(QMouseEvent *)
+void aperio::mouseMoveEvent(QMouseEvent *)
 {
 }
 ///---------------------------------------------------------------------------------------
-void illustrator::readFile(std::string filename)
+void aperio::readFile(std::string filename)
 {
 	//vtkObject::GlobalWarningDisplayOff();	// dangerous (keep on for most part)
 
@@ -286,6 +310,7 @@ void illustrator::readFile(std::string filename)
 	hoveredIndex = 0;
 
 	renderer->RemoveAllViewProps();	// Remove from renderer, clear listwidget, clear vectors
+
 	ui.listWidget->clear();
 	myelems.clear();
 	meshes.clear();
@@ -294,7 +319,7 @@ void illustrator::readFile(std::string filename)
 
 	//read jpeg, instant
 	vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New();
-	jpgReader->SetFileName("9.jpg");
+	jpgReader->SetFileName("cutter.jpg");
 	jpgReader->Update();
 
 	colorTexture = vtkSmartPointer<vtkTexture>::New();
@@ -325,7 +350,7 @@ void illustrator::readFile(std::string filename)
 	// VTK : Create a directional light (default)
 	renderer->AutomaticLightCreationOff();
 	renderer->RemoveAllLights();
-
+	
 	vtkSmartPointer<vtkLight> light = vtkSmartPointer<vtkLight>::New();
 	light->SetLightTypeToSceneLight();		// Headlights are located at camera position (CameraLights do not have to be)	
 
@@ -338,8 +363,7 @@ void illustrator::readFile(std::string filename)
 	light->SetSpecularColor(spec, spec, spec);
 
 	light->SetPosition(0, 0, 0);	// Light centered at camera origin (view space)
-	renderer->AddLight(light);
-
+	renderer->AddLight(light);	
 	//srand(time(nullptr));		//Random Seed
 
 	// Now we can traverse objectMeshCollection
@@ -408,7 +432,7 @@ void illustrator::readFile(std::string filename)
 		}
 
 		if (tinyobj::info::matFileExists)
-		{			
+		{
 			if (z == 0)	// Only print this once
 				std::cout << "Material file found. Using colours from .mtl file.\n";
 
@@ -442,11 +466,12 @@ void illustrator::readFile(std::string filename)
 
 		vtkColor3f c(r, g, b);
 
-		Utility::addMesh(this, dataset->GetOutput(), z, groupname, c, 1.0);
+		float opacity = 1.0;
+		Utility::addMesh(this, dataset->GetOutput(), z, groupname, c, opacity);
 
 		// Make default shaders
 		//shaderProgram = Utility::buildShader(renderer->GetRenderWindow(), "shader.vert", "shader.frag");
-		shaderProgram = Utility::buildShader(renderer->GetRenderWindow(), "shader_water.vert", "shader.frag");
+		//shaderProgram = Utility::buildShader(renderer->GetRenderWindow(), "shader_water.vert", "shader.frag");
 
 		// Default uniform variables
 		mouse[0] = 1;
@@ -458,6 +483,22 @@ void illustrator::readFile(std::string filename)
 		renderer->ResetCamera();
 		qv->GetRenderWindow()->Render();
 	}
+
+	// Custom code
+	vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
+	sphere->SetRadius(1.0);
+	sphere->SetThetaResolution(8);
+	sphere->SetPhiResolution(8);
+	sphere->Update();
+
+
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(sphere->GetOutput());
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+
+	//renderer->AddActor(actor);
 
 	// Added meshes, now set selectedMesh to last one (Might have to update this for future selections)
 	selectedMesh = meshes.end();	// Reset selectedMesh to nothing
@@ -476,7 +517,7 @@ void illustrator::readFile(std::string filename)
 	}
 }
 //-------------------------------------------------------------------------------------
-void illustrator::slot_listitemclicked(int i)
+void aperio::slot_listitemclicked(int i)
 {
 	if (i == -1)
 		return;
@@ -491,8 +532,22 @@ void illustrator::slot_listitemclicked(int i)
 
 	updateOpacitySliderAndList();
 }
+//-------------------------------------------------------------------------------------------
+void aperio::slot_timeout()
+{
+	if (GetAsyncKeyState(VK_ESCAPE))
+		exit(0);
+
+	// Control wiggle
+	wiggle = true;
+	if (GetAsyncKeyState(VK_CONTROL))
+		wiggle = false;
+
+	if (!pause)
+		qv->update();
+}
 //-------------------------------------------------------------------------------------
-void illustrator::updateOpacitySliderAndList()
+void aperio::updateOpacitySliderAndList()
 {
 	if (selectedMesh != meshes.end())
 	{
@@ -503,7 +558,7 @@ void illustrator::updateOpacitySliderAndList()
 		if (selectedMesh != meshes.end())
 		{
 			auto item = getListItemByName(selectedMesh->name);
-			
+
 			if (item)
 			{
 				item->setSelected(true);

@@ -14,9 +14,9 @@
 
 #include <memory>
 #include <sstream>
+#include <iostream>
 
 //------------ QT Includes ---------------------------------
-
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
 #include <QFileDialog> 
@@ -30,8 +30,13 @@
 
 //------------ VTK Includes -----------------------
 
-#define vtkRenderingCore_AUTOINIT 2(vtkInteractionStyle,vtkRenderingOpenGL)
-#define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
+
+//#define vtkRenderingCore_AUTOINIT 2(vtkInteractionStyle,vtkRenderingOpenGL)
+//#define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
+
+#include <vtkAutoInit.h> 
+VTK_MODULE_INIT(vtkInteractionStyle)
+VTK_MODULE_INIT(vtkRenderingOpenGL)
 
 #include <vtkSmartPointer.h>
 #include <vtkNew.h>
@@ -70,8 +75,14 @@
 #include <vtkCellPicker.h>
 #include <vtkCellLocator.h>
 
+#include <vtkLightCollection.h>
+
 // OpenGL-VTK
 #include <vtkgl.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkOpenGLProperty.h>
+#include <vtkOpenGLPolyDataMapper.h>
 #include <vtkShaderProgram2.h>
 #include <vtkShader2.h>
+#include <vtkShader2Collection.h>
+

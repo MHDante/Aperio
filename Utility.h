@@ -14,7 +14,7 @@
 
 #include "tiny_obj_loader.h"
 
-class illustrator;	// Forward declarations
+class aperio;	// Forward declarations
 class CustomMesh;
 
 /// <summary>
@@ -43,7 +43,7 @@ namespace Utility
 	/// <summary> VTK method to convert source/filter to vtkActor (Makes mapper and actor) </summary>
 	/// <param name="source">Source/Filter to convert and r,g,b,a (colour and opacity)</param>
 	/// <return name="source">Resulting Actor</param>
-	vtkSmartPointer<vtkActor> sourceToActor(vtkSmartPointer<vtkPolyData> source, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f);
+	vtkSmartPointer<vtkActor> sourceToActor(aperio *ap, vtkSmartPointer<vtkPolyData> source, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f);
 
 	/// <summary> Method to convert tinyobj format to vtkPolyData </summary>
 	/// <param name="source">Converts tinyobj to vtkPolydata </param>
@@ -65,6 +65,6 @@ namespace Utility
 
 	/// <summary> Add to meshes collection (returns the CustomMesh) </summary>
 	/// <param name="vertex_and_frag"></param>
-	CustomMesh& addMesh(illustrator *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity);
+	CustomMesh& addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity);
 }
 #endif

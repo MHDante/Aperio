@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="aperio">
+    <file>explode.png</file>
+    <file>slice.png</file>
+    <file>sliding.png</file>
+    <file>rough.png</file>
+    <file>shiny.png</file>
+    <file>hinge.png</file>
+    <file>checked_list.png</file>
+    <file>unchecked_list.png</file>
+  </qresource>
+</RCC>

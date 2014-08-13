@@ -411,7 +411,7 @@ int MySuperquadricSource::RequestData(
 
 	//Utility::generateTexCoords(output);
 
-	
+
 	newTCoords->Delete();
 
 	output->SetStrips(newPolys);

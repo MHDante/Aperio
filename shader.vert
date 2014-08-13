@@ -2,16 +2,13 @@
 	Vertex
 	Main Shader : Phong-Minneart Reflection model and main interaction	
 *******************************************************************/
-
-//#version 330 compatibility
-#version 130
-//#extension GL_EXT_geometry_shader4 : enable
+#version 330 compatibility
 
 out vec3 n;
 out vec3 v;
 out vec3 original_v;
 
-void main()  
+void propFuncVS()  
 {     
    v = vec3(gl_ModelViewMatrix * gl_Vertex);       
    n = normalize(gl_NormalMatrix * gl_Normal);

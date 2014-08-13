@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="illustrator">
-    <file>checked_list.png</file>
-    <file>unchecked_list.png</file>
-  </qresource>
-</RCC>

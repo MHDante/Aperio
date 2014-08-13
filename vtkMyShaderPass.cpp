@@ -25,7 +25,7 @@
 #include <assert.h>
 
 // Custom
-#include "illustrator.h"
+#include "aperio.h"
 #include "vtkMyShaderPass.h"
 
 // VTK
@@ -102,6 +102,8 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 		light->SetPosition(lightpos[0], lightpos[1], lightpos[2]);
 		light->SetFocalPoint(s->GetRenderer()->GetActiveCamera()->GetFocalPoint());
 
+		//std::cout << lightpos[0] << "," << lightpos[1] << "," << lightpos[2] << "\n";
+
 		vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->UpdateLights();	// Update GL_LIGHT0
 	}
 	int source = 0;	// potential source texture
@@ -154,7 +156,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				uniforms->SetUniformit("iselem", 1, &iselem);
 			}
 			else
-			{ 
+			{
 				// Else,
 				// Not found the CustomMesh object, must be extra objects
 			}
@@ -163,10 +165,11 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 		if (p->HasKeys(s->GetRequiredKeys()))
 		{
 			int rendered;
-
-			a->shaderProgram->SetUniformVariables(uniforms);
+			
+			vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty())->GetPropProgram()->SetUniformVariables(uniforms);
+			//a->shaderProgram->SetUniformVariables(uniforms);
 			//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->shaderProgram); // Dangerous, constantly allocs
-			a->shaderProgram->Use();
+			//a->shaderProgram->Use();
 
 			if (passType == ShaderPassType::PASS_TRANSLUCENT)
 			{
@@ -184,13 +187,13 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				this->NumberOfRenderedProps += rendered;
 			}
 			//a->shaderProgram->Restore();
-			
+
 		}
 		++i;
 	}
 }
 //----------------------------------------------------------------------------------------------
-void vtkMyShaderPass::initialize(illustrator * window, ShaderPassType::T passType)
+void vtkMyShaderPass::initialize(aperio * window, ShaderPassType::T passType)
 {
 	this->a = window;
 	this->passType = passType;

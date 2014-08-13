@@ -7,9 +7,9 @@
 #include <time.h>
 
 // VTK Includes
-#include <vtkShader2Collection.h>
+//#include <vtkShader2Collection.h>
 
-#include "illustrator.h"
+#include "aperio.h"
 #include "MyInteractorStyle.h"
 
 // Utility Variables -------------------------------------------------------------------------
@@ -36,7 +36,7 @@ void Utility::messagebox(std::string text)
 	MessageBoxA(nullptr, text.c_str(), "", MB_ICONINFORMATION);
 }
 ///---------------------------------------------------------------------------------------------
-vtkSmartPointer<vtkActor> Utility::sourceToActor(vtkSmartPointer<vtkPolyData> source, float r, float g, float b, float a)
+vtkSmartPointer<vtkActor> Utility::sourceToActor(aperio *ap, vtkSmartPointer<vtkPolyData> source, float r, float g, float b, float a)
 {
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData(source);
@@ -63,6 +63,10 @@ vtkSmartPointer<vtkActor> Utility::sourceToActor(vtkSmartPointer<vtkPolyData> so
 	actor->GetProperty()->SetSpecularPower(128);
 
 	actor->GetProperty()->SetOpacity(a);	// myopacity	// TODO: REMEMBER TO CHANGE THIS TO CORRECT FACTOR (in k call)
+
+	vtkSmartPointer<vtkOpenGLProperty> openGLproperty = static_cast<vtkOpenGLProperty*>(actor->GetProperty());
+	openGLproperty->SetPropProgram(ap->pgm);
+	openGLproperty->ShadingOn();
 
 	return actor;
 }
@@ -93,6 +97,7 @@ void Utility::generateTexCoords(vtkSmartPointer<vtkPolyData> source)
 	}
 	source->GetPointData()->SetTCoords(textureCoordinates);
 }
+
 //---------------------------------------------------------------------------------------------------
 vtkSmartPointer<vtkShaderProgram2> Utility::buildShader(vtkRenderWindow *context, std::string vert, std::string frag)
 {
@@ -155,8 +160,9 @@ void Utility::updateShader(vtkShaderProgram2* shaderProgram, std::string vert, s
 		buffer << file.rdbuf();
 		vtkShader2::SafeDownCast(shaderProgram->GetShaders()->GetLastShader())->SetSourceCode(buffer.str().c_str());
 	}
-	shaderProgram->Build();
+	//shaderProgram->Build();
 }
+
 //--------------------------------------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> Utility::objToVtkPolyData(tinyobj::shape_t &shape)
 {
@@ -196,7 +202,7 @@ vtkSmartPointer<vtkPolyData> Utility::objToVtkPolyData(tinyobj::shape_t &shape)
 	return polydata;
 }
 //--------------------------------------------------------------------------------------------------------
-CustomMesh& Utility::addMesh(illustrator *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity)
+CustomMesh& Utility::addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity)
 {
 	// Add mesh to custom meshes vector
 	a->meshes.push_back(CustomMesh());
@@ -216,7 +222,7 @@ CustomMesh& Utility::addMesh(illustrator *a, vtkSmartPointer<vtkPolyData> source
 	a->interactorstyle->cellPicker->AddLocator(a->meshes[z].cellLocator);
 
 	// Make mapper and actors
-	a->meshes[z].actor = Utility::sourceToActor(source, color.GetRed(), color.GetGreen(), color.GetBlue(), opacity);
+	a->meshes[z].actor = Utility::sourceToActor(a, source, color.GetRed(), color.GetGreen(), color.GetBlue(), opacity);
 	//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture);
 
 	a->meshes[z].generated = false;

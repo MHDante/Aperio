@@ -18,11 +18,11 @@ uniform int peerInside;
 uniform float myexp;
 uniform sampler2D source;
 
-uniform int shadingnum;
-uniform float difftrans;
-uniform int shininess;
+uniform int shadingnum = 0;
+uniform float difftrans = 1;
+uniform int shininess = 128;
 
-uniform float darkness;
+uniform float darkness = 1.0;
 
 uniform bool selected;
 uniform bool iselem;
@@ -118,9 +118,13 @@ void phongLighting(int i)
 	final_color = vec4(myspecular +  difftrans * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
 	
 	if (iselem == true)
+	{
+		vec3 tex = texture2D(source, gl_TexCoord[0].st).rgb;
+		
 		final_color = vec4(		
-		0*myspecular +  0.45*difftrans * diffuseTranslucency +  0* Idiff.xyz + 0.75 * texture2D(source, gl_TexCoord[0].st).rgb + vec3(0.0,0.0,0.0) + 0 * Iamb.xyz
+		1*myspecular +  0.8*difftrans * diffuseTranslucency + 1.0 * ( (Idiff.rgb + vec3(0.25,0.25,0.25)) * (tex - vec3(.0,.0,.0) ) ) - 0.0 * Iamb.xyz
 		, 0.5) ;
+	}
 	//final_color = texture2D(source, gl_TexCoord[0].st);
 }
 
@@ -140,7 +144,7 @@ void toon()
 
 	vec3 diffuse = gl_FrontMaterial.diffuse.rgb * floor(intensity * levels) * scaleFactor;
 
-	final_color = gl_FrontMaterial.ambient / 20.0f + vec4(diffuse, 1);
+	final_color = gl_FrontMaterial.ambient / 20.0f + vec4(diffuse, gl_Color.a);
 }
 
 // ---------------- Subsurface Scatter Shader (Approximate) ----------------------//
@@ -201,7 +205,7 @@ void subScatterFS()
 }
 
 // ***************-------------------- Main function -------------------------***************//
-void main()
+void propFuncFS()
 {
 	//vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  	
 	//vec3 L = normalize(gl_LightSource[0].position.xyz);   // surf2Light, for directional lights
@@ -225,6 +229,12 @@ void main()
 	else
 		toon();
 
+	if (final_color.a <= 0)
+    {
+		discard;
+    }
+
+	
 	// convert mouse world coords to view coords (so same as v)
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
 	//vec4 mouseV = vec4(vec3(mouse), 1);
