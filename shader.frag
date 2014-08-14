@@ -11,11 +11,11 @@ in vec3 n;
 in vec3 v;
 in vec3 original_v;
 
-uniform vec3 mouse;
-uniform float mouseSize;
-uniform int peerInside;
+uniform vec3 mouse = vec3(0, 0, 0);
+uniform float mouseSize = 1.0;
+uniform int peerInside = 0;
 
-uniform float myexp;
+uniform float myexp = 1.0;
 uniform sampler2D source;
 
 uniform int shadingnum = 0;
@@ -24,11 +24,13 @@ uniform int shininess = 128;
 
 uniform float darkness = 1.0;
 
-uniform bool selected;
-uniform bool iselem;
+uniform bool selected = false;
+uniform bool iselem = false;
 
 // Global variables
-vec4 final_color;
+vec4 final_color = vec4(1, 1, 1, 1);
+
+vec3 light_position = normalize(vec3(-0.080999853,6.4752009809,2.6762204566));
 
 const float PI = 3.141592653;
 
@@ -49,7 +51,11 @@ float schlick(float ior, float ndotE) {
 void phongLighting(int i)
 {
 	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  	
-	vec3 L = normalize(gl_LightSource[i].position.xyz);   // surf2Light, for directional lights
+	//vec3 L = normalize(gl_LightSource[0].position.xyz);   // surf2Light, for directional lights
+	//L = normalize(vec3(-0.080999853,6.4752009809,3.6762204566));
+	vec3 L = light_position;
+	
+	//vec3 L = normalize(vec3(0, 0.5, 0.5));   // surf2Light, for directional lights
 	vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
 	vec3 h = normalize(E + L);
 
@@ -81,14 +87,14 @@ void phongLighting(int i)
 
 	//--- Minnaert for darker diffuse (moon shading)
 	float roughness = darkness; // minnaert roughness  1.5 default (1.0 is lambert)
-	vec4 Idiff ;	
+	vec4 Idiff = vec4(0, 0, 0, 0);	
 
 	vec3 light_color = gl_LightSource[0].diffuse.rgb;
 	Idiff += vec4(minnaert(L, n, roughness, light_color), 0);
-	Idiff = vec4(Idiff.rgb * gl_FrontMaterial.diffuse.rgb, 1.0);
+	Idiff = vec4(Idiff.rgb * gl_FrontMaterial.diffuse.rgb, 1.0);	
 
 	vec3 light_color2 = vec3(0.2f, 0.035f, 0.0f);
-	vec3 L2 = vec3(1, 1, 0.25);
+	vec3 L2 = normalize(vec3(1, 1, 0.25));
 	Idiff += vec4(minnaert(L2, n, roughness, light_color2), 0);
 
 	Idiff = clamp(Idiff, 0.0, 1.0);
@@ -137,7 +143,7 @@ void toon()
 	vec4 col = gl_Color;
 
 	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  
-	vec3 L = normalize(gl_LightSource[0].position.xyz);   // surf2Light
+	vec3 L = normalize(light_position);   // surf2Light
 	vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
 
 	float intensity = max(dot(n, normalize(L)), 0.0);
@@ -173,7 +179,7 @@ void subScatterFS()
 
 	// Varying variables to be sent to Fragment Shader
 	vec3 eyeVec = -v;
-	vec3 lightPos = gl_LightSource[0].position.xyz;
+	vec3 lightPos = light_position;
 	vec3 lightVec = lightPos - v.xyz;
 
 	float attenuation = 0.8f;//10.0 * (1.0 / distance(lightPos,v));
@@ -229,12 +235,7 @@ void propFuncFS()
 	else
 		toon();
 
-	if (final_color.a <= 0)
-    {
-		discard;
-    }
 
-	
 	// convert mouse world coords to view coords (so same as v)
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
 	//vec4 mouseV = vec4(vec3(mouse), 1);
@@ -252,7 +253,7 @@ void propFuncFS()
 		float _LitOutlineThickness = 0.1;
 		
 		vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  	
-		vec3 L = normalize(gl_LightSource[0].position.xyz);   // surf2Light, for directional lights
+		vec3 L = normalize(light_position);   // surf2Light, for directional lights
 		if (dot(E, newN) < mix(_UnlitOutlineThickness, _LitOutlineThickness,
 			max(0.0, dot(newN, L))))
 		{

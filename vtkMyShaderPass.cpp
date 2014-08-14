@@ -85,25 +85,11 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	mousepos[1] = a->mouse[1];
 	mousepos[2] = a->mouse[2];
 
-	double lightpos[3];
-	s->GetRenderer()->GetActiveCamera()->GetPosition(lightpos);
-
 	vtkLight * light = vtkLight::SafeDownCast(s->GetRenderer()->GetLights()->GetItemAsObject(0));
 	if (light)
 	{
-		// Reposition light (no need for extra light pass)
-		lightpos[0] = lightpos[0] + 0;
-		lightpos[1] = lightpos[1] + 7.5;
-		lightpos[2] = lightpos[2] - 0;
-
-		//lightpos[1] = lightpos[1] + 10;
-		//lightpos[2] = lightpos[2] - 5;
-
-		light->SetPosition(lightpos[0], lightpos[1], lightpos[2]);
+		// Set the focal point of the light to the camera's view
 		light->SetFocalPoint(s->GetRenderer()->GetActiveCamera()->GetFocalPoint());
-
-		//std::cout << lightpos[0] << "," << lightpos[1] << "," << lightpos[2] << "\n";
-
 		vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->UpdateLights();	// Update GL_LIGHT0
 	}
 	int source = 0;	// potential source texture
@@ -128,6 +114,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	time += 0.01;
 	if (time > 500)
 		time = 0;
+	//time = std::clock() / 1250.0;
 
 	while (i < c)
 	{

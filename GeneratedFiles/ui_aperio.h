@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'aperio.ui'
 **
-** Created by: Qt User Interface Compiler version 5.3.1
+** Created by: Qt User Interface Compiler version 5.3.0
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -50,6 +50,7 @@ public:
     QWidget *tab;
     QCheckBox *chkTriangulate;
     QCheckBox *chkDepthPeel;
+    QCheckBox *chkWiggle;
     QWidget *tab_2;
     QCheckBox *chkToroid;
     QSlider *phiSlider;
@@ -406,6 +407,11 @@ public:
         chkDepthPeel->setEnabled(true);
         chkDepthPeel->setGeometry(QRect(10, 50, 261, 20));
         chkDepthPeel->setChecked(false);
+        chkWiggle = new QCheckBox(tab);
+        chkWiggle->setObjectName(QStringLiteral("chkWiggle"));
+        chkWiggle->setEnabled(true);
+        chkWiggle->setGeometry(QRect(10, 80, 261, 20));
+        chkWiggle->setChecked(true);
         tabWidget->addTab(tab, QString());
         tab_2 = new QWidget();
         tab_2->setObjectName(QStringLiteral("tab_2"));
@@ -576,6 +582,7 @@ public:
 #endif // QT_NO_TOOLTIP
         chkTriangulate->setText(QApplication::translate("aperioClass", "Triangulate hollow surface after slice", 0));
         chkDepthPeel->setText(QApplication::translate("aperioClass", "Depth Peeling for Translucency", 0));
+        chkWiggle->setText(QApplication::translate("aperioClass", "Wiggle Selected Mesh", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("aperioClass", "Options", 0));
         chkToroid->setText(QApplication::translate("aperioClass", "Toroidal", 0));
 #ifndef QT_NO_TOOLTIP

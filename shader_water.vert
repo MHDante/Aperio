@@ -139,7 +139,6 @@ void propFuncVS()
 	
 	if (selected == true && wiggle == true)
 		water();
-	;
 	
 	gl_Position = final_position;
 }
