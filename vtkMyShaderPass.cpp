@@ -85,13 +85,6 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	mousepos[1] = a->mouse[1];
 	mousepos[2] = a->mouse[2];
 
-	vtkLight * light = vtkLight::SafeDownCast(s->GetRenderer()->GetLights()->GetItemAsObject(0));
-	if (light)
-	{
-		// Set the focal point of the light to the camera's view
-		light->SetFocalPoint(s->GetRenderer()->GetActiveCamera()->GetFocalPoint());
-		vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->UpdateLights();	// Update GL_LIGHT0
-	}
 	int source = 0;	// potential source texture
 
 	uniforms->SetUniformit("wiggle", 1, &a->wiggle);

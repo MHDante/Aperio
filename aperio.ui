@@ -432,7 +432,7 @@ background: #82766A;
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -443,62 +443,36 @@ background: #82766A;
     <property name="movable">
      <bool>true</bool>
     </property>
-    <widget class="QWidget" name="tab">
+    <widget class="QWidget" name="tab_3">
      <attribute name="title">
-      <string>Options</string>
+      <string>Groups</string>
      </attribute>
-     <widget class="QCheckBox" name="chkTriangulate">
+     <widget class="QListWidget" name="listWidget">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>261</width>
-        <height>20</height>
+        <x>0</x>
+        <y>0</y>
+        <width>299</width>
+        <height>100</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Triangulate hollow surface after slice</string>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
-      <property name="checked">
+      <property name="mouseTracking">
        <bool>true</bool>
       </property>
-     </widget>
-     <widget class="QCheckBox" name="chkDepthPeel">
-      <property name="enabled">
-       <bool>true</bool>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
       </property>
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>50</y>
-        <width>261</width>
-        <height>20</height>
-       </rect>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
       </property>
-      <property name="text">
-       <string>Depth Peeling for Translucency</string>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="chkWiggle">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>80</y>
-        <width>261</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Wiggle Selected Mesh</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
      </widget>
     </widget>
@@ -605,36 +579,62 @@ background: #82766A;
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_3">
+    <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>Groups</string>
+      <string>Options</string>
      </attribute>
-     <widget class="QListWidget" name="listWidget">
+     <widget class="QCheckBox" name="chkTriangulate">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>299</width>
-        <height>100</height>
+        <x>10</x>
+        <y>20</y>
+        <width>261</width>
+        <height>20</height>
        </rect>
       </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+      <property name="text">
+       <string>Triangulate hollow surface after slice</string>
       </property>
-      <property name="mouseTracking">
+      <property name="checked">
        <bool>true</bool>
       </property>
-      <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
+     </widget>
+     <widget class="QCheckBox" name="chkDepthPeel">
+      <property name="enabled">
+       <bool>true</bool>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>261</width>
+        <height>20</height>
+       </rect>
       </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
+      <property name="text">
+       <string>Depth Peeling for Translucency</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chkWiggle">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>261</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Wiggle Selected Mesh</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>
@@ -812,7 +812,7 @@ background: #82766A;
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="btnSlice">
     <property name="geometry">
      <rect>
       <x>770</x>

@@ -90,7 +90,9 @@ void MyInteractorStyle::OnKeyPress()
 		std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::vtkPolyDataToMeshSet(thepolydata2));
 		//std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(55, carve::math::Matrix::IDENT()));
 
-		std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B));
+		
+
+		std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B, a->ui.chkTriangulate->isChecked()));
 		vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
 
 		vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
@@ -190,125 +192,7 @@ void MyInteractorStyle::OnKeyPress()
 	}
 	if (this->Interactor->GetKeyCode() == 'l')	// Hinge
 	{
-		// Check if there is selected widget too...
-
-		if (a->selectedMesh == a->meshes.end())
-			return;
-
-		// Change index for eselected to selected element...
-		int eselectedindex = a->myelems.size() - 1;
-		MyElem& elem = a->myelems[eselectedindex];
-
-		CarveConnector connector;
-		vtkSmartPointer<vtkPolyData> thepolydata(vtkPolyData::SafeDownCast(a->selectedMesh->actor->GetMapper()->GetInput()));
-		thepolydata = CarveConnector::cleanVtkPolyData(thepolydata);
-
-		vtkSmartPointer<vtkPolyData> mypoly(vtkPolyData::SafeDownCast(elem.actor->GetMapper()->GetInput()));
-		vtkSmartPointer<vtkPolyData> thepolydata2 = CarveConnector::cleanVtkPolyData(mypoly);
-
-		// Make MeshSet from vtkPolyData
-		std::unique_ptr<carve::mesh::MeshSet<3> > first(CarveConnector::vtkPolyDataToMeshSet(thepolydata));
-		std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::vtkPolyDataToMeshSet(thepolydata2));
-		//std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(55, carve::math::Matrix::IDENT()));
-
-		std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B));
-		vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
-
-		// Create second piece (the cut piece)
-		std::unique_ptr<carve::mesh::MeshSet<3> > d(CarveConnector::perform(first, second, carve::csg::CSG::INTERSECTION));
-		vtkSmartPointer<vtkPolyData> d_poly(CarveConnector::meshSetToVTKPolyData(d));
-
-		// Create normals for resulting polydatas
-		vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
-		dataset->SetInputData(c_poly);
-		dataset->ComputePointNormalsOn();
-		dataset->ComputeCellNormalsOff();
-		dataset->SplittingOn();
-		dataset->SetFeatureAngle(60);
-		dataset->Update();
-
-		vtkSmartPointer<vtkPolyDataNormals> datasetd = vtkSmartPointer<vtkPolyDataNormals>::New();
-		datasetd->SetInputData(d_poly);
-		datasetd->ComputePointNormalsOn();
-		datasetd->ComputeCellNormalsOff();
-		datasetd->SplittingOn();
-		datasetd->SetFeatureAngle(60);
-		datasetd->Update();
-
-		// Update cell locator's dataset so program doesn't slow down after cutting
-		a->selectedMesh->cellLocator->SetDataSet(dataset->GetOutput());
-
-		vtkColor3f color(a->selectedMesh->color.GetRed(),
-			a->selectedMesh->color.GetGreen(),
-			a->selectedMesh->color.GetBlue());
-
-		// Run through list and see if name with + already exists, while it exists, add another + 
-		// to generate unique name
-		std::stringstream ss;
-		ss << a->selectedMesh->name << "+";
-
-		while (a->getListItemByName(ss.str()) != nullptr)
-			ss << "+";
-		std::string name = ss.str();
-
-		float opacity = a->selectedMesh->opacity >= 1 ? 1 : a->selectedMesh->opacity * 0.5f;
-
-		// Create a mapper and actor
-		vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(a, dataset->GetOutput(), color.GetRed(),
-			color.GetGreen(), color.GetBlue(), opacity);	// My opacity (Must change 0.5f)
-
-		// Replace old actor with new actor
-		a->replaceActor(a->selectedMesh->actor, actor);		// First replace selectedMesh->actor (old) with new actor in Renderer
-		a->selectedMesh->actor = actor;						// Then assign selectedMesh->actor to the new actor
-
-		color.Set(min(color.GetRed() + 0.1, 1.0),
-			min(color.GetGreen() + 0.1, 1.0),
-			min(color.GetBlue() + 0.1, 1.0));
-
-		// Add second actor (the cut piece) to renderer (as well as to meshes vector)
-		CustomMesh & mesh = Utility::addMesh(a, datasetd->GetOutput(), a->meshes.size(), name, color, 1.0);
-		mesh.generated = true;
-
-		if (a->selectedMesh->generated)	// Piece we are cutting is already generated, so reuse snormal
-		{
-			mesh.snormal = vtkVector3f(a->selectedMesh->snormal.GetX(), a->selectedMesh->snormal.GetY(),
-				a->selectedMesh->snormal.GetZ());
-		}
-		else	// Generate a new snormal
-		{
-			mesh.snormal = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
-				(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
-				(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f);
-			mesh.snormal.Normalize();
-		}
-		// Note: snormal is shared by nested superquadrics because nested squadrics must explode in same direction
-		//		 but sup (up vector) is different for nested squadrics b/c they are hinged individually around the
-		//		 up vector.
-		vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
-			(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
-			(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f);
-		forward.Normalize();
-
-		vtkVector3f right = vtkVector3f(elem.p2.point.GetX() - elem.p1.point.GetX(),
-			elem.p2.point.GetY() - elem.p1.point.GetY(),
-			elem.p2.point.GetZ() - elem.p1.point.GetZ());
-		right.Normalize();
-
-		mesh.sup = forward.Cross(right);
-		mesh.sup.Normalize();
-
-		// Also set the hinge pivot point
-		mesh.hingePivot = vtkVector3f(elem.p1.point.GetX(), elem.p1.point.GetY(), elem.p1.point.GetZ());
-		a->renderer->AddActor(mesh.actor);
-
-		// Also add mesh to listWidget
-		a->addToList(name);
-
-		// Remove superquadric from Renderer
-		a->renderer->RemoveActor(a->myelems[eselectedindex].actor);
-
-		// Probably should remove from list as well (myelems)
-		a->myelems.erase(a->myelems.end() - 1);
+		a->slot_btnSlice();
 	}
 	if (this->Interactor->GetKeyCode() == '+')	// bigger peek brush
 	{

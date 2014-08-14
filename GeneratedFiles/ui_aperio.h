@@ -47,18 +47,18 @@ public:
     QSlider *verticalSlider_2;
     QSlider *horizontalSlider;
     QTabWidget *tabWidget;
-    QWidget *tab;
-    QCheckBox *chkTriangulate;
-    QCheckBox *chkDepthPeel;
-    QCheckBox *chkWiggle;
+    QWidget *tab_3;
+    QListWidget *listWidget;
     QWidget *tab_2;
     QCheckBox *chkToroid;
     QSlider *phiSlider;
     QSlider *thetaSlider;
     QLabel *label_7;
     QLabel *label_8;
-    QWidget *tab_3;
-    QListWidget *listWidget;
+    QWidget *tab;
+    QCheckBox *chkTriangulate;
+    QCheckBox *chkDepthPeel;
+    QCheckBox *chkWiggle;
     QLabel *label;
     QSlider *hingeSlider;
     QLineEdit *hingeAmount;
@@ -67,7 +67,7 @@ public:
     QLabel *label_4;
     QLabel *label_5;
     QLabel *label_6;
-    QPushButton *pushButton_2;
+    QPushButton *btnSlice;
     QSlider *hingeSlider_2;
     QLineEdit *explodeAmount;
     QSlider *hingeSlider_3;
@@ -396,23 +396,21 @@ public:
         tabWidget->setElideMode(Qt::ElideNone);
         tabWidget->setDocumentMode(false);
         tabWidget->setMovable(true);
-        tab = new QWidget();
-        tab->setObjectName(QStringLiteral("tab"));
-        chkTriangulate = new QCheckBox(tab);
-        chkTriangulate->setObjectName(QStringLiteral("chkTriangulate"));
-        chkTriangulate->setGeometry(QRect(10, 20, 261, 20));
-        chkTriangulate->setChecked(true);
-        chkDepthPeel = new QCheckBox(tab);
-        chkDepthPeel->setObjectName(QStringLiteral("chkDepthPeel"));
-        chkDepthPeel->setEnabled(true);
-        chkDepthPeel->setGeometry(QRect(10, 50, 261, 20));
-        chkDepthPeel->setChecked(false);
-        chkWiggle = new QCheckBox(tab);
-        chkWiggle->setObjectName(QStringLiteral("chkWiggle"));
-        chkWiggle->setEnabled(true);
-        chkWiggle->setGeometry(QRect(10, 80, 261, 20));
-        chkWiggle->setChecked(true);
-        tabWidget->addTab(tab, QString());
+        tab_3 = new QWidget();
+        tab_3->setObjectName(QStringLiteral("tab_3"));
+        listWidget = new QListWidget(tab_3);
+        listWidget->setObjectName(QStringLiteral("listWidget"));
+        listWidget->setGeometry(QRect(0, 0, 299, 100));
+        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(listWidget->sizePolicy().hasHeightForWidth());
+        listWidget->setSizePolicy(sizePolicy);
+        listWidget->setMouseTracking(true);
+        listWidget->setFocusPolicy(Qt::NoFocus);
+        listWidget->setFrameShape(QFrame::NoFrame);
+        listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        tabWidget->addTab(tab_3, QString());
         tab_2 = new QWidget();
         tab_2->setObjectName(QStringLiteral("tab_2"));
         chkToroid = new QCheckBox(tab_2);
@@ -442,21 +440,23 @@ public:
         label_8->setObjectName(QStringLiteral("label_8"));
         label_8->setGeometry(QRect(20, 50, 121, 16));
         tabWidget->addTab(tab_2, QString());
-        tab_3 = new QWidget();
-        tab_3->setObjectName(QStringLiteral("tab_3"));
-        listWidget = new QListWidget(tab_3);
-        listWidget->setObjectName(QStringLiteral("listWidget"));
-        listWidget->setGeometry(QRect(0, 0, 299, 100));
-        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(listWidget->sizePolicy().hasHeightForWidth());
-        listWidget->setSizePolicy(sizePolicy);
-        listWidget->setMouseTracking(true);
-        listWidget->setFocusPolicy(Qt::NoFocus);
-        listWidget->setFrameShape(QFrame::NoFrame);
-        listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        tabWidget->addTab(tab_3, QString());
+        tab = new QWidget();
+        tab->setObjectName(QStringLiteral("tab"));
+        chkTriangulate = new QCheckBox(tab);
+        chkTriangulate->setObjectName(QStringLiteral("chkTriangulate"));
+        chkTriangulate->setGeometry(QRect(10, 20, 261, 20));
+        chkTriangulate->setChecked(true);
+        chkDepthPeel = new QCheckBox(tab);
+        chkDepthPeel->setObjectName(QStringLiteral("chkDepthPeel"));
+        chkDepthPeel->setEnabled(true);
+        chkDepthPeel->setGeometry(QRect(10, 50, 261, 20));
+        chkDepthPeel->setChecked(false);
+        chkWiggle = new QCheckBox(tab);
+        chkWiggle->setObjectName(QStringLiteral("chkWiggle"));
+        chkWiggle->setEnabled(true);
+        chkWiggle->setGeometry(QRect(10, 80, 261, 20));
+        chkWiggle->setChecked(true);
+        tabWidget->addTab(tab, QString());
         label = new QLabel(centralWidget);
         label->setObjectName(QStringLiteral("label"));
         label->setGeometry(QRect(140, 20, 46, 13));
@@ -497,13 +497,13 @@ public:
         label_6->setGeometry(QRect(615, 105, 35, 35));
         label_6->setPixmap(QPixmap(QString::fromUtf8(":/aperio/sliding.png")));
         label_6->setScaledContents(true);
-        pushButton_2 = new QPushButton(centralWidget);
-        pushButton_2->setObjectName(QStringLiteral("pushButton_2"));
-        pushButton_2->setGeometry(QRect(770, 110, 41, 41));
+        btnSlice = new QPushButton(centralWidget);
+        btnSlice->setObjectName(QStringLiteral("btnSlice"));
+        btnSlice->setGeometry(QRect(770, 110, 41, 41));
         QIcon icon;
         icon.addFile(QStringLiteral(":/aperio/slice.png"), QSize(), QIcon::Normal, QIcon::Off);
-        pushButton_2->setIcon(icon);
-        pushButton_2->setIconSize(QSize(50, 50));
+        btnSlice->setIcon(icon);
+        btnSlice->setIconSize(QSize(50, 50));
         hingeSlider_2 = new QSlider(centralWidget);
         hingeSlider_2->setObjectName(QStringLiteral("hingeSlider_2"));
         hingeSlider_2->setGeometry(QRect(660, 70, 101, 22));
@@ -547,7 +547,7 @@ public:
 
         retranslateUi(aperioClass);
 
-        tabWidget->setCurrentIndex(2);
+        tabWidget->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(aperioClass);
@@ -580,10 +580,7 @@ public:
 #ifndef QT_NO_TOOLTIP
         horizontalSlider->setToolTip(QApplication::translate("aperioClass", "Opacity", 0));
 #endif // QT_NO_TOOLTIP
-        chkTriangulate->setText(QApplication::translate("aperioClass", "Triangulate hollow surface after slice", 0));
-        chkDepthPeel->setText(QApplication::translate("aperioClass", "Depth Peeling for Translucency", 0));
-        chkWiggle->setText(QApplication::translate("aperioClass", "Wiggle Selected Mesh", 0));
-        tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("aperioClass", "Options", 0));
+        tabWidget->setTabText(tabWidget->indexOf(tab_3), QApplication::translate("aperioClass", "Groups", 0));
         chkToroid->setText(QApplication::translate("aperioClass", "Toroidal", 0));
 #ifndef QT_NO_TOOLTIP
         phiSlider->setToolTip(QApplication::translate("aperioClass", "Explode", 0));
@@ -594,7 +591,10 @@ public:
         label_7->setText(QApplication::translate("aperioClass", "Phi Roundness", 0));
         label_8->setText(QApplication::translate("aperioClass", "Theta Roundness", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("aperioClass", "Superquad", 0));
-        tabWidget->setTabText(tabWidget->indexOf(tab_3), QApplication::translate("aperioClass", "Groups", 0));
+        chkTriangulate->setText(QApplication::translate("aperioClass", "Triangulate hollow surface after slice", 0));
+        chkDepthPeel->setText(QApplication::translate("aperioClass", "Depth Peeling for Translucency", 0));
+        chkWiggle->setText(QApplication::translate("aperioClass", "Wiggle Selected Mesh", 0));
+        tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("aperioClass", "Options", 0));
         label->setText(QApplication::translate("aperioClass", "Opacity:", 0));
 #ifndef QT_NO_TOOLTIP
         hingeSlider->setToolTip(QApplication::translate("aperioClass", "Hinge", 0));
@@ -625,9 +625,9 @@ public:
 #endif // QT_NO_TOOLTIP
         label_6->setText(QString());
 #ifndef QT_NO_TOOLTIP
-        pushButton_2->setToolTip(QApplication::translate("aperioClass", "Slice", 0));
+        btnSlice->setToolTip(QApplication::translate("aperioClass", "Slice", 0));
 #endif // QT_NO_TOOLTIP
-        pushButton_2->setText(QString());
+        btnSlice->setText(QString());
 #ifndef QT_NO_TOOLTIP
         hingeSlider_2->setToolTip(QApplication::translate("aperioClass", "Explode", 0));
 #endif // QT_NO_TOOLTIP

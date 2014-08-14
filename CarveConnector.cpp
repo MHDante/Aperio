@@ -49,7 +49,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::makeCube(float size, const 
 	return poly;
 }
 //-------------------------------------------------------------------------------------------------
-unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b, carve::csg::CSG::OP op)
+unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b, carve::csg::CSG::OP op, bool triangulate)
 {
 	carve::csg::CSG csg;
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
@@ -57,8 +57,13 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::m
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::EDGE_DIVISION_BIT);
 	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::RESULT_FACE_BIT);
 
-	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), op, NULL, carve::csg::CSG::CLASSIFY_EDGE));
-	// CLASSIFY_NORMAL
+	carve::csg::CSG::CLASSIFY_TYPE type = carve::csg::CSG::CLASSIFY_EDGE;
+	if (!triangulate)
+	{
+		type = carve::csg::CSG::CLASSIFY_NORMAL;
+	}	
+
+	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), op, NULL, type));
 
 	return c;
 }

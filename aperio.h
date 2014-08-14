@@ -15,6 +15,7 @@
 
 // Forward declarations (pimpl)
 class MyInteractorStyle;
+class vtkMyShaderPass;
 
 // Custom
 #include "Utility.h"
@@ -120,6 +121,14 @@ public:
 	int shininess;
 	float darkness;
 
+	// Public variables
+	vtkSmartPointer<vtkMyShaderPass> opaqueP;
+	vtkSmartPointer<vtkMyShaderPass> transP;
+	vtkSmartPointer<vtkDepthPeelingPass> peelP;
+	
+	vtkSmartPointer<vtkRenderPassCollection> passes;
+
+
 	vtkSmartPointer<vtkShaderProgram2> pgm;
 
 	// Shader programs
@@ -156,9 +165,12 @@ public:
 
 	vtkSmartPointer<MySuperquadricSource> superquad;
 
-private:
+	friend class MyInteractorStyle;
+
+protected:
 	Ui::aperioClass ui;
 
+private:
 	/// <summary> Label located inside the statusbar </summary>
 	QLabel* status_label;
 
@@ -184,6 +196,31 @@ public slots:
 	{
 		hoveredIndex = ui.listWidget->row(item);
 	}
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Slice button clicked
+	/// </summary>
+	void slot_btnSlice();
+
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Phi Slider changed
+	/// </summary>
+	void slot_phiSlider(int value);
+
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Theta Slider changed
+	/// </summary>
+	void slot_thetaSlider(int value);
+
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Toroidal checkbox checked
+	/// </summary>
+	void slot_chkToroid(bool checked);
+
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called depth peeling checkbox is checked
+	/// </summary>
+	void slot_chkDepthPeel(bool checked);
+
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when list item clicked (i is the index of the clicked item)
 	/// </summary>

@@ -86,3 +86,5 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 #include <vtkShader2.h>
 #include <vtkShader2Collection.h>
 
+#include <vtkDepthPeelingPass.h>
+#include <vtkRenderPassCollection.h>

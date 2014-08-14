@@ -23,7 +23,6 @@
 #include <vtkSequencePass.h>
 #include <vtkRenderPassCollection.h>
 #include <vtkGaussianBlurPass.h>
-#include <vtkDepthPeelingPass.h>
 #include <vtkSobelGradientMagnitudePass.h>
 
 #include <vtkOpaquePass.h>
@@ -167,27 +166,27 @@ void aperio::slot_afterShowWindow()
 
 	vtkSmartPointer<vtkSequencePass> seq = vtkSmartPointer<vtkSequencePass>::New();
 
-	vtkSmartPointer<vtkMyShaderPass> opaqueP = vtkSmartPointer<vtkMyShaderPass>::New();
+	opaqueP = vtkSmartPointer<vtkMyShaderPass>::New();
 	opaqueP->initialize(this, ShaderPassType::PASS_OPAQUE);
 
-	vtkSmartPointer<vtkMyShaderPass> transP = vtkSmartPointer<vtkMyShaderPass>::New();
+	transP = vtkSmartPointer<vtkMyShaderPass>::New();
 	transP->initialize(this, ShaderPassType::PASS_TRANSLUCENT);
 
 	//vtkSmartPointer<vtkOpaquePass> opaqueP = vtkSmartPointer<vtkOpaquePass>::New();
 	//vtkSmartPointer<vtkTranslucentPass> transP = vtkSmartPointer<vtkTranslucentPass>::New();
 
-	vtkSmartPointer<vtkDepthPeelingPass> peelP = vtkSmartPointer<vtkDepthPeelingPass>::New();
+	peelP = vtkSmartPointer<vtkDepthPeelingPass>::New();
 	peelP->SetMaximumNumberOfPeels(2);
 	peelP->SetOcclusionRatio(5);
 	peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
 
 	// Put all passes into a collection then into a sequence
-	vtkSmartPointer<vtkRenderPassCollection> passes = vtkSmartPointer<vtkRenderPassCollection>::New();
-	//passes->AddItem(vtkSmartPointer<vtkClearZPass>::New());
-	//passes->AddItem(vtkSmartPointer<vtkLightsPass>::New());
+	passes = vtkSmartPointer<vtkRenderPassCollection>::New();
+	passes->AddItem(vtkSmartPointer<vtkLightsPass>::New());
 	passes->AddItem(opaqueP);
 	//passes->AddItem(peelP);
 	passes->AddItem(transP);
+	
 	//passes->AddItem(vtkSmartPointer<vtkDefaultPass>::New());
 
 	seq->SetPasses(passes);
@@ -256,6 +255,17 @@ void aperio::slot_afterShowWindow()
 
 	connect(ui.listWidget, &QListWidget::itemEntered, this, &aperio::slot_listitementered);
 	connect(ui.listWidget, &QListWidget::currentRowChanged, this, &aperio::slot_listitemclicked);
+
+	// Options
+	connect(ui.chkDepthPeel, &QCheckBox::toggled, this, &aperio::slot_chkDepthPeel);
+
+	// Buttons
+	connect(ui.btnSlice, &QPushButton::clicked, this, &aperio::slot_btnSlice);
+
+	// Superquadric options
+	connect(ui.phiSlider, &QSlider::valueChanged, this, &aperio::slot_phiSlider);
+	connect(ui.thetaSlider, &QSlider::valueChanged, this, &aperio::slot_thetaSlider);
+	connect(ui.chkToroid, &QCheckBox::toggled, this, &aperio::slot_chkToroid);
 
 	readFile(fname);
 }
@@ -516,6 +526,161 @@ void aperio::readFile(std::string filename)
 		//ui.listWidget->itemAt(0, i)->setCheckState(Qt::Checked);
 	}
 }
+//--------------------------------------------------------------------------------------
+void aperio::slot_chkToroid(bool checked)
+{
+	if (myelems.size() < 1)
+		return;
+
+	int i = myelems.size() - 1;
+	myelems[i].source->SetToroidal(checked);
+	myelems[i].source->Update();
+	myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
+}
+//--------------------------------------------------------------------------------------
+void aperio::slot_thetaSlider(int value)
+{
+	if (myelems.size() < 1)
+		return;
+
+	int i = myelems.size() - 1;
+	myelems[i].source->SetThetaRoundness(value / 50.0);
+	myelems[i].source->Update();
+	myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
+}
+//--------------------------------------------------------------------------------------
+void aperio::slot_phiSlider(int value)
+{
+	if (myelems.size() < 1)
+		return;
+
+	int i = myelems.size() - 1;
+	myelems[i].source->SetPhiRoundness(value / 50.0);
+	myelems[i].source->Update();
+	myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
+}
+//--------------------------------------------------------------------------------------
+void aperio::slot_btnSlice()
+{
+	// Check if there is selected widget too...
+	if (selectedMesh == meshes.end() || myelems.size() < 1)
+		return;
+
+	// Change index for eselected to selected element...
+	int eselectedindex = myelems.size() - 1;
+	MyElem& elem = myelems[eselectedindex];
+
+	CarveConnector connector;
+	vtkSmartPointer<vtkPolyData> thepolydata(vtkPolyData::SafeDownCast(selectedMesh->actor->GetMapper()->GetInput()));
+	thepolydata = CarveConnector::cleanVtkPolyData(thepolydata);
+
+	vtkSmartPointer<vtkPolyData> mypoly(vtkPolyData::SafeDownCast(elem.actor->GetMapper()->GetInput()));
+	vtkSmartPointer<vtkPolyData> thepolydata2 = CarveConnector::cleanVtkPolyData(mypoly);
+
+	// Make MeshSet from vtkPolyData
+	std::unique_ptr<carve::mesh::MeshSet<3> > first(CarveConnector::vtkPolyDataToMeshSet(thepolydata));
+	std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::vtkPolyDataToMeshSet(thepolydata2));
+	//std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(55, carve::math::Matrix::IDENT()));
+
+	std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B, ui.chkTriangulate->isChecked()));
+	vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
+
+	// Create second piece (the cut piece)
+	std::unique_ptr<carve::mesh::MeshSet<3> > d(CarveConnector::perform(first, second, carve::csg::CSG::INTERSECTION, ui.chkTriangulate->isChecked()));
+	vtkSmartPointer<vtkPolyData> d_poly(CarveConnector::meshSetToVTKPolyData(d));
+
+	// Create normals for resulting polydatas
+	vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
+	dataset->SetInputData(c_poly);
+	dataset->ComputePointNormalsOn();
+	dataset->ComputeCellNormalsOff();
+	dataset->SplittingOn();
+	dataset->SetFeatureAngle(60);
+	dataset->Update();
+
+	vtkSmartPointer<vtkPolyDataNormals> datasetd = vtkSmartPointer<vtkPolyDataNormals>::New();
+	datasetd->SetInputData(d_poly);
+	datasetd->ComputePointNormalsOn();
+	datasetd->ComputeCellNormalsOff();
+	datasetd->SplittingOn();
+	datasetd->SetFeatureAngle(60);
+	datasetd->Update();
+
+	// Update cell locator's dataset so program doesn't slow down after cutting
+	selectedMesh->cellLocator->SetDataSet(dataset->GetOutput());
+
+	vtkColor3f color(selectedMesh->color.GetRed(),
+		selectedMesh->color.GetGreen(),
+		selectedMesh->color.GetBlue());
+
+	// Run through list and see if name with + already exists, while it exists, add another + 
+	// to generate unique name
+	std::stringstream ss;
+	ss << selectedMesh->name << "+";
+
+	while (getListItemByName(ss.str()) != nullptr)
+		ss << "+";
+	std::string name = ss.str();
+
+	float opacity = selectedMesh->opacity >= 1 ? 1 : selectedMesh->opacity * 0.5f;
+
+	// Create a mapper and actor
+	vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(this, dataset->GetOutput(), color.GetRed(),
+		color.GetGreen(), color.GetBlue(), opacity);	// My opacity (Must change 0.5f)
+
+	// Replace old actor with new actor
+	replaceActor(selectedMesh->actor, actor);		// First replace selectedMesh->actor (old) with new actor in Renderer
+	selectedMesh->actor = actor;						// Then assign selectedMesh->actor to the new actor
+
+	color.Set(min(color.GetRed() + 0.1, 1.0),
+		min(color.GetGreen() + 0.1, 1.0),
+		min(color.GetBlue() + 0.1, 1.0));
+
+	// Add second actor (the cut piece) to renderer (as well as to meshes vector)
+	CustomMesh & mesh = Utility::addMesh(this, datasetd->GetOutput(), meshes.size(), name, color, 1.0);
+	mesh.generated = true;
+
+	if (selectedMesh->generated)	// Piece we are cutting is already generated, so reuse snormal
+	{
+		mesh.snormal = vtkVector3f(selectedMesh->snormal.GetX(), selectedMesh->snormal.GetY(),
+			selectedMesh->snormal.GetZ());
+	}
+	else	// Generate a new snormal
+	{
+		mesh.snormal = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
+			(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
+			(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f);
+		mesh.snormal.Normalize();
+	}
+	// Note: snormal is shared by nested superquadrics because nested squadrics must explode in same direction
+	//		 but sup (up vector) is different for nested squadrics b/c they are hinged individually around the
+	//		 up vector.
+	vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
+		(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
+		(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f);
+	forward.Normalize();
+
+	vtkVector3f right = vtkVector3f(elem.p2.point.GetX() - elem.p1.point.GetX(),
+		elem.p2.point.GetY() - elem.p1.point.GetY(),
+		elem.p2.point.GetZ() - elem.p1.point.GetZ());
+	right.Normalize();
+
+	mesh.sup = forward.Cross(right);
+	mesh.sup.Normalize();
+
+	// Also set the hinge pivot point
+	mesh.hingePivot = vtkVector3f(elem.p1.point.GetX(), elem.p1.point.GetY(), elem.p1.point.GetZ());
+	renderer->AddActor(mesh.actor);
+
+	// Also add mesh to listWidget
+	addToList(name);
+
+	// Remove superquadric from Renderer
+	renderer->RemoveActor(myelems[eselectedindex].actor);
+
+	// Probably should remove from list as well (myelems)
+	myelems.erase(myelems.end() - 1);
+}
 //-------------------------------------------------------------------------------------
 void aperio::slot_listitemclicked(int i)
 {
@@ -539,12 +704,24 @@ void aperio::slot_timeout()
 		exit(0);
 
 	// Control wiggle
-	wiggle = true;
+	if (ui.chkWiggle->isChecked())
+		wiggle = true;
+	else
+		wiggle = false;
+
 	if (GetAsyncKeyState(VK_CONTROL))
 		wiggle = false;
 
 	if (!pause)
 		qv->update();
+}
+//-------------------------------------------------------------------------------------
+void aperio::slot_chkDepthPeel(bool checked)
+{
+	if (checked)
+		passes->ReplaceItem(2, peelP);
+	else
+		passes->ReplaceItem(2, transP);
 }
 //-------------------------------------------------------------------------------------
 void aperio::updateOpacitySliderAndList()
