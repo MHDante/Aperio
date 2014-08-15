@@ -90,14 +90,14 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	uniforms->SetUniformit("wiggle", 1, &a->wiggle);
 	uniforms->SetUniformf("mouse", 3, mousepos);
 	uniforms->SetUniformf("mouseSize", 1, &a->mouseSize);
-	uniforms->SetUniformi("peerInside", 1, &a->peerInside);
+	uniforms->SetUniformit("peerInside", 1, &a->peerInside);
 	uniforms->SetUniformf("myexp", 1, &a->myexp);
 	uniforms->SetUniformi("shadingnum", 1, &a->shadingnum);
 	uniforms->SetUniformi("source", 1, &source);
 
 	uniforms->SetUniformf("pos1", 3, a->pos1);
 	uniforms->SetUniformf("pos2", 3, a->pos2);
-	uniforms->SetUniformf("difftrans", 1, &a->difftrans);
+	uniforms->SetUniformit("difftrans", 1, &a->difftrans);
 
 	uniforms->SetUniformi("shininess", 1, &a->shininess);
 	uniforms->SetUniformf("darkness", 1, &a->darkness);
@@ -146,7 +146,9 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 		{
 			int rendered;
 			
-			vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty())->GetPropProgram()->SetUniformVariables(uniforms);
+			//if (vtkActor::SafeDownCast(p) != nullptr)
+				vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty())->GetPropProgram()->SetUniformVariables(uniforms);
+
 			//a->shaderProgram->SetUniformVariables(uniforms);
 			//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->shaderProgram); // Dangerous, constantly allocs
 			//a->shaderProgram->Use();

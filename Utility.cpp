@@ -211,7 +211,7 @@ CustomMesh& Utility::addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int
 
 	a->meshes[z].color.Set(color.GetRed(), color.GetGreen(), color.GetBlue());
 	a->meshes[z].name = groupname;
-	a->meshes[z].selected = 0;
+	a->meshes[z].selected = false;
 
 	// Add cell locator for mesh to cellpicker and to mesh
 	a->meshes[z].cellLocator = vtkSmartPointer<vtkCellLocator>::New();

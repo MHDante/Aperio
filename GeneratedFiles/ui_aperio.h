@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'aperio.ui'
 **
-** Created by: Qt User Interface Compiler version 5.3.0
+** Created by: Qt User Interface Compiler version 5.3.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
@@ -38,14 +38,14 @@ public:
     QAction *actionFullScreen;
     QAction *actionExit;
     QWidget *centralWidget;
-    QPushButton *pushButton;
-    QLineEdit *lineEdit;
+    QPushButton *btnSearch;
+    QLineEdit *txtSearchText;
     QPushButton *btnColor;
     QWidget *mainWidget;
-    QSlider *verticalSlider;
-    QPushButton *btnHello;
-    QSlider *verticalSlider_2;
-    QSlider *horizontalSlider;
+    QSlider *shininessSlider;
+    QPushButton *btnLight;
+    QSlider *darknessSlider;
+    QSlider *opacitySlider;
     QTabWidget *tabWidget;
     QWidget *tab_3;
     QListWidget *listWidget;
@@ -61,16 +61,17 @@ public:
     QCheckBox *chkWiggle;
     QLabel *label;
     QSlider *hingeSlider;
-    QLineEdit *hingeAmount;
-    QLabel *label_2;
+    QLineEdit *txtHingeAmount;
     QLabel *label_3;
     QLabel *label_4;
-    QLabel *label_5;
-    QLabel *label_6;
     QPushButton *btnSlice;
-    QSlider *hingeSlider_2;
-    QLineEdit *explodeAmount;
-    QSlider *hingeSlider_3;
+    QSlider *explodeSlider;
+    QLineEdit *txtExplodeAmount;
+    QSlider *slideSlider;
+    QPushButton *btnHinge;
+    QPushButton *btnExplode;
+    QPushButton *btnSlide;
+    QPushButton *btnHide;
     QMenuBar *menuBar;
     QMenu *menuFile;
     QMenu *menuHelp;
@@ -80,7 +81,7 @@ public:
     {
         if (aperioClass->objectName().isEmpty())
             aperioClass->setObjectName(QStringLiteral("aperioClass"));
-        aperioClass->resize(827, 590);
+        aperioClass->resize(830, 590);
         aperioClass->setStyleSheet(QLatin1String("QWidget{\n"
 "	color: #dddddd;\n"
 "	font: 10pt \"Lucida Sans\";\n"
@@ -341,12 +342,12 @@ public:
         actionExit->setObjectName(QStringLiteral("actionExit"));
         centralWidget = new QWidget(aperioClass);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
-        pushButton = new QPushButton(centralWidget);
-        pushButton->setObjectName(QStringLiteral("pushButton"));
-        pushButton->setGeometry(QRect(150, 90, 81, 20));
-        lineEdit = new QLineEdit(centralWidget);
-        lineEdit->setObjectName(QStringLiteral("lineEdit"));
-        lineEdit->setGeometry(QRect(20, 90, 121, 20));
+        btnSearch = new QPushButton(centralWidget);
+        btnSearch->setObjectName(QStringLiteral("btnSearch"));
+        btnSearch->setGeometry(QRect(150, 90, 81, 20));
+        txtSearchText = new QLineEdit(centralWidget);
+        txtSearchText->setObjectName(QStringLiteral("txtSearchText"));
+        txtSearchText->setGeometry(QRect(20, 90, 121, 20));
         btnColor = new QPushButton(centralWidget);
         btnColor->setObjectName(QStringLiteral("btnColor"));
         btnColor->setGeometry(QRect(150, 120, 81, 20));
@@ -355,29 +356,33 @@ public:
         mainWidget->setGeometry(QRect(20, 160, 791, 361));
         mainWidget->setCursor(QCursor(Qt::ArrowCursor));
         mainWidget->setMouseTracking(true);
-        verticalSlider = new QSlider(centralWidget);
-        verticalSlider->setObjectName(QStringLiteral("verticalSlider"));
-        verticalSlider->setGeometry(QRect(250, 50, 22, 91));
-        verticalSlider->setMaximum(256);
-        verticalSlider->setValue(128);
-        verticalSlider->setOrientation(Qt::Vertical);
-        verticalSlider->setInvertedAppearance(false);
-        btnHello = new QPushButton(centralWidget);
-        btnHello->setObjectName(QStringLiteral("btnHello"));
-        btnHello->setGeometry(QRect(20, 30, 100, 28));
-        verticalSlider_2 = new QSlider(centralWidget);
-        verticalSlider_2->setObjectName(QStringLiteral("verticalSlider_2"));
-        verticalSlider_2->setGeometry(QRect(280, 50, 22, 91));
-        verticalSlider_2->setMaximum(96);
-        verticalSlider_2->setValue(0);
-        verticalSlider_2->setOrientation(Qt::Vertical);
-        verticalSlider_2->setInvertedAppearance(false);
-        horizontalSlider = new QSlider(centralWidget);
-        horizontalSlider->setObjectName(QStringLiteral("horizontalSlider"));
-        horizontalSlider->setGeometry(QRect(139, 30, 91, 22));
-        horizontalSlider->setMaximum(100);
-        horizontalSlider->setValue(50);
-        horizontalSlider->setOrientation(Qt::Horizontal);
+        shininessSlider = new QSlider(centralWidget);
+        shininessSlider->setObjectName(QStringLiteral("shininessSlider"));
+        shininessSlider->setGeometry(QRect(250, 50, 22, 91));
+        shininessSlider->setMaximum(256);
+        shininessSlider->setValue(128);
+        shininessSlider->setOrientation(Qt::Vertical);
+        shininessSlider->setInvertedAppearance(false);
+        btnLight = new QPushButton(centralWidget);
+        btnLight->setObjectName(QStringLiteral("btnLight"));
+        btnLight->setGeometry(QRect(20, 30, 100, 28));
+        QIcon icon;
+        icon.addFile(QStringLiteral(":/aperio/flashlight2.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnLight->setIcon(icon);
+        btnLight->setIconSize(QSize(22, 22));
+        darknessSlider = new QSlider(centralWidget);
+        darknessSlider->setObjectName(QStringLiteral("darknessSlider"));
+        darknessSlider->setGeometry(QRect(280, 50, 22, 91));
+        darknessSlider->setMaximum(96);
+        darknessSlider->setValue(0);
+        darknessSlider->setOrientation(Qt::Vertical);
+        darknessSlider->setInvertedAppearance(false);
+        opacitySlider = new QSlider(centralWidget);
+        opacitySlider->setObjectName(QStringLiteral("opacitySlider"));
+        opacitySlider->setGeometry(QRect(139, 30, 91, 22));
+        opacitySlider->setMaximum(100);
+        opacitySlider->setValue(50);
+        opacitySlider->setOrientation(Qt::Horizontal);
         tabWidget = new QTabWidget(centralWidget);
         tabWidget->setObjectName(QStringLiteral("tabWidget"));
         tabWidget->setGeometry(QRect(310, 10, 291, 131));
@@ -401,15 +406,51 @@ public:
         listWidget = new QListWidget(tab_3);
         listWidget->setObjectName(QStringLiteral("listWidget"));
         listWidget->setGeometry(QRect(0, 0, 299, 100));
-        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        sizePolicy.setHorizontalStretch(0);
-        sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(listWidget->sizePolicy().hasHeightForWidth());
-        listWidget->setSizePolicy(sizePolicy);
-        listWidget->setMouseTracking(true);
+        QPalette palette;
+        QBrush brush(QColor(221, 221, 221, 255));
+        brush.setStyle(Qt::SolidPattern);
+        palette.setBrush(QPalette::Active, QPalette::WindowText, brush);
+        QBrush brush1(QColor(0, 0, 0, 0));
+        brush1.setStyle(Qt::SolidPattern);
+        palette.setBrush(QPalette::Active, QPalette::Button, brush1);
+        palette.setBrush(QPalette::Active, QPalette::Text, brush);
+        palette.setBrush(QPalette::Active, QPalette::ButtonText, brush);
+        QBrush brush2(QColor(0, 0, 0, 255));
+        brush2.setStyle(Qt::NoBrush);
+        palette.setBrush(QPalette::Active, QPalette::Base, brush2);
+        palette.setBrush(QPalette::Active, QPalette::Window, brush1);
+        QBrush brush3(QColor(254, 231, 40, 255));
+        brush3.setStyle(Qt::SolidPattern);
+        palette.setBrush(QPalette::Active, QPalette::Highlight, brush3);
+        QBrush brush4(QColor(74, 77, 63, 255));
+        brush4.setStyle(Qt::SolidPattern);
+        palette.setBrush(QPalette::Active, QPalette::AlternateBase, brush4);
+        palette.setBrush(QPalette::Inactive, QPalette::WindowText, brush);
+        palette.setBrush(QPalette::Inactive, QPalette::Button, brush1);
+        palette.setBrush(QPalette::Inactive, QPalette::Text, brush);
+        palette.setBrush(QPalette::Inactive, QPalette::ButtonText, brush);
+        QBrush brush5(QColor(0, 0, 0, 255));
+        brush5.setStyle(Qt::NoBrush);
+        palette.setBrush(QPalette::Inactive, QPalette::Base, brush5);
+        palette.setBrush(QPalette::Inactive, QPalette::Window, brush1);
+        palette.setBrush(QPalette::Inactive, QPalette::Highlight, brush3);
+        palette.setBrush(QPalette::Inactive, QPalette::AlternateBase, brush4);
+        palette.setBrush(QPalette::Disabled, QPalette::WindowText, brush);
+        palette.setBrush(QPalette::Disabled, QPalette::Button, brush1);
+        palette.setBrush(QPalette::Disabled, QPalette::Text, brush);
+        palette.setBrush(QPalette::Disabled, QPalette::ButtonText, brush);
+        QBrush brush6(QColor(0, 0, 0, 255));
+        brush6.setStyle(Qt::NoBrush);
+        palette.setBrush(QPalette::Disabled, QPalette::Base, brush6);
+        palette.setBrush(QPalette::Disabled, QPalette::Window, brush1);
+        palette.setBrush(QPalette::Disabled, QPalette::Highlight, brush3);
+        palette.setBrush(QPalette::Disabled, QPalette::AlternateBase, brush4);
+        listWidget->setPalette(palette);
         listWidget->setFocusPolicy(Qt::NoFocus);
         listWidget->setFrameShape(QFrame::NoFrame);
         listWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        listWidget->setDragDropMode(QAbstractItemView::InternalMove);
+        listWidget->setAlternatingRowColors(true);
         tabWidget->addTab(tab_3, QString());
         tab_2 = new QWidget();
         tab_2->setObjectName(QStringLiteral("tab_2"));
@@ -467,16 +508,11 @@ public:
         hingeSlider->setValue(0);
         hingeSlider->setOrientation(Qt::Horizontal);
         hingeSlider->setTickPosition(QSlider::NoTicks);
-        hingeAmount = new QLineEdit(centralWidget);
-        hingeAmount->setObjectName(QStringLiteral("hingeAmount"));
-        hingeAmount->setGeometry(QRect(770, 20, 31, 20));
-        hingeAmount->setLayoutDirection(Qt::LeftToRight);
-        hingeAmount->setAlignment(Qt::AlignCenter);
-        label_2 = new QLabel(centralWidget);
-        label_2->setObjectName(QStringLiteral("label_2"));
-        label_2->setGeometry(QRect(610, 10, 41, 41));
-        label_2->setPixmap(QPixmap(QString::fromUtf8(":/aperio/hinge.png")));
-        label_2->setScaledContents(true);
+        txtHingeAmount = new QLineEdit(centralWidget);
+        txtHingeAmount->setObjectName(QStringLiteral("txtHingeAmount"));
+        txtHingeAmount->setGeometry(QRect(770, 20, 31, 20));
+        txtHingeAmount->setLayoutDirection(Qt::LeftToRight);
+        txtHingeAmount->setAlignment(Qt::AlignCenter);
         label_3 = new QLabel(centralWidget);
         label_3->setObjectName(QStringLiteral("label_3"));
         label_3->setGeometry(QRect(250, 10, 21, 21));
@@ -487,46 +523,64 @@ public:
         label_4->setGeometry(QRect(280, 10, 21, 21));
         label_4->setPixmap(QPixmap(QString::fromUtf8(":/aperio/rough.png")));
         label_4->setScaledContents(true);
-        label_5 = new QLabel(centralWidget);
-        label_5->setObjectName(QStringLiteral("label_5"));
-        label_5->setGeometry(QRect(615, 60, 34, 34));
-        label_5->setPixmap(QPixmap(QString::fromUtf8(":/aperio/explode.png")));
-        label_5->setScaledContents(true);
-        label_6 = new QLabel(centralWidget);
-        label_6->setObjectName(QStringLiteral("label_6"));
-        label_6->setGeometry(QRect(615, 105, 35, 35));
-        label_6->setPixmap(QPixmap(QString::fromUtf8(":/aperio/sliding.png")));
-        label_6->setScaledContents(true);
         btnSlice = new QPushButton(centralWidget);
         btnSlice->setObjectName(QStringLiteral("btnSlice"));
         btnSlice->setGeometry(QRect(770, 110, 41, 41));
-        QIcon icon;
-        icon.addFile(QStringLiteral(":/aperio/slice.png"), QSize(), QIcon::Normal, QIcon::Off);
-        btnSlice->setIcon(icon);
+        QIcon icon1;
+        icon1.addFile(QStringLiteral(":/aperio/slice.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnSlice->setIcon(icon1);
         btnSlice->setIconSize(QSize(50, 50));
-        hingeSlider_2 = new QSlider(centralWidget);
-        hingeSlider_2->setObjectName(QStringLiteral("hingeSlider_2"));
-        hingeSlider_2->setGeometry(QRect(660, 70, 101, 22));
-        hingeSlider_2->setMaximum(100);
-        hingeSlider_2->setValue(0);
-        hingeSlider_2->setOrientation(Qt::Horizontal);
-        hingeSlider_2->setTickPosition(QSlider::NoTicks);
-        explodeAmount = new QLineEdit(centralWidget);
-        explodeAmount->setObjectName(QStringLiteral("explodeAmount"));
-        explodeAmount->setGeometry(QRect(770, 70, 31, 20));
-        explodeAmount->setLayoutDirection(Qt::LeftToRight);
-        explodeAmount->setAlignment(Qt::AlignCenter);
-        hingeSlider_3 = new QSlider(centralWidget);
-        hingeSlider_3->setObjectName(QStringLiteral("hingeSlider_3"));
-        hingeSlider_3->setGeometry(QRect(660, 110, 101, 22));
-        hingeSlider_3->setMaximum(100);
-        hingeSlider_3->setValue(0);
-        hingeSlider_3->setOrientation(Qt::Horizontal);
-        hingeSlider_3->setTickPosition(QSlider::NoTicks);
+        explodeSlider = new QSlider(centralWidget);
+        explodeSlider->setObjectName(QStringLiteral("explodeSlider"));
+        explodeSlider->setGeometry(QRect(660, 70, 101, 22));
+        explodeSlider->setMaximum(100);
+        explodeSlider->setValue(0);
+        explodeSlider->setOrientation(Qt::Horizontal);
+        explodeSlider->setTickPosition(QSlider::NoTicks);
+        txtExplodeAmount = new QLineEdit(centralWidget);
+        txtExplodeAmount->setObjectName(QStringLiteral("txtExplodeAmount"));
+        txtExplodeAmount->setGeometry(QRect(770, 70, 31, 20));
+        txtExplodeAmount->setLayoutDirection(Qt::LeftToRight);
+        txtExplodeAmount->setAlignment(Qt::AlignCenter);
+        slideSlider = new QSlider(centralWidget);
+        slideSlider->setObjectName(QStringLiteral("slideSlider"));
+        slideSlider->setGeometry(QRect(660, 110, 101, 22));
+        slideSlider->setMaximum(100);
+        slideSlider->setValue(0);
+        slideSlider->setOrientation(Qt::Horizontal);
+        slideSlider->setTickPosition(QSlider::NoTicks);
+        btnHinge = new QPushButton(centralWidget);
+        btnHinge->setObjectName(QStringLiteral("btnHinge"));
+        btnHinge->setGeometry(QRect(610, 10, 41, 41));
+        QIcon icon2;
+        icon2.addFile(QStringLiteral(":/aperio/hinge.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnHinge->setIcon(icon2);
+        btnHinge->setIconSize(QSize(38, 38));
+        btnExplode = new QPushButton(centralWidget);
+        btnExplode->setObjectName(QStringLiteral("btnExplode"));
+        btnExplode->setGeometry(QRect(610, 55, 41, 41));
+        QIcon icon3;
+        icon3.addFile(QStringLiteral(":/aperio/explode.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnExplode->setIcon(icon3);
+        btnExplode->setIconSize(QSize(37, 37));
+        btnSlide = new QPushButton(centralWidget);
+        btnSlide->setObjectName(QStringLiteral("btnSlide"));
+        btnSlide->setGeometry(QRect(610, 100, 41, 41));
+        QIcon icon4;
+        icon4.addFile(QStringLiteral(":/aperio/sliding.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnSlide->setIcon(icon4);
+        btnSlide->setIconSize(QSize(34, 34));
+        btnHide = new QPushButton(centralWidget);
+        btnHide->setObjectName(QStringLiteral("btnHide"));
+        btnHide->setGeometry(QRect(20, 120, 121, 21));
+        QIcon icon5;
+        icon5.addFile(QStringLiteral(":/aperio/hide.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnHide->setIcon(icon5);
+        btnHide->setIconSize(QSize(25, 20));
         aperioClass->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(aperioClass);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 827, 31));
+        menuBar->setGeometry(QRect(0, 0, 830, 31));
         menuFile = new QMenu(menuBar);
         menuFile->setObjectName(QStringLiteral("menuFile"));
         menuHelp = new QMenu(menuBar);
@@ -547,7 +601,7 @@ public:
 
         retranslateUi(aperioClass);
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(aperioClass);
@@ -556,6 +610,9 @@ public:
     void retranslateUi(QMainWindow *aperioClass)
     {
         aperioClass->setWindowTitle(QApplication::translate("aperioClass", "Aperio", 0));
+#ifndef QT_NO_TOOLTIP
+        aperioClass->setToolTip(QString());
+#endif // QT_NO_TOOLTIP
         actionAbout->setText(QApplication::translate("aperioClass", "About", 0));
         actionToggle->setText(QApplication::translate("aperioClass", "Toggle Preview", 0));
         actionToggle->setShortcut(QApplication::translate("aperioClass", "P", 0));
@@ -564,21 +621,21 @@ public:
         actionFullScreen->setText(QApplication::translate("aperioClass", "FullScreen", 0));
         actionFullScreen->setShortcut(QApplication::translate("aperioClass", "Alt+Return", 0));
         actionExit->setText(QApplication::translate("aperioClass", "Exit", 0));
-        pushButton->setText(QApplication::translate("aperioClass", "Search", 0));
-        lineEdit->setPlaceholderText(QString());
+        btnSearch->setText(QApplication::translate("aperioClass", "Search", 0));
+        txtSearchText->setPlaceholderText(QString());
         btnColor->setText(QApplication::translate("aperioClass", "Color", 0));
 #ifndef QT_NO_TOOLTIP
-        verticalSlider->setToolTip(QApplication::translate("aperioClass", "Shininess", 0));
+        shininessSlider->setToolTip(QApplication::translate("aperioClass", "Shininess", 0));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_TOOLTIP
-        btnHello->setToolTip(QApplication::translate("aperioClass", "Forward-Scattered Translucency", 0));
+        btnLight->setToolTip(QApplication::translate("aperioClass", "Light (Forward-Scattered Translucency)", 0));
 #endif // QT_NO_TOOLTIP
-        btnHello->setText(QApplication::translate("aperioClass", "Light: 1", 0));
+        btnLight->setText(QApplication::translate("aperioClass", "On", 0));
 #ifndef QT_NO_TOOLTIP
-        verticalSlider_2->setToolTip(QApplication::translate("aperioClass", "Roughness", 0));
+        darknessSlider->setToolTip(QApplication::translate("aperioClass", "Roughness", 0));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_TOOLTIP
-        horizontalSlider->setToolTip(QApplication::translate("aperioClass", "Opacity", 0));
+        opacitySlider->setToolTip(QApplication::translate("aperioClass", "Opacity", 0));
 #endif // QT_NO_TOOLTIP
         tabWidget->setTabText(tabWidget->indexOf(tab_3), QApplication::translate("aperioClass", "Groups", 0));
         chkToroid->setText(QApplication::translate("aperioClass", "Toroidal", 0));
@@ -600,14 +657,10 @@ public:
         hingeSlider->setToolTip(QApplication::translate("aperioClass", "Hinge", 0));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_TOOLTIP
-        hingeAmount->setToolTip(QApplication::translate("aperioClass", "Hinge amount (degrees)", 0));
+        txtHingeAmount->setToolTip(QApplication::translate("aperioClass", "Max Hinge amount (degrees)", 0));
 #endif // QT_NO_TOOLTIP
-        hingeAmount->setText(QApplication::translate("aperioClass", "135", 0));
-        hingeAmount->setPlaceholderText(QString());
-#ifndef QT_NO_TOOLTIP
-        label_2->setToolTip(QApplication::translate("aperioClass", "Hinge", 0));
-#endif // QT_NO_TOOLTIP
-        label_2->setText(QString());
+        txtHingeAmount->setText(QApplication::translate("aperioClass", "170", 0));
+        txtHingeAmount->setPlaceholderText(QString());
 #ifndef QT_NO_TOOLTIP
         label_3->setToolTip(QApplication::translate("aperioClass", "Shininess", 0));
 #endif // QT_NO_TOOLTIP
@@ -617,28 +670,36 @@ public:
 #endif // QT_NO_TOOLTIP
         label_4->setText(QString());
 #ifndef QT_NO_TOOLTIP
-        label_5->setToolTip(QApplication::translate("aperioClass", "Explode", 0));
-#endif // QT_NO_TOOLTIP
-        label_5->setText(QString());
-#ifndef QT_NO_TOOLTIP
-        label_6->setToolTip(QApplication::translate("aperioClass", "Slide", 0));
-#endif // QT_NO_TOOLTIP
-        label_6->setText(QString());
-#ifndef QT_NO_TOOLTIP
-        btnSlice->setToolTip(QApplication::translate("aperioClass", "Slice", 0));
+        btnSlice->setToolTip(QApplication::translate("aperioClass", "Slice (L)", 0));
 #endif // QT_NO_TOOLTIP
         btnSlice->setText(QString());
 #ifndef QT_NO_TOOLTIP
-        hingeSlider_2->setToolTip(QApplication::translate("aperioClass", "Explode", 0));
+        explodeSlider->setToolTip(QApplication::translate("aperioClass", "Explode", 0));
 #endif // QT_NO_TOOLTIP
 #ifndef QT_NO_TOOLTIP
-        explodeAmount->setToolTip(QApplication::translate("aperioClass", "Explosion Amount (units)", 0));
+        txtExplodeAmount->setToolTip(QApplication::translate("aperioClass", "Max Explosion Amount (units)", 0));
 #endif // QT_NO_TOOLTIP
-        explodeAmount->setText(QApplication::translate("aperioClass", "10", 0));
-        explodeAmount->setPlaceholderText(QString());
+        txtExplodeAmount->setText(QApplication::translate("aperioClass", "10", 0));
+        txtExplodeAmount->setPlaceholderText(QString());
 #ifndef QT_NO_TOOLTIP
-        hingeSlider_3->setToolTip(QApplication::translate("aperioClass", "Slide", 0));
+        slideSlider->setToolTip(QApplication::translate("aperioClass", "Slide", 0));
 #endif // QT_NO_TOOLTIP
+#ifndef QT_NO_TOOLTIP
+        btnHinge->setToolTip(QApplication::translate("aperioClass", "Hinge", 0));
+#endif // QT_NO_TOOLTIP
+        btnHinge->setText(QString());
+#ifndef QT_NO_TOOLTIP
+        btnExplode->setToolTip(QApplication::translate("aperioClass", "Explode", 0));
+#endif // QT_NO_TOOLTIP
+        btnExplode->setText(QString());
+#ifndef QT_NO_TOOLTIP
+        btnSlide->setToolTip(QApplication::translate("aperioClass", "Slide", 0));
+#endif // QT_NO_TOOLTIP
+        btnSlide->setText(QString());
+#ifndef QT_NO_TOOLTIP
+        btnHide->setToolTip(QApplication::translate("aperioClass", "Show/Hide (H)", 0));
+#endif // QT_NO_TOOLTIP
+        btnHide->setText(QApplication::translate("aperioClass", "Show/Hide", 0));
         menuFile->setTitle(QApplication::translate("aperioClass", "File", 0));
         menuHelp->setTitle(QApplication::translate("aperioClass", "Help", 0));
     } // retranslateUi

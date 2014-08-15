@@ -51,7 +51,7 @@ static void evalSuperquadric(double u, double v,
 MySuperquadricSource::MySuperquadricSource(int res)
 {
 	res = res < 4 ? 4 : res;
-
+	
 	this->AxisOfSymmetry = 1; // y-axis symmetry
 	this->Toroidal = 0;
 	this->Thickness = 0.3333;
@@ -199,8 +199,8 @@ int MySuperquadricSource::RequestData(
 		phiLim[0] = -vtkMath::Pi() / 2.0;
 		phiLim[1] = vtkMath::Pi() / 2.0;
 
-		thetaLim[0] = -vtkMath::Pi();
-		thetaLim[1] = vtkMath::Pi();
+		thetaLim[0] = -vtkMath::Pi();		
+		thetaLim[1] = vtkMath::Pi();	// ThetaLim[1] will be used for wedges
 
 		alpha = 0.0;
 	}

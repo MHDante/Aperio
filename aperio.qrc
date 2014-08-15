@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="aperio">
+    <file>flashlight2.png</file>
+    <file>flashlight.png</file>
+    <file>hide.png</file>
     <file>explode.png</file>
     <file>slice.png</file>
     <file>sliding.png</file>

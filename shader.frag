@@ -13,13 +13,13 @@ in vec3 original_v;
 
 uniform vec3 mouse = vec3(0, 0, 0);
 uniform float mouseSize = 1.0;
-uniform int peerInside = 0;
+uniform bool peerInside = false;
 
 uniform float myexp = 1.0;
 uniform sampler2D source;
 
 uniform int shadingnum = 0;
-uniform float difftrans = 1;
+uniform bool difftrans = true;
 uniform int shininess = 128;
 
 uniform float darkness = 1.0;
@@ -93,8 +93,10 @@ void phongLighting(int i)
 	Idiff += vec4(minnaert(L, n, roughness, light_color), 0);
 	Idiff = vec4(Idiff.rgb * gl_FrontMaterial.diffuse.rgb, 1.0);	
 
-	vec3 light_color2 = vec3(0.2f, 0.035f, 0.0f);
-	vec3 L2 = normalize(vec3(1, 1, 0.25));
+	//vec3 light_color2 = vec3(0.325f, 0.035f, 0.0f);
+	vec3 light_color2 = vec3(0.325f, 0.035f, 0.0f);
+	//vec3 L2 = normalize(vec3(1, 1, 0.25));
+	vec3 L2 = normalize(vec3(1, 1, 0.4));
 	Idiff += vec4(minnaert(L2, n, roughness, light_color2), 0);
 
 	Idiff = clamp(Idiff, 0.0, 1.0);
@@ -120,15 +122,19 @@ void phongLighting(int i)
 	vec3 myspecular = (PI / 4.0f) * specular_term * cosine_term * fresnel_term * visibility_term * gl_LightSource[0].specular.rgb;
 	myspecular = clamp(myspecular, 0, 1);
 
+	int difftransamount = 1;	
+	if (difftrans == false)
+		difftransamount = 0;
+	
 	//--- Final color
-	final_color = vec4(myspecular +  difftrans * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
+	final_color = vec4(myspecular +  difftransamount * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
 	
 	if (iselem == true)
 	{
-		vec3 tex = texture2D(source, gl_TexCoord[0].st).rgb;
+		vec3 tex = texture2D(source, gl_TexCoord[0].st * 5).rgb;
 		
 		final_color = vec4(		
-		1*myspecular +  0.8*difftrans * diffuseTranslucency + 1.0 * ( (Idiff.rgb + vec3(0.25,0.25,0.25)) * (tex - vec3(.0,.0,.0) ) ) - 0.0 * Iamb.xyz
+		1*myspecular +  0.8* difftransamount * diffuseTranslucency + 1.0 * ( (Idiff.rgb + vec3(0.35,0.35,0.35)) * (tex - vec3(.0,.0,.0) ) ) - 0.0 * Iamb.xyz
 		, 0.5) ;
 	}
 	//final_color = texture2D(source, gl_TexCoord[0].st);
@@ -260,7 +266,7 @@ void propFuncFS()
 			//final_color = vec4(gl_LightSource[0].diffuse.xyz * vec3(_OutlineColor), 1);
 		}
 
-		if (d < 0.1 && peerInside == 1)
+		if (d < 0.1 && peerInside == true)
 		{
 			//discard;
 			final_color = final_color * vec4(1, 1, 0, 1);

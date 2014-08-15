@@ -78,13 +78,13 @@ void aperio::slot_afterShowWindow()
 	// Uniforms
 	wiggle = true;
 	shadingnum = 0;		// Toon/normal, etc.
-	peerInside = 0;
+	peerInside = false;
 	brushDivide = 15.0;
 	myexp = 2;
 
-	difftrans = 1.0;
-	shininess = ui.verticalSlider->value();
-	darkness = (ui.verticalSlider_2->value() + 128) / 128.0f;
+	difftrans = true;
+	shininess = ui.shininessSlider->value();
+	darkness = (ui.darknessSlider->value() + 128) / 128.0f;
 
 	QApplication::processEvents();
 
@@ -120,10 +120,22 @@ void aperio::slot_afterShowWindow()
 	renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->GetActiveCamera()->SetClippingRange(0.01, 1000);
 
-	float bgcolor[3] = { 235, 235, 235 };
-	float factor = 0.7;
-	bgcolor[0] *= factor; bgcolor[1] *= factor; bgcolor[2] *= factor;
-	renderer->SetBackground(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0);
+	//float bgcolor[3] = { 235, 235, 235 };
+	//float factor = 0.7;
+	//bgcolor[0] *= factor; bgcolor[1] *= factor; bgcolor[2] *= factor;
+	//renderer->SetBackground(bgcolor[0] / 255.0, bgcolor[1] / 255.0, bgcolor[2] / 255.0);
+
+	// New
+	vtkSmartPointer<vtkPNGReader> pngReader = vtkSmartPointer<vtkPNGReader>::New();
+	pngReader->SetFileName("bg.png");
+	pngReader->Update();
+
+	vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
+	texture->InterpolateOn();
+	texture->SetInputData(pngReader->GetOutput());
+	
+	renderer->SetTexturedBackground(true);
+	renderer->SetBackgroundTexture(texture);
 
 	renderWindow->AddRenderer(renderer);
 
@@ -177,17 +189,17 @@ void aperio::slot_afterShowWindow()
 
 	peelP = vtkSmartPointer<vtkDepthPeelingPass>::New();
 	peelP->SetMaximumNumberOfPeels(2);
-	peelP->SetOcclusionRatio(5);
+	peelP->SetOcclusionRatio(10.0);
 	peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
 
 	// Put all passes into a collection then into a sequence
 	passes = vtkSmartPointer<vtkRenderPassCollection>::New();
+	//passes->AddItem(vtkSmartPointer<vtkClearZPass>::New());
 	passes->AddItem(vtkSmartPointer<vtkLightsPass>::New());
 	passes->AddItem(opaqueP);
+	//passes->AddItem(vtkSmartPointer<vtkOverlayPass>::New());
 	//passes->AddItem(peelP);
 	passes->AddItem(transP);
-	
-	//passes->AddItem(vtkSmartPointer<vtkDefaultPass>::New());
 
 	seq->SetPasses(passes);
 	cameraP->SetDelegatePass(seq);
@@ -216,7 +228,6 @@ void aperio::slot_afterShowWindow()
 	bloomP->SetDelegatePass(fxaaP);
 
 	vtkOpenGLRenderer::SafeDownCast(renderer.GetPointer())->SetPass(bloomP);
-	//vtkOpenGLRenderer::SafeDownCast(renderer)->UseDepthPeelingOn();
 
 	// Render window interactor
 	vtkSmartPointer<QVTKInteractor> renderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
@@ -231,8 +242,12 @@ void aperio::slot_afterShowWindow()
 
 	QApplication::processEvents();
 
+	// Set up text validators for QLineEdits in form
+	ui.txtHingeAmount->setValidator(new QIntValidator(-360, 360, this));
+	ui.txtExplodeAmount->setValidator(new QIntValidator(-1000, 1000, this));
+
 	// Connect all signals to slots
-	connect(ui.btnHello, &QPushButton::clicked, this, &aperio::slot_buttonclicked);
+	connect(ui.btnLight, &QPushButton::clicked, this, &aperio::slot_buttonclicked);
 	connect(ui.btnColor, &QPushButton::clicked, this, &aperio::slot_colorclicked);
 
 	connect(colorDialog, &QColorDialog::currentColorChanged, this, &aperio::slot_colorchanged);
@@ -249,9 +264,9 @@ void aperio::slot_afterShowWindow()
 	connect(ui.menuFile, &QMenu::aboutToShow, this, &aperio::slot_menuclick);
 	connect(ui.menuHelp, &QMenu::aboutToShow, this, &aperio::slot_menuclick);
 
-	connect(ui.horizontalSlider, &QSlider::valueChanged, this, &aperio::slot_valueChanged);
-	connect(ui.verticalSlider, &QSlider::valueChanged, this, &aperio::slot_valueChangedV);
-	connect(ui.verticalSlider_2, &QSlider::valueChanged, this, &aperio::slot_valueChangedV2);
+	connect(ui.opacitySlider, &QSlider::valueChanged, this, &aperio::slot_opacitySlider);
+	connect(ui.shininessSlider, &QSlider::valueChanged, this, &aperio::slot_shininessSlider);
+	connect(ui.darknessSlider, &QSlider::valueChanged, this, &aperio::slot_darknessSlider);
 
 	connect(ui.listWidget, &QListWidget::itemEntered, this, &aperio::slot_listitementered);
 	connect(ui.listWidget, &QListWidget::currentRowChanged, this, &aperio::slot_listitemclicked);
@@ -261,11 +276,18 @@ void aperio::slot_afterShowWindow()
 
 	// Buttons
 	connect(ui.btnSlice, &QPushButton::clicked, this, &aperio::slot_btnSlice);
+	connect(ui.btnHide, &QPushButton::clicked, this, &aperio::slot_btnHide);
 
 	// Superquadric options
 	connect(ui.phiSlider, &QSlider::valueChanged, this, &aperio::slot_phiSlider);
 	connect(ui.thetaSlider, &QSlider::valueChanged, this, &aperio::slot_thetaSlider);
 	connect(ui.chkToroid, &QCheckBox::toggled, this, &aperio::slot_chkToroid);
+
+	// Transform sliders
+	connect(ui.hingeSlider, &QSlider::valueChanged, this, &aperio::slot_hingeSlider);
+
+	// Transform buttons
+	//connect(ui.btnHinge, &QLabel::c, this, &aperio::slot_hingeSlider);
 
 	readFile(fname);
 }
@@ -320,6 +342,28 @@ void aperio::readFile(std::string filename)
 	hoveredIndex = 0;
 
 	renderer->RemoveAllViewProps();	// Remove from renderer, clear listwidget, clear vectors
+
+	/*
+	// Setup background
+	vtkSmartPointer<vtkPNGReader> pngReader = vtkSmartPointer<vtkPNGReader>::New();
+	pngReader->SetFileName("bg12.png");
+	pngReader->Update();
+
+	vtkSmartPointer<vtkImageMapper> imageMapper = vtkSmartPointer<vtkImageMapper>::New();
+	imageMapper->SetColorLevel(127.5);
+	imageMapper->SetColorWindow(255);
+	imageMapper->SetRenderToRectangle(true);
+	imageMapper->SetInputData(pngReader->GetOutput());
+	imageMapper->Update();	
+
+	vtkSmartPointer<vtkActor2D> imageActor = vtkSmartPointer<vtkActor2D>::New();
+	imageActor->SetHeight(1.0);
+	imageActor->SetWidth(1.0);
+	imageActor->GetProperty()->SetDisplayLocationToBackground();
+	imageActor->SetMapper(imageMapper);
+
+	renderer->AddActor2D(imageActor);
+	*/
 
 	ui.listWidget->clear();
 	myelems.clear();
@@ -462,9 +506,10 @@ void aperio::readFile(std::string filename)
 		dataset->SetInputData(nextMesh);
 		dataset->ComputePointNormalsOn();
 		dataset->ComputeCellNormalsOff();
-		dataset->SplittingOn();
+		dataset->SplittingOn();	
 		dataset->SetFeatureAngle(60);
 		dataset->Update();
+
 
 		//vtkSmartPointer<vtkDepthSortPolyData> depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New();
 		//depthSort->SetInputData(dataset->GetOutput());
@@ -494,24 +539,8 @@ void aperio::readFile(std::string filename)
 		qv->GetRenderWindow()->Render();
 	}
 
-	// Custom code
-	vtkSmartPointer<vtkSphereSource> sphere = vtkSmartPointer<vtkSphereSource>::New();
-	sphere->SetRadius(1.0);
-	sphere->SetThetaResolution(8);
-	sphere->SetPhiResolution(8);
-	sphere->Update();
-
-
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputData(sphere->GetOutput());
-
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(mapper);
-
-	//renderer->AddActor(actor);
-
 	// Added meshes, now set selectedMesh to last one (Might have to update this for future selections)
-	selectedMesh = meshes.end();	// Reset selectedMesh to nothing
+	setSelectedMesh(meshes.end());	// Reset selectedMesh to nothing
 
 	if (firsttime)
 		firsttime = false;
@@ -544,7 +573,7 @@ void aperio::slot_thetaSlider(int value)
 		return;
 
 	int i = myelems.size() - 1;
-	myelems[i].source->SetThetaRoundness(value / 50.0);
+	myelems[i].source->SetThetaRoundness(value / roundnessScale);
 	myelems[i].source->Update();
 	myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
 }
@@ -555,7 +584,7 @@ void aperio::slot_phiSlider(int value)
 		return;
 
 	int i = myelems.size() - 1;
-	myelems[i].source->SetPhiRoundness(value / 50.0);
+	myelems[i].source->SetPhiRoundness(value / roundnessScale);
 	myelems[i].source->Update();
 	myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
 }
@@ -680,6 +709,9 @@ void aperio::slot_btnSlice()
 
 	// Probably should remove from list as well (myelems)
 	myelems.erase(myelems.end() - 1);
+
+	// Set selected mesh to newly cut
+	setSelectedMesh(getMeshByName(name));
 }
 //-------------------------------------------------------------------------------------
 void aperio::slot_listitemclicked(int i)
@@ -687,15 +719,8 @@ void aperio::slot_listitemclicked(int i)
 	if (i == -1)
 		return;
 
-	for (int k = 0; k < meshes.size(); k++)
-		meshes[k].selected = false;	// Reset all selectedMesh's selection parameter to false
-
 	std::string itemString = ui.listWidget->item(i)->text().toStdString();	// get new selectedMesh string from list
-	selectedMesh = getMeshByName(itemString);
-
-	selectedMesh->selected = true;		// Set new selectedMesh's selection parameter to true
-
-	updateOpacitySliderAndList();
+	setSelectedMesh(getMeshByName(itemString));
 }
 //-------------------------------------------------------------------------------------------
 void aperio::slot_timeout()
@@ -719,16 +744,16 @@ void aperio::slot_timeout()
 void aperio::slot_chkDepthPeel(bool checked)
 {
 	if (checked)
-		passes->ReplaceItem(2, peelP);
+		passes->ReplaceItem(passes->GetNumberOfItems() - 1, peelP);
 	else
-		passes->ReplaceItem(2, transP);
+		passes->ReplaceItem(passes->GetNumberOfItems() - 1, transP);
 }
 //-------------------------------------------------------------------------------------
 void aperio::updateOpacitySliderAndList()
 {
 	if (selectedMesh != meshes.end())
 	{
-		ui.horizontalSlider->setValue(selectedMesh->opacity * 100);
+		ui.opacitySlider->setValue(selectedMesh->opacity * 100);
 
 		ui.listWidget->clearSelection();	// unselect all previous selected items in list
 
@@ -741,9 +766,65 @@ void aperio::updateOpacitySliderAndList()
 				item->setSelected(true);
 				ui.listWidget->scrollToItem(item);
 
+				// Update other sliders too (get hinging amount)
+				// MYTODO
+
 				vtkColor3f mycol = selectedMesh->color;
 				colorDialog->setCurrentColor(QColor(mycol.GetRed() * 255, mycol.GetGreen() * 255, mycol.GetBlue() * 255));
+
+
+				// Update check states in listbox
+				for (int i = 0; i < meshes.size(); i++)
+				{
+					auto item = getListItemByName(meshes[i].name);
+
+					if (meshes[i].opacity <= 0)
+						item->setCheckState(Qt::Unchecked);
+					else
+						item->setCheckState(Qt::Checked);
+				}
 			}
 		}
 	}
 }
+//----------------------------------------------------------------------------------------------
+void aperio::slot_hingeSlider(int value)
+{
+	if (selectedMesh == meshes.end())
+		return;
+	if (!selectedMesh->generated)	// Make sure it is a generated mesh (Rather than original mesh)
+		return;
+
+	float angle = (-value / 100.0) * ui.txtHingeAmount->text().toInt();
+
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->PostMultiply();
+	transform->Translate(-selectedMesh->hingePivot.GetX(), -selectedMesh->hingePivot.GetY(), -selectedMesh->hingePivot.GetZ());
+	transform->RotateWXYZ(angle, selectedMesh->sup.GetX(), selectedMesh->sup.GetY(),
+		selectedMesh->sup.GetZ());
+	transform->Translate(selectedMesh->hingePivot.GetX(), selectedMesh->hingePivot.GetY(), selectedMesh->hingePivot.GetZ());
+
+	selectedMesh->actor->SetUserTransform(transform);
+
+	QApplication::processEvents();
+	//}
+}
+//-------------------------------------------------------------------------------
+void aperio::slot_btnHide()
+{
+	if (selectedMesh != meshes.end())
+	{
+		float newopacity;
+
+		if (selectedMesh->opacity == 0)
+			newopacity = 100;
+		else
+			newopacity = 0;
+
+		selectedMesh->opacity = newopacity;
+		selectedMesh->actor->GetProperty()->SetOpacity(newopacity);
+		updateOpacitySliderAndList();
+	}
+}
+
+

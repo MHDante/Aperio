@@ -105,7 +105,7 @@ public:
 	bool wiggle;
 	float mouseSize;				// Recompute from bounds
 	float brushDivide;				// division factor for mouseSize
-	int peerInside;
+	bool peerInside;
 	int toon;
 	float myexp;					// Superquadric roundness param
 	float myn;
@@ -117,7 +117,7 @@ public:
 	float norm1[3];					// normal of superquad (pt1 and pt2)
 	float norm2[3];
 
-	float difftrans;
+	bool difftrans;
 	int shininess;
 	float darkness;
 
@@ -128,6 +128,7 @@ public:
 	
 	vtkSmartPointer<vtkRenderPassCollection> passes;
 
+	float roundnessScale = 50.0;
 
 	vtkSmartPointer<vtkShaderProgram2> pgm;
 
@@ -202,6 +203,11 @@ public slots:
 	void slot_btnSlice();
 
 	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Show/Hide button clicked
+	/// </summary>
+	void slot_btnHide();
+
+	// ------------------------------------------------------------------------
 	/// <summary> Slot called when Phi Slider changed
 	/// </summary>
 	void slot_phiSlider(int value);
@@ -228,13 +234,29 @@ public slots:
 	void slot_listitemclicked(int i);
 
 	// ------------------------------------------------------------------------
+	/// <summary> Slot called when hinge slider's value changed
+	/// </summary>
+	/// <param name="i">value changed</param>
+	void slot_hingeSlider(int value);
+
+	// ------------------------------------------------------------------------
 	/// <summary> Slot called when the Diffuse Translucency (Light) button clicked
 	/// </summary>
 	void slot_buttonclicked()
 	{
-		difftrans = ((int)difftrans + 1) % 2;
-		ui.btnHello->setText("Light: " + QString::number(difftrans));
-		print_statusbar("Diffuse Translucency toggled!");
+		difftrans = !difftrans;
+		ui.btnLight->setText( (difftrans? QString("On") : QString("Off"))  );
+
+		QPixmap pixmap;
+
+		if (difftrans)
+			pixmap = QPixmap(":/aperio/flashlight2.png");
+		else
+			pixmap = QPixmap(":/aperio/flashlight.png");
+
+		ui.btnLight->setIcon(QIcon(pixmap));
+
+		print_statusbar("Light toggled!");
 	}
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when the Color button clicked
@@ -390,7 +412,7 @@ public slots:
 	/// <summary> Slot called when opacity slider value changed
 	/// </summary>
 	/// <param name="i">new opacity value</param>
-	void slot_valueChanged(int i)
+	void slot_opacitySlider(int i)
 	{
 		// opacity is perceived opacity, i / 100.0f is actual opacity;
 		float actualopacity = i / 100.0f;
@@ -407,6 +429,14 @@ public slots:
 		{
 			selectedMesh->opacity = actualopacity;
 			selectedMesh->actor->GetProperty()->SetOpacity(opacity);
+
+			// Update list check boxes
+			auto item = getListItemByName(selectedMesh->name);
+
+			if (opacity == 0)
+				item->setCheckState(Qt::Unchecked);
+			else
+				item->setCheckState(Qt::Checked);
 		}
 	}
 
@@ -414,7 +444,7 @@ public slots:
 	/// <summary> Slot called when vertical slider value changed
 	/// </summary>
 	/// <param name="i">new shininess value</param>
-	void slot_valueChangedV(int i)
+	void slot_shininessSlider(int i)
 	{
 		shininess = i;
 	}
@@ -422,7 +452,7 @@ public slots:
 	/// <summary> Slot called when vertical slider2 value changed
 	/// </summary>
 	/// <param name="i">new darkness value</param>
-	void slot_valueChangedV2(int i)
+	void slot_darknessSlider(int i)
 	{
 		darkness = (i + 128.0f) / 128.0f;
 	}
@@ -436,7 +466,23 @@ public slots:
 	// Public Methods ----------------------------------------------------------------------------------------------
 public:
 
-	public:
+		/// <summary> Set SelectedMesh to an instance of vector<CustomMesh>::iterator (update list, variable & selected shader var)
+		/// </summary>
+		/// <param name="name">Name of object (string) </param>
+		void setSelectedMesh(std::vector<CustomMesh>::iterator &it)
+		{
+			// Reset all meshes' selection parameter to false
+			for (int i = 0; i < meshes.size(); i++)
+				meshes[i].selected = false;	
+
+			selectedMesh = it;			// Set selectedMesh to mesh clicked 
+
+			if (it != meshes.end())
+			{
+				selectedMesh->selected = true;	// Set selected property to true
+				updateOpacitySliderAndList();	// Update list
+			}
+		}
 
 		/// <summary> Obtain CustomMesh by name
 		/// </summary>

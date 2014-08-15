@@ -56,19 +56,7 @@ void MyInteractorStyle::OnKeyPress()
 	//if (strcmp(this->Interactor->GetKeySym(), "Delete") == 0)	// Del key	 ( probably should put this in QT keycheck, b/c QVTKWidget requires focus)
 	else if (strcmp(this->Interactor->GetKeySym(), "h") == 0)	// Del key	 ( probably should put this in QT keycheck, b/c QVTKWidget requires focus)
 	{
-		if (a->selectedMesh != a->meshes.end())
-		{
-			float newopacity;
-
-			if (a->selectedMesh->opacity == 0)
-				newopacity = 100;
-			else
-				newopacity = 0;
-
-			a->selectedMesh->opacity = newopacity;
-			a->selectedMesh->actor->GetProperty()->SetOpacity(newopacity);
-			a->updateOpacitySliderAndList();
-		}
+		a->slot_btnHide();
 	}
 	if (this->Interactor->GetKeyCode() == 'k')	// Cut
 	{
@@ -156,29 +144,7 @@ void MyInteractorStyle::OnKeyPress()
 	}
 	if (this->Interactor->GetKeyCode() == '3')	// Rotate around hinge	
 	{
-		if (a->selectedMesh == a->meshes.end())
-			return;
-		if (!a->selectedMesh->generated)	// Make sure it is a generated mesh (Rather than original mesh)
-			return;
-
-		static int x = 5;
-
-		//while (x < 60)
-		//{
-		x += 5;
-
-		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-		transform->PostMultiply();
-		transform->Translate(-a->selectedMesh->hingePivot.GetX(), -a->selectedMesh->hingePivot.GetY(), -a->selectedMesh->hingePivot.GetZ());
-		transform->RotateWXYZ(-x, a->selectedMesh->sup.GetX(), a->selectedMesh->sup.GetY(),
-			a->selectedMesh->sup.GetZ());
-		transform->Translate(a->selectedMesh->hingePivot.GetX(), a->selectedMesh->hingePivot.GetY(), a->selectedMesh->hingePivot.GetZ());
-
-		a->selectedMesh->actor->SetUserTransform(transform);
-
-		QApplication::processEvents();
-		//}
-
+	a->slot_hingeSlider(128);
 	}
 	if (this->Interactor->GetKeyCode() == '2')	// Rotate around hinge (-)
 	{
@@ -206,7 +172,7 @@ void MyInteractorStyle::OnKeyPress()
 	}
 	if (this->Interactor->GetKeyCode() == 't')	// Toggle peek
 	{
-		a->peerInside = (a->peerInside + 1) % 2;
+		a->peerInside = !a->peerInside;
 	}
 
 	if (this->Interactor->GetKeyCode() == 'c')	// change roundness (-phi)
@@ -441,15 +407,7 @@ void MyInteractorStyle::OnLeftButtonDown()
 			auto it = a->getMeshByActor(actorSingle);
 
 			if (it != a->meshes.end())
-			{
-				for (int i = 0; i < a->meshes.size(); i++)
-					a->meshes[i].selected = false;	// Reset all meshes to unselected
-
-				a->selectedMesh = it;			// set selectedMesh to mesh clicked and its selected property to true
-				a->selectedMesh->selected = true;
-
-				a->updateOpacitySliderAndList();
-			}
+				a->setSelectedMesh(it);
 		}
 	}
 
@@ -470,13 +428,7 @@ void MyInteractorStyle::OnLeftButtonDown()
 			if (it != a->meshes.end())
 			{
 				// if dbl clicked mesh, set it as selected (update slider/list, etc.)
-				for (int i = 0; i < a->meshes.size(); i++)
-					a->meshes[i].selected = false;	// Reset all meshes to unselected
-
-				a->selectedMesh = it;			// Update selectedMesh to one clicked and set selected property to true
-				a->selectedMesh->selected = true;
-
-				a->updateOpacitySliderAndList();
+				a->setSelectedMesh(it);	// Update selectedMesh to one clicked 
 			}
 		}
 		this->NumberOfClicks = 0;
@@ -586,13 +538,13 @@ void MyInteractorStyle::OnLeftButtonUp()
 		elem.p2.normal = vtkVector3f(a->norm2[0], a->norm2[1], a->norm2[2]);
 
 		vtkSmartPointer<MySuperquadricSource> superquad = vtkSmartPointer<MySuperquadricSource>::New();
-		superquad->SetToroidal(false);
-		superquad->SetThetaResolution(1);
-		superquad->SetPhiResolution(1);
+		superquad->SetToroidal(a->ui.chkToroid->isChecked());
+		superquad->SetThetaResolution(16);
+		superquad->SetPhiResolution(16);
 
 		//superquad->SetThickness(5);
-		superquad->SetPhiRoundness(0.0);
-		superquad->SetThetaRoundness(0.0);
+		superquad->SetPhiRoundness(a->ui.phiSlider->value() / a->roundnessScale);
+		superquad->SetThetaRoundness(a->ui.thetaSlider->value() / a->roundnessScale);
 		superquad->Update();
 
 		// Get forward/up/right vectors (to orient superquad)

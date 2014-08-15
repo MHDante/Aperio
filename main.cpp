@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
 	a.processEvents();
 
 	aperio w;
+	//w.setFixedSize(w.width(), w.height());
 	w.show();
 
 	Manager *manager = new Manager();

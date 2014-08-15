@@ -50,6 +50,8 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 
 #include <vtkOBJReader.h>
 #include <vtkJPEGReader.h>
+#include <vtkPNGReader.h>
+#include <vtkImageData.h>
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -87,4 +89,12 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 #include <vtkShader2Collection.h>
 
 #include <vtkDepthPeelingPass.h>
+#include <vtkOverlayPass.h>
 #include <vtkRenderPassCollection.h>
+#include <vtkSmoothPolyDataFilter.h>
+
+#include <vtkTexturedActor2D.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapper.h>
+#include <vtkProperty2D.h>
+#include <vtkImageData.h>
