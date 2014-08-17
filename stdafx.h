@@ -101,3 +101,5 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 
 #include <vtkStripper.h>
 #include <vtkUniformVariables.h>
+
+#include <vtkContourFilter.h>

@@ -232,13 +232,19 @@ CustomMesh& Utility::addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int
 //-----------------------------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> Utility::computeNormals(vtkSmartPointer<vtkPolyData> source)
 {
-	vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
+	vtkSmartPointer<vtkContourFilter> dataset = vtkSmartPointer<vtkContourFilter>::New();
+	dataset->SetInputData(source);
+	dataset->ComputeNormalsOn();
+	dataset->Update();
+
+	/*vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
 	dataset->SetInputData(source);
 	dataset->ComputePointNormalsOn();
 	dataset->ComputeCellNormalsOff();
 	dataset->SplittingOn();
 	dataset->SetFeatureAngle(60);
 	dataset->Update();
+	*/
 
 	return dataset->GetOutput();
 }
