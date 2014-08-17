@@ -99,55 +99,55 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	{
 		vtkProp *p = s->GetPropArray()[i];
 
-		// Find actor inside CustomMesh vector (using lambda to compare CustomMesh's actor pointer with vtkActor's pointer)
-		auto it = a->getMeshByActorRaw(vtkActor::SafeDownCast(p));
-
-		if (it != a->meshes.end())
+		if (p->HasKeys(s->GetRequiredKeys()))
 		{
-			// Found the CustomMesh object mapped to this actor (actor is a subclass of prop)
-			uniforms->SetUniformit("selected", 1, &it->selected);
+			// Find actor inside CustomMesh vector (using lambda to compare CustomMesh's actor pointer with vtkActor's pointer)
+			auto it = a->getMeshByActorRaw(vtkActor::SafeDownCast(p));
 
-			bool iselem = false;
-			uniforms->SetUniformit("iselem", 1, &iselem);
-		}
-		else
-		{
-			// Do another find here to see if mesh is part of widget elements
-			auto it2 = a->getElemByActorRaw(vtkActor::SafeDownCast(p));
-
-			if (it2 != a->myelems.end())
+			if (it != a->meshes.end())
 			{
-				// Actor belongs to our Elements array (myelems)
-				bool iselem = true;
+				// Found the CustomMesh object mapped to this actor (actor is a subclass of prop)
+				uniforms->SetUniformit("selected", 1, &it->selected);
+
+				bool iselem = false;
 				uniforms->SetUniformit("iselem", 1, &iselem);
 			}
 			else
 			{
-				// Else,
-				// Not found the CustomMesh object, must be extra objects
+				// Do another find here to see if mesh is part of widget elements
+				auto it2 = a->getElemByActorRaw(vtkActor::SafeDownCast(p));
+
+				if (it2 != a->myelems.end())
+				{
+					// Actor belongs to our Elements array (myelems)
+					bool iselem = true;
+					uniforms->SetUniformit("iselem", 1, &iselem);
+				}
+				else
+				{
+					// Else,
+					// Not found the CustomMesh object, must be extra objects
+				}
 			}
-		}
 
-		int rendered;			
-		
-		a->pgm->SetUniformVariables(uniforms);
-		//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->pgm); // Dangerous, constantly allocs
-		a->pgm->Use();
+			int rendered;
 
-		if (passType == ShaderPassType::PASS_TRANSLUCENT)
-		{
-			//rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
-			rendered = p->RenderTranslucentPolygonalGeometry(s->GetRenderer());
-			this->NumberOfRenderedProps += rendered;
+			a->pgm->SetUniformVariables(uniforms);
+			//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->pgm); // Dangerous, constantly allocs
+			a->pgm->Use();
+
+			if (passType == ShaderPassType::PASS_TRANSLUCENT)
+			{
+				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
+				this->NumberOfRenderedProps += rendered;
+			}
+			else
+			{
+				rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
+				this->NumberOfRenderedProps += rendered + 1;
+			}
+			a->pgm->Restore();
 		}
-		else
-		{
-			//rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
-			rendered = p->RenderOpaqueGeometry(s->GetRenderer());
-			this->NumberOfRenderedProps += rendered;
-		}
-		a->pgm->Restore();
-		
 		++i;
 	}
 }

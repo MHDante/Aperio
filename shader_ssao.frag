@@ -199,5 +199,4 @@ void main() {
 	}
 
 	gl_FragColor = vec4( final, 1.0 );
-
 }

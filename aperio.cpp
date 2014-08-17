@@ -204,13 +204,14 @@ void aperio::slot_afterShowWindow()
 	//dotP->SetDelegatePass(ssaoP);
 
 	vtkSmartPointer<vtkMyProcessingPass> fxaaP = vtkSmartPointer<vtkMyProcessingPass>::New();
-	//fxaaP->setShaderFile("shader_fxaa.vert", false);
+	fxaaP->setShaderFile("shader_fxaa.vert", false);
 	fxaaP->setShaderFile("shader_fxaa.frag", true);
 	fxaaP->SetDelegatePass(ssaoP);
 
 	vtkSmartPointer<vtkMyProcessingPass> bloomP = vtkSmartPointer<vtkMyProcessingPass>::New();
 	bloomP->setShaderFile("shader_bloom.frag", true);
 	bloomP->SetDelegatePass(fxaaP);
+
 
 	vtkOpenGLRenderer::SafeDownCast(renderer.GetPointer())->SetPass(bloomP);
 

@@ -73,44 +73,16 @@ vec3 waveNormal(float x, float y) {
 void water()
 {
    float a = 0.01;
-   amplitude[0] = a;
-   amplitude[1] = a;
-   amplitude[2] = a;
-   amplitude[3] = a;
-   amplitude[4] = a;
-   amplitude[5] = a;
-   amplitude[6] = a;
-   amplitude[7] = a;
+   amplitude = float[8](a, a, a, a, a, a, a, a);
 
    float w = 0.04;
-   wavelength[0] = w;
-   wavelength[1] = w;
-   wavelength[2] = w;
-   wavelength[3] = w;
-   wavelength[4] = w;
-   wavelength[5] = w;
-   wavelength[6] = w;
-   wavelength[7] = w;
+   wavelength = float[8](w, w, w, w, w, w, w, w);
 
    float s = 0.1;
-   speed[0] = s;
-   speed[1] = s;
-   speed[2] = s;
-   speed[3] = s;
-   speed[4] = s;
-   speed[5] = s;
-   speed[6] = s;
-   speed[7] = s;
+   speed = float[8](s, s, s, s, s, s, s, s);
 
-   vec2 dd = vec2(0.0, 0.01);
-   direction[0] = dd;
-   direction[1] = dd;
-   direction[2] = dd;
-   direction[3] = dd;
-   direction[4] = dd;
-   direction[5] = dd;
-   direction[6] = dd;
-   direction[7] = dd;
+   vec2 dd = vec2(0.0, 0.01);   
+   direction = vec2[8](dd, dd, dd, dd, dd, dd, dd, dd);
 
 	vec4 pos = gl_Vertex;
     pos.z = pos.z + (waterHeight + waveHeight(pos.x, pos.y)) * 0.25;
@@ -133,6 +105,6 @@ void main()
 	
 	if (selected == true && wiggle == true)
 		water();
-	
+
 	gl_Position = final_position;
 }
