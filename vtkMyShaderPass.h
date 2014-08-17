@@ -58,7 +58,7 @@ public:
 	//vtkGetMacro(translucentPass, bool);
 	//vtkSetMacro(translucentPass, bool);
 
-	// The main variables initializer since constructors are not used (initializes aperio class & PassType)
+	// The main variables initializer since constructors are not used (initializes aperio class reference & PassType)
 	// MUST be called first before running
 	void initialize(aperio * window, ShaderPassType::T passType);
 
@@ -66,8 +66,6 @@ public:
 	aperio *a;
 	vtkSmartPointer<vtkUniformVariables> uniforms;
 	ShaderPassType::T passType;
-
-	float time;
 
 	//ETX
 

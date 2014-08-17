@@ -3,7 +3,7 @@ Fragment
 Main Shader : Phong-Minneart Reflection model and main interaction
 *******************************************************************/
 
-#version 330 compatibility
+#version 440 compatibility
 //#version 130
 //#extension GL_EXT_geometry_shader4 : enable
 
@@ -13,10 +13,11 @@ in vec3 original_v;
 
 uniform vec3 mouse = vec3(0, 0, 0);
 uniform float mouseSize = 1.0;
+uniform float brushSize = 1.5;
 uniform bool peerInside = false;
 
 uniform float myexp = 1.0;
-uniform sampler2D source;
+uniform sampler2D source ;
 
 uniform int shadingnum = 0;
 uniform bool difftrans = true;
@@ -27,10 +28,14 @@ uniform float darkness = 1.0;
 uniform bool selected = false;
 uniform bool iselem = false;
 
-// Global variables
-vec4 final_color = vec4(1, 1, 1, 1);
-
+// Light parameters
+vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1);
+vec4 light_diffuse = vec4(0.6, 0.6, 0.6, 1);
+vec4 light_specular = vec4(1.0, 1.0, 1.0, 1);
 vec3 light_position = normalize(vec3(-0.080999853,6.4752009809,2.6762204566));
+
+// Global variables/Constants
+vec4 final_color = vec4(1, 1, 1, 1);
 
 const float PI = 3.141592653;
 
@@ -40,29 +45,19 @@ vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color) {
 	return  light_color * pow(ndotl, k);
 }
 
-//--- Schlick constant
-float schlick(float ior, float ndotE) {
-	float kr = (ior - 1.0) / (ior + 1.0);
-	kr *= kr;
-	return kr + (1.0 - kr)*pow(1.0 - ndotE, 5.0);
-}
-
 //---------------- Phong lighting (Directional) ----------------------//
 void phongLighting(int i)
 {
 	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  	
-	//vec3 L = normalize(gl_LightSource[0].position.xyz);   // surf2Light, for directional lights
-	//L = normalize(vec3(-0.080999853,6.4752009809,3.6762204566));
+	//L = normalize(vec3(-0.080999853,6.4752009809,3.6762204566)); // surf2Light, for directional lights
 	vec3 L = light_position;
-	
-	//vec3 L = normalize(vec3(0, 0.5, 0.5));   // surf2Light, for directional lights
 	vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
 	vec3 h = normalize(E + L);
 
 	//calculate Ambient Term:    
 	vec4 theamb = gl_FrontMaterial.ambient;
 	theamb.b /= 1.4;
-	vec4 Iamb = (theamb * gl_LightSource[0].ambient);
+	vec4 Iamb = (theamb * light_ambient);
 
 	//--- Computation of forward scattered translucency: 
 	vec3 _DiffuseTranslucentColor = vec3(1,1,1);
@@ -70,7 +65,7 @@ void phongLighting(int i)
 	float _Sharpness = 0.5f;
 
 	float att = 0.8;
-	vec3 diffuseTranslucency = att * gl_LightSource[i].specular.rgb
+	vec3 diffuseTranslucency = att * light_specular.rgb
 		* vec3(_DiffuseTranslucentColor)
 		* max(0.0, dot(L, -n));
 
@@ -81,7 +76,7 @@ void phongLighting(int i)
 	}
 	else // light source on the right side
 	{
-		forwardTranslucency = att * gl_LightSource[i].specular.rgb
+		forwardTranslucency = att * light_specular.rgb
 			* vec3(_ForwardTranslucentColor) * pow(max(0.0, dot(-L, E)), _Sharpness);
 	}
 
@@ -89,7 +84,7 @@ void phongLighting(int i)
 	float roughness = darkness; // minnaert roughness  1.5 default (1.0 is lambert)
 	vec4 Idiff = vec4(0, 0, 0, 0);	
 
-	vec3 light_color = gl_LightSource[0].diffuse.rgb;
+	vec3 light_color = light_diffuse.rgb;
 	Idiff += vec4(minnaert(L, n, roughness, light_color), 0);
 	Idiff = vec4(Idiff.rgb * gl_FrontMaterial.diffuse.rgb, 1.0);	
 
@@ -102,7 +97,6 @@ void phongLighting(int i)
 	Idiff = clamp(Idiff, 0.0, 1.0);
 	
 	//--- Physically based shader for specular lighting (energy conservation - normalization)
-	//gl_FrontMaterial.shininess = shininess;
 
 	float normalisation_term = (shininess + 2.0f) / 2.0f * PI;
 	float blinn_phong = pow(dot(R, E), shininess);    // n_dot_h is the saturated dot product of the normal and half vectors
@@ -119,7 +113,7 @@ void phongLighting(int i)
 	float visibility_term = (dot(n, L) * (1.0f - alpha) + alpha) * (dot(n, E) * (1.0f - alpha) + alpha); // Both dot products should be saturated
 	visibility_term = 1.0f / visibility_term;
 
-	vec3 myspecular = (PI / 4.0f) * specular_term * cosine_term * fresnel_term * visibility_term * gl_LightSource[0].specular.rgb;
+	vec3 myspecular = (PI / 4.0f) * specular_term * cosine_term * fresnel_term * visibility_term * light_specular.rgb;
 	myspecular = clamp(myspecular, 0, 1);
 
 	int difftransamount = 1;	
@@ -137,7 +131,6 @@ void phongLighting(int i)
 		1*myspecular +  0.8* difftransamount * diffuseTranslucency + 1.0 * ( (Idiff.rgb + vec3(0.35,0.35,0.35)) * (tex - vec3(.0,.0,.0) ) ) - 0.0 * Iamb.xyz
 		, 0.5) ;
 	}
-	//final_color = texture2D(source, gl_TexCoord[0].st);
 }
 
 // ---------------- Toon Shader ----------------------//
@@ -153,9 +146,7 @@ void toon()
 	vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
 
 	float intensity = max(dot(n, normalize(L)), 0.0);
-
 	vec3 diffuse = gl_FrontMaterial.diffuse.rgb * floor(intensity * levels) * scaleFactor;
-
 	final_color = gl_FrontMaterial.ambient / 20.0f + vec4(diffuse, gl_Color.a);
 }
 
@@ -217,30 +208,19 @@ void subScatterFS()
 }
 
 // ***************-------------------- Main function -------------------------***************//
-void propFuncFS()
+void main()
 {
-	//vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  	
-	//vec3 L = normalize(gl_LightSource[0].position.xyz);   // surf2Light, for directional lights
-	//vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
-	//vec3 h = normalize(E + L);
-	
-	//float diffe = dot(n, E);
-	
-	//gl_FragColor = vec4(1, 1, 1, diffe);
-	//return;
-	//
 	vec3 newN = n;
 	
 	if (!gl_FrontFacing)
 		newN = -newN;
-
+		
 	if (shadingnum == 0)
 		phongLighting(0);
 	else if (shadingnum == 1)
 		subScatterFS();
 	else
 		toon();
-
 
 	// convert mouse world coords to view coords (so same as v)
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
@@ -254,35 +234,28 @@ void propFuncFS()
 	
 	if (selected == true)	// if selected
 	{
-		vec3 _OutlineColor = vec3(0, 0, 0);
-		float _UnlitOutlineThickness = 0.8;
-		float _LitOutlineThickness = 0.1;
+		float minDist = brushSize;
 		
-		vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  	
-		vec3 L = normalize(light_position);   // surf2Light, for directional lights
-		if (dot(E, newN) < mix(_UnlitOutlineThickness, _LitOutlineThickness,
-			max(0.0, dot(newN, L))))
+		//final_color = vec4(1, 0, 0, 1);
+		if (peerInside == true)
 		{
-			//final_color = vec4(gl_LightSource[0].diffuse.xyz * vec3(_OutlineColor), 1);
-		}
+		
+			if (d < minDist)
+			{			
+				discard;
+				final_color = final_color * vec4(1.75, 1.25, 0.25, 0.35);
+				//final_color = final_color * vec4(1.75, 1.25, 0.25, 1 - (0.1 - d) );
+				//final_color = final_color * vec4(1.75, 1.25, 0.25, 0.75 - (minDist - d));
+				//final_color = final_color * vec4(1.75, 1.25, 0.25, 0.0);
+			}
+			else if (d < 1.75 * minDist)
+			{
+				float dd = d / (1.5 * minDist);
+				final_color = vec4(1, 0.7, 0.4,  dd - 0.55);
+			}
 
-		if (d < 0.1 && peerInside == true)
-		{
-			//discard;
-			final_color = final_color * vec4(1, 1, 0, 1);
-			gl_FragColor =  final_color;
 		}
-		else
-		{
-			//final_color = final_color * vec4(1.3, 1.3, 1.0, 1)
-			//final_color = clamp(final_color, 0, 1);
-
-			gl_FragColor = final_color;
-		}
-	}
-	else
-	{
-		gl_FragColor = final_color;
-	}
+	}	
+	gl_FragColor = final_color;	
 }
 

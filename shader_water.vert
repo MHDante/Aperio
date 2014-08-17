@@ -3,11 +3,11 @@
 	Water Shader : Rippling water shader
 *******************************************************************/
 
-#version 330 compatibility
+#version 440 compatibility
 //#version 130
 //#extension GL_EXT_geometry_shader4 : enable
 
-uniform float time;
+uniform float time = 0.0;
 uniform bool selected;
 uniform bool wiggle;
 
@@ -112,30 +112,24 @@ void water()
    direction[6] = dd;
    direction[7] = dd;
 
-   //gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;  
-   
 	vec4 pos = gl_Vertex;
     pos.z = pos.z + (waterHeight + waveHeight(pos.x, pos.y)) * 0.25;
 	
 	final_position = gl_ModelViewProjectionMatrix * (pos);
 }
 
-void propFuncVS()  
+void main()  
 {     
    	v = vec3(gl_ModelViewMatrix * gl_Vertex);       
     n = normalize(gl_NormalMatrix * gl_Normal);
 
-	original_v = vec3(gl_Vertex);       
+	original_v = vec3(gl_Vertex);
 	
 	gl_FrontColor = gl_Color;
 	gl_BackColor = gl_Color;
 	gl_TexCoord[0] = gl_MultiTexCoord0;   
 
 	final_position = gl_ModelViewProjectionMatrix * gl_Vertex;
-	
-    //position = pos.xyz / pos.w;
-    //worldNormal = waveNormal(pos.x, pos.y);
-    //eyeNormal = gl_NormalMatrix * worldNormal;
 	
 	if (selected == true && wiggle == true)
 		water();

@@ -83,6 +83,9 @@ struct CustomMesh
 	vtkVector3f sup;		// Superquadric up vector
 	vtkVector3f hingePivot; // Superquadric initial position is hinge
 
+	float hingeAngle;
+	float hingeAmount;
+
 	// Custom properties
 	bool selected;
 };
@@ -105,6 +108,7 @@ public:
 	bool wiggle;
 	float mouseSize;				// Recompute from bounds
 	float brushDivide;				// division factor for mouseSize
+	float brushSize;
 	bool peerInside;
 	int toon;
 	float myexp;					// Superquadric roundness param
@@ -121,6 +125,8 @@ public:
 	int shininess;
 	float darkness;
 
+	float wavetime;
+
 	// Public variables
 	vtkSmartPointer<vtkMyShaderPass> opaqueP;
 	vtkSmartPointer<vtkMyShaderPass> transP;
@@ -128,14 +134,11 @@ public:
 	
 	vtkSmartPointer<vtkRenderPassCollection> passes;
 
-	float roundnessScale = 50.0;
-
-	vtkSmartPointer<vtkShaderProgram2> pgm;
-
+	float roundnessScale = 50.0;	// Superquadric roundness (divider)
+	
 	// Shader programs
-	vtkSmartPointer<vtkShaderProgram2> shaderProgram;
-	//vtkSmartPointer<vtkShaderProgram2> shaderProgram_outline;
-	vtkSmartPointer<vtkTexture> colorTexture;
+	vtkSmartPointer<vtkShaderProgram2> pgm;
+	vtkSmartPointer<vtkTexture> cutterTexture;
 
 	// QT Window variables (preview and original size of window)
 	QRect _orig_size;
@@ -178,14 +181,8 @@ private:
 	/// Frame rate (frames per second)
 	float fps;
 
-	//TODO Get rid of indices
-	/// <summary> Currently hovered over mesh index (in listbox) - get rid of indices </summary>
-	int hoveredIndex;
-
 	/// <summary> Boolean to toggle pausing VTK rendering </summary>
 	bool pause;
-
-	bool firsttime;
 
 /////////////////////////////////////// PUBLIC SLOTS //////////////////////////////////////////////////////////////////
 public slots:
@@ -195,7 +192,20 @@ public slots:
 	/// </summary>
 	void slot_listitementered(QListWidgetItem * item)
 	{
-		hoveredIndex = ui.listWidget->row(item);
+	}
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Magnifying glass button clicked
+	/// </summary>
+	void slot_btnGlass()
+	{
+		peerInside = !peerInside;
+
+		QPixmap pixmap;
+		if (peerInside)
+			pixmap = QPixmap(":/aperio/glass2.png");
+		else
+			pixmap = QPixmap(":/aperio/glass.png");
+		ui.btnGlass->setIcon(QIcon(pixmap));
 	}
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when Slice button clicked
@@ -223,7 +233,7 @@ public slots:
 	void slot_chkToroid(bool checked);
 
 	// ------------------------------------------------------------------------
-	/// <summary> Slot called depth peeling checkbox is checked
+	/// <summary> Slot called depth peeling checkbox is togggled
 	/// </summary>
 	void slot_chkDepthPeel(bool checked);
 
@@ -240,6 +250,11 @@ public slots:
 	void slot_hingeSlider(int value);
 
 	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Hinge Amount changed in QLineEdit (textbox) 
+	/// </summary>
+	void slot_txtHingeAmount(const QString &string);
+
+	// ------------------------------------------------------------------------
 	/// <summary> Slot called when the Diffuse Translucency (Light) button clicked
 	/// </summary>
 	void slot_buttonclicked()
@@ -248,12 +263,10 @@ public slots:
 		ui.btnLight->setText( (difftrans? QString("On") : QString("Off"))  );
 
 		QPixmap pixmap;
-
 		if (difftrans)
 			pixmap = QPixmap(":/aperio/flashlight2.png");
 		else
 			pixmap = QPixmap(":/aperio/flashlight.png");
-
 		ui.btnLight->setIcon(QIcon(pixmap));
 
 		print_statusbar("Light toggled!");
@@ -324,15 +337,23 @@ public slots:
 		QTimer::singleShot(200, this, SLOT(slot_menuclick2()));
 	}
 	// ------------------------------------------------------------------------
-	/// <summary> Slot called as frequently as possible (refreshes qvtkWidget)
+	/// <summary> Slot called as frequently as possible - instantaneous timer
 	/// </summary>
-	void slot_timeout();
+	void slot_timeout_instant()
+	{
+		if (!pause) qv->update();
+	}
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called according to FPS speed (updates qv widget)
+	/// </summary>
+	void slot_timeout_fps();
 
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called less frequently (few times a second)
 	/// </summary>
-	void slot_timeout2()
+	void slot_timeout_delay()
 	{
+		// Update Shaders Periodically (so we can make real-time changes to shaders and reload) [Debugging Purposes!]
 		Utility::updateShader(pgm, "shader_water.vert", "shader.frag");
 	}
 	// ------------------------------------------------------------------------
@@ -340,10 +361,10 @@ public slots:
 	/// </summary>
 	void slot_open()
 	{
+		pause = true;
+
 		if (path.isEmpty())
 			path = QDir::currentPath();
-
-		pause = true;
 
 		QString selectedFilter;
 		QFileDialog::Options options;
@@ -422,9 +443,6 @@ public slots:
 		if (i >= 100)
 			opacity = 1;
 
-		// if opacity = 0, disabled
-		// if opacity > 0, enabled
-
 		if (selectedMesh != meshes.end())
 		{
 			selectedMesh->opacity = actualopacity;
@@ -439,9 +457,8 @@ public slots:
 				item->setCheckState(Qt::Checked);
 		}
 	}
-
 	// ------------------------------------------------------------------------
-	/// <summary> Slot called when vertical slider value changed
+	/// <summary> Slot called when shininess slider value changed
 	/// </summary>
 	/// <param name="i">new shininess value</param>
 	void slot_shininessSlider(int i)
@@ -449,7 +466,7 @@ public slots:
 		shininess = i;
 	}
 	// ------------------------------------------------------------------------
-	/// <summary> Slot called when vertical slider2 value changed
+	/// <summary> Slot called when darkness slider value changed
 	/// </summary>
 	/// <param name="i">new darkness value</param>
 	void slot_darknessSlider(int i)
@@ -483,7 +500,6 @@ public:
 				updateOpacitySliderAndList();	// Update list
 			}
 		}
-
 		/// <summary> Obtain CustomMesh by name
 		/// </summary>
 		/// <param name="name">Name of object (string) </param>
@@ -492,7 +508,6 @@ public:
 			auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c) { return c.name.compare(name) == 0; });
 			return it;
 		}
-
 		/// <summary> Obtain CustomMesh by vtkActor smartpointer
 		/// </summary>
 		/// <param name="name">vtkActor SmartPointer to compare with all CustomMeshes' actors</param>
@@ -502,7 +517,6 @@ public:
 			{ return c.actor.GetPointer() == actor.GetPointer(); });
 			return it;
 		}
-
 		/// <summary> Obtain CustomMesh by vtkActor raw pointer
 		/// </summary>
 		/// <param name="name">vtkActor raw pointer to compare with all CustomMeshes' actors</param>
@@ -512,7 +526,6 @@ public:
 			{ return c.actor.GetPointer() == actor; });
 			return it;
 		}
-
 		/// <summary> Obtain Widget/Element by vtkActor raw pointer
 		/// </summary>
 		/// <param name="name">vtkActor raw pointer to compare with all myelems' actors</param>
@@ -522,7 +535,6 @@ public:
 			{ return e.actor.GetPointer() == actor; });
 			return it;
 		}
-
 		/// <summary> Obtain ListItem and QListWidget by name
 		/// </summary>
 		/// <param name="name">Name of item (string) </param>
@@ -538,7 +550,6 @@ public:
 			}
 			return nullptr;
 		}
-
 		/// <summary> Add to list a new item with name
 		/// </summary>
 		/// <param name="name">Name of item (string) </param>
@@ -549,7 +560,6 @@ public:
 			item->setCheckState(Qt::Checked);
 			ui.listWidget->addItem(item);
 		}
-
 		/// <summary> Replace old actor by new actor in Renderer
 		/// </summary>
 		/// <param name="oldActor">Reference to old actor </param>
@@ -572,7 +582,6 @@ public:
 				}
 			}
 		}
-
 		/// <summary> Event called when window resized (resizes qvtkwidget)	
 		/// </summary>
 		/// <param name="event">Event object (Qt-based)</param>

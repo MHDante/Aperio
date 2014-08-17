@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>830</width>
+    <width>881</width>
     <height>590</height>
    </rect>
   </property>
@@ -263,6 +263,9 @@ background: #82766A;
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QPushButton" name="btnSearch">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>150</x>
@@ -276,6 +279,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QLineEdit" name="txtSearchText">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -289,6 +295,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QPushButton" name="btnColor">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>150</x>
@@ -306,7 +315,7 @@ background: #82766A;
      <rect>
       <x>20</x>
       <y>160</y>
-      <width>791</width>
+      <width>841</width>
       <height>361</height>
      </rect>
     </property>
@@ -318,6 +327,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QSlider" name="shininessSlider">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>250</x>
@@ -343,6 +355,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QPushButton" name="btnLight">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -369,6 +384,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QSlider" name="darknessSlider">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>280</x>
@@ -394,6 +412,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QSlider" name="opacitySlider">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>139</x>
@@ -416,6 +437,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QTabWidget" name="tabWidget">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>310</x>
@@ -461,6 +485,9 @@ background: #82766A;
       <string>Groups</string>
      </attribute>
      <widget class="QListWidget" name="listWidget">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -889,6 +916,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QSlider" name="hingeSlider">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>660</x>
@@ -914,11 +944,14 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QLineEdit" name="txtHingeAmount">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>770</x>
       <y>20</y>
-      <width>31</width>
+      <width>41</width>
       <height>20</height>
      </rect>
     </property>
@@ -982,33 +1015,10 @@ background: #82766A;
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="btnSlice">
-    <property name="geometry">
-     <rect>
-      <x>770</x>
-      <y>110</y>
-      <width>41</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string>Slice (L)</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="icon">
-     <iconset resource="aperio.qrc">
-      <normaloff>:/aperio/slice.png</normaloff>:/aperio/slice.png</iconset>
-    </property>
-    <property name="iconSize">
-     <size>
-      <width>50</width>
-      <height>50</height>
-     </size>
-    </property>
-   </widget>
    <widget class="QSlider" name="explodeSlider">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>660</x>
@@ -1034,11 +1044,14 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QLineEdit" name="txtExplodeAmount">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>770</x>
       <y>70</y>
-      <width>31</width>
+      <width>41</width>
       <height>20</height>
      </rect>
     </property>
@@ -1059,6 +1072,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QSlider" name="slideSlider">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>660</x>
@@ -1084,6 +1100,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QPushButton" name="btnHinge">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>610</x>
@@ -1110,6 +1129,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QPushButton" name="btnExplode">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>610</x>
@@ -1136,6 +1158,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QPushButton" name="btnSlide">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>610</x>
@@ -1162,6 +1187,9 @@ background: #82766A;
     </property>
    </widget>
    <widget class="QPushButton" name="btnHide">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -1187,13 +1215,71 @@ background: #82766A;
      </size>
     </property>
    </widget>
+   <widget class="QPushButton" name="btnGlass">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>12</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Toggle Magnifying Glass (T)</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="aperio.qrc">
+      <normaloff>:/aperio/glass.png</normaloff>:/aperio/glass.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>30</width>
+      <height>30</height>
+     </size>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnSlice">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>770</x>
+      <y>110</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>Slice (L)</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset resource="aperio.qrc">
+      <normaloff>:/aperio/slice.png</normaloff>:/aperio/slice.png</iconset>
+    </property>
+    <property name="iconSize">
+     <size>
+      <width>50</width>
+      <height>50</height>
+     </size>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>830</width>
+     <width>881</width>
      <height>31</height>
     </rect>
    </property>

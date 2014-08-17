@@ -40,21 +40,16 @@ vtkStandardNewMacro(vtkMyShaderPass);
 vtkMyShaderPass::vtkMyShaderPass()
 {
 	this->uniforms = vtkSmartPointer<vtkUniformVariables>::New();
-
-	time = 0;
 }
-
 // ----------------------------------------------------------------------------
 vtkMyShaderPass::~vtkMyShaderPass()
 {
 }
-
 //// ----------------------------------------------------------------------------
 void vtkMyShaderPass::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os, indent);
 }
-
 // ----------------------------------------------------------------------------
 // Description:
 // Perform rendering according to a render state \p s.
@@ -65,7 +60,6 @@ void vtkMyShaderPass::Render(const vtkRenderState *s)
 
 	this->RenderGeometry(s);
 }
-
 // ----------------------------------------------------------------------------
 // Description:
 // Opaque/Translucent pass with key checking.
@@ -79,17 +73,14 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	int c = s->GetPropArrayCount();
 	int i = 0;
 
-	// Set global uniforms
-	float mousepos[3];
-	mousepos[0] = a->mouse[0];
-	mousepos[1] = a->mouse[1];
-	mousepos[2] = a->mouse[2];
-
-	int source = 0;	// potential source texture
+	// Set global uniform variables
+	float mousepos[3] = {a->mouse[0], a->mouse[1], a->mouse[2]};
+	int source = 0;		// potential source texture
 
 	uniforms->SetUniformit("wiggle", 1, &a->wiggle);
 	uniforms->SetUniformf("mouse", 3, mousepos);
 	uniforms->SetUniformf("mouseSize", 1, &a->mouseSize);
+	uniforms->SetUniformf("brushSize", 1, &a->brushSize);
 	uniforms->SetUniformit("peerInside", 1, &a->peerInside);
 	uniforms->SetUniformf("myexp", 1, &a->myexp);
 	uniforms->SetUniformi("shadingnum", 1, &a->shadingnum);
@@ -102,12 +93,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	uniforms->SetUniformi("shininess", 1, &a->shininess);
 	uniforms->SetUniformf("darkness", 1, &a->darkness);
 
-	uniforms->SetUniformf("time", 1, &time);
-
-	time += 0.01;
-	if (time > 500)
-		time = 0;
-	//time = std::clock() / 1250.0;
+	uniforms->SetUniformf("time", 1, &a->wavetime);
 
 	while (i < c)
 	{
@@ -142,35 +128,26 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 			}
 		}
 
-		if (p->HasKeys(s->GetRequiredKeys()))
+		int rendered;			
+		
+		a->pgm->SetUniformVariables(uniforms);
+		//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->pgm); // Dangerous, constantly allocs
+		a->pgm->Use();
+
+		if (passType == ShaderPassType::PASS_TRANSLUCENT)
 		{
-			int rendered;
-			
-			//if (vtkActor::SafeDownCast(p) != nullptr)
-				vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty())->GetPropProgram()->SetUniformVariables(uniforms);
-
-			//a->shaderProgram->SetUniformVariables(uniforms);
-			//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->shaderProgram); // Dangerous, constantly allocs
-			//a->shaderProgram->Use();
-
-			if (passType == ShaderPassType::PASS_TRANSLUCENT)
-			{
-				//glEnable(GL_BLEND);
-				//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
-
-				this->NumberOfRenderedProps += rendered;
-			}
-			else
-			{
-				rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
-
-				this->NumberOfRenderedProps += rendered;
-			}
-			//a->shaderProgram->Restore();
-
+			//rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
+			rendered = p->RenderTranslucentPolygonalGeometry(s->GetRenderer());
+			this->NumberOfRenderedProps += rendered;
 		}
+		else
+		{
+			//rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
+			rendered = p->RenderOpaqueGeometry(s->GetRenderer());
+			this->NumberOfRenderedProps += rendered;
+		}
+		a->pgm->Restore();
+		
 		++i;
 	}
 }

@@ -64,9 +64,11 @@ vtkSmartPointer<vtkActor> Utility::sourceToActor(aperio *ap, vtkSmartPointer<vtk
 
 	actor->GetProperty()->SetOpacity(a);	// myopacity	// TODO: REMEMBER TO CHANGE THIS TO CORRECT FACTOR (in k call)
 
-	vtkSmartPointer<vtkOpenGLProperty> openGLproperty = static_cast<vtkOpenGLProperty*>(actor->GetProperty());
-	openGLproperty->SetPropProgram(ap->pgm);
-	openGLproperty->ShadingOn();
+	// Create main shader (does not build since no main function, just funcPropVS)
+	//vtkSmartPointer<vtkShaderProgram2> pgm = Utility::makeShader(ap->renderer->GetRenderWindow(), "shader_water.vert", "shader.frag");
+	//vtkSmartPointer<vtkOpenGLProperty> openGLproperty = static_cast<vtkOpenGLProperty*>(actor->GetProperty());
+	//openGLproperty->SetPropProgram(pgm);
+	//openGLproperty->ShadingOn();
 
 	return actor;
 }
@@ -99,7 +101,7 @@ void Utility::generateTexCoords(vtkSmartPointer<vtkPolyData> source)
 }
 
 //---------------------------------------------------------------------------------------------------
-vtkSmartPointer<vtkShaderProgram2> Utility::buildShader(vtkRenderWindow *context, std::string vert, std::string frag)
+vtkSmartPointer<vtkShaderProgram2> Utility::makeShader(vtkRenderWindow *context, std::string vert, std::string frag)
 {
 	vtkSmartPointer<vtkShaderProgram2> shaderProgram = vtkSmartPointer<vtkShaderProgram2>::New();
 
@@ -139,7 +141,7 @@ vtkSmartPointer<vtkShaderProgram2> Utility::buildShader(vtkRenderWindow *context
 	else
 	{
 		std::cout << "Shader has errors.\n";
-	}
+	}	
 	return shaderProgram;
 }
 //-------------------------------------------------------------------------------------------------------------------
@@ -160,7 +162,7 @@ void Utility::updateShader(vtkShaderProgram2* shaderProgram, std::string vert, s
 		buffer << file.rdbuf();
 		vtkShader2::SafeDownCast(shaderProgram->GetShaders()->GetLastShader())->SetSourceCode(buffer.str().c_str());
 	}
-	//shaderProgram->Build();
+	shaderProgram->Build();
 }
 
 //--------------------------------------------------------------------------------------------------------
@@ -206,7 +208,6 @@ CustomMesh& Utility::addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int
 {
 	// Add mesh to custom meshes vector
 	a->meshes.push_back(CustomMesh());
-	//system("pause");
 	a->meshes[z].opacity = opacity;	// myopacity
 
 	a->meshes[z].color.Set(color.GetRed(), color.GetGreen(), color.GetBlue());
@@ -223,10 +224,22 @@ CustomMesh& Utility::addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int
 
 	// Make mapper and actors
 	a->meshes[z].actor = Utility::sourceToActor(a, source, color.GetRed(), color.GetGreen(), color.GetBlue(), opacity);
-	//meshes[z].actor->GetProperty()->SetTexture(0, colorTexture);
 
 	a->meshes[z].generated = false;
 
 	return a->meshes[z];
+}
+//-----------------------------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> Utility::computeNormals(vtkSmartPointer<vtkPolyData> source)
+{
+	vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
+	dataset->SetInputData(source);
+	dataset->ComputePointNormalsOn();
+	dataset->ComputeCellNormalsOff();
+	dataset->SplittingOn();
+	dataset->SetFeatureAngle(60);
+	dataset->Update();
+
+	return dataset->GetOutput();
 }
 

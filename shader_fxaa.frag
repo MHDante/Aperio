@@ -3,6 +3,8 @@
 	FXAA Post-process Shader : FXAA Fast Approximate Anti-Aliasing 
 *******************************************************************/
 
+#version 440 compatibility
+
 /**
 * @author alteredq / http://alteredqualia.com/
 * @author davidedc / http://www.sketchpatch.net/

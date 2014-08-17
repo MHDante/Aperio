@@ -3,6 +3,8 @@
 	Bloom Shader : Bloom Post-Process filter
 *******************************************************************/
 
+#version 440 compatibility
+
 uniform sampler2D source;
 
 void main()

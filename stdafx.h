@@ -98,3 +98,6 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 #include <vtkImageMapper.h>
 #include <vtkProperty2D.h>
 #include <vtkImageData.h>
+
+#include <vtkStripper.h>
+#include <vtkUniformVariables.h>

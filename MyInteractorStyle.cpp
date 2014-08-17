@@ -58,58 +58,6 @@ void MyInteractorStyle::OnKeyPress()
 	{
 		a->slot_btnHide();
 	}
-	if (this->Interactor->GetKeyCode() == 'k')	// Cut
-	{
-		if (a->selectedMesh == a->meshes.end())
-			return;
-
-		// Change index for eselected to selected element...
-		int eselectedindex = a->myelems.size() - 1;
-
-		CarveConnector connector;
-		vtkSmartPointer<vtkPolyData> thepolydata(vtkPolyData::SafeDownCast(a->selectedMesh->actor->GetMapper()->GetInput()));
-		thepolydata = CarveConnector::cleanVtkPolyData(thepolydata);
-
-		vtkSmartPointer<vtkPolyData> mypoly(vtkPolyData::SafeDownCast(a->myelems[eselectedindex].actor->GetMapper()->GetInput()));
-		vtkSmartPointer<vtkPolyData> thepolydata2 = CarveConnector::cleanVtkPolyData(mypoly);
-
-		// Make MeshSet from vtkPolyData
-		std::unique_ptr<carve::mesh::MeshSet<3> > first(CarveConnector::vtkPolyDataToMeshSet(thepolydata));
-		std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::vtkPolyDataToMeshSet(thepolydata2));
-		//std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(55, carve::math::Matrix::IDENT()));
-
-		
-
-		std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B, a->ui.chkTriangulate->isChecked()));
-		vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
-
-		vtkSmartPointer<vtkPolyDataNormals> dataset = vtkSmartPointer<vtkPolyDataNormals>::New();
-		dataset->SetInputData(c_poly);
-		dataset->ComputePointNormalsOn();
-		dataset->ComputeCellNormalsOff();
-		dataset->SplittingOn();
-		dataset->SetFeatureAngle(60);
-		dataset->Update();
-
-		// Update cell locator's dataset so program doesn't slow down after cutting
-		a->selectedMesh->cellLocator->SetDataSet(dataset->GetOutput());
-
-		// Create a mapper and actor
-		vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(a, dataset->GetOutput(), a->selectedMesh->color.GetRed(),
-			a->selectedMesh->color.GetGreen(),
-			a->selectedMesh->color.GetBlue(),
-			a->selectedMesh->opacity >= 1 ? 1 : a->selectedMesh->opacity * 0.5f);	// My opacity (Must change 0.5f)
-
-		// Replace old actor with new actor
-		a->replaceActor(a->selectedMesh->actor, actor);		// First replace selectedMesh->actor (old) with new actor in Renderer
-		a->selectedMesh->actor = actor;						// Then assign selectedMesh->actor to the new actor
-
-		// Remove superquadric from Renderer
-		a->renderer->RemoveActor(a->myelems[eselectedindex].actor);
-
-		// Probably should remove from list as well (myelems)
-		a->myelems.erase(a->myelems.end() - 1);
-	}
 	if (this->Interactor->GetKeyCode() == '9')	// Explode it out
 	{
 		if (a->selectedMesh == a->meshes.end())
@@ -144,37 +92,37 @@ void MyInteractorStyle::OnKeyPress()
 	}
 	if (this->Interactor->GetKeyCode() == '3')	// Rotate around hinge	
 	{
-	a->slot_hingeSlider(128);
-	}
-	if (this->Interactor->GetKeyCode() == '2')	// Rotate around hinge (-)
-	{
-		if (a->selectedMesh == a->meshes.end())
-			return;
-		if (!a->selectedMesh->generated)	// Make sure it is a generated mesh (Rather than original mesh)
-			return;
-
-		a->selectedMesh->actor->RotateWXYZ(-5, a->selectedMesh->sup.GetX(), a->selectedMesh->sup.GetY(),
-			a->selectedMesh->sup.GetZ());
+		a->slot_hingeSlider(128);
 	}
 	if (this->Interactor->GetKeyCode() == 'l')	// Hinge
 	{
 		a->slot_btnSlice();
 	}
+	
+	float step = 1;
+
 	if (this->Interactor->GetKeyCode() == '+')	// bigger peek brush
 	{
-		a->brushDivide--;
+		//a->brushDivide--;
+
+		//if (a->brushSize + step <= 50)
+			a->brushSize += step;
+
 		this->OnMouseMove();
 	}
 	if (this->Interactor->GetKeyCode() == '-')	// smaller peek brush
 	{
-		a->brushDivide++;
+		//a->brushDivide++;
+
+		if (a->brushSize - step >= 0)
+			a->brushSize -= step;
+
 		this->OnMouseMove();
 	}
 	if (this->Interactor->GetKeyCode() == 't')	// Toggle peek
 	{
-		a->peerInside = !a->peerInside;
+		a->slot_btnGlass();
 	}
-
 	if (this->Interactor->GetKeyCode() == 'c')	// change roundness (-phi)
 	{
 		float change = 0.1;
@@ -185,10 +133,11 @@ void MyInteractorStyle::OnKeyPress()
 		//a->superquad->SetPhiRoundness(a->myn);
 		//a->superquad->Update();
 
-		int i = a->myelems.size() - 1;
+		/*int i = a->myelems.size() - 1;
 		a->myelems[i].source->SetPhiRoundness(a->myn);
 		a->myelems[i].source->Update();
 		a->myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
+		*/
 	}
 	if (this->Interactor->GetKeyCode() == 'v')	// change roundness (phi)
 	{
@@ -200,10 +149,11 @@ void MyInteractorStyle::OnKeyPress()
 		//a->superquad->SetPhiRoundness(a->myn);
 		//a->superquad->Update();
 
-		int i = a->myelems.size() - 1;
+		/*int i = a->myelems.size() - 1;
 		a->myelems[i].source->SetPhiRoundness(a->myn);
 		a->myelems[i].source->Update();
 		a->myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
+		*/
 	}
 	if (this->Interactor->GetKeyCode() == 'z')	// change roundness (-theta)
 	{
@@ -215,10 +165,11 @@ void MyInteractorStyle::OnKeyPress()
 		//a->superquad->SetThetaRoundness(a->myexp);
 		//a->superquad->Update();
 
-		int i = a->myelems.size() - 1;
+		/*int i = a->myelems.size() - 1;
 		a->myelems[i].source->SetThetaRoundness(a->myexp);
 		a->myelems[i].source->Update();
 		a->myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
+		*/
 	}
 	if (this->Interactor->GetKeyCode() == 'x')	// change roundness (theta)
 	{
@@ -230,10 +181,11 @@ void MyInteractorStyle::OnKeyPress()
 		//a->superquad->SetThetaRoundness(a->myexp);
 		//a->superquad->Update();
 
-		int i = a->myelems.size() - 1;
+		/*int i = a->myelems.size() - 1;
 		a->myelems[i].source->SetThetaRoundness(a->myexp);
 		a->myelems[i].source->Update();
 		a->myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
+		*/
 	}
 	if (this->Interactor->GetKeyCode() == 's')	// Create toroidal superquad 
 	{
@@ -266,11 +218,6 @@ void MyInteractorStyle::OnKeyPress()
 	{
 		a->shadingnum = (a->shadingnum + 1) % 3;
 	}
-	/*if (this->Interactor->GetKeyCode() == ' ')		// Toggle wiggle
-	{
-	a->wiggle = !a->wiggle;
-	}*/
-
 	//------------- Last superquad --------------------------------------------------------------------------
 	if (this->Interactor->GetKeyCode() == 'u' && a->myelems.size() > 0)	// Resize last superquad placed
 	{
@@ -348,7 +295,6 @@ void MyInteractorStyle::OnKeyPress()
 	if (this->Interactor->GetKeyCode() == 'w')	// Resize last superquad placed
 	{
 	}
-
 	// Only put AsyncKeyStates/KeyStates at the end (or in update function)
 
 	vtkInteractorStyleTrackballCamera::OnKeyPress();
@@ -604,7 +550,7 @@ void MyInteractorStyle::OnLeftButtonUp()
 		elem.actor = Utility::sourceToActor(a, transformFilter->GetOutput(), 1.0, 1.0, 1.0, 1.0);
 		elem.actor->PickableOff();
 
-		elem.actor->SetTexture(a->colorTexture);
+		elem.actor->SetTexture(a->cutterTexture);
 
 		elem.source = superquad;
 		elem.transformFilter = transformFilter;

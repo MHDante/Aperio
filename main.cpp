@@ -90,8 +90,7 @@ class Manager
 public:
 	void go(std::string name)
 	{
-		//for (int i = 0; i < 10; i++)
-		std::cout << "hello" << name;
+		std::cout << "Testing " << name  + "\n";
 	}
 };
 
@@ -112,25 +111,19 @@ int main(int argc, char *argv[])
 	a.processEvents();
 
 	aperio w;
-	//w.setFixedSize(w.width(), w.height());
 	w.show();
 
 	Manager *manager = new Manager();
 
-	std::string s = "Alice";
-	std::string s2 = "Bob";
+	std::string s = "Thread 1";
+	std::string s2 = "Thread 2";
 
-	//QFuture<void> f1 = QtConcurrent::run(hello, QString("Alice"));
-	//QFuture<void> f2 = QtConcurrent::run(hello, QString("Bob"));
 	QFuture<void> f1 = QtConcurrent::run(manager, &Manager::go, s);
 	QFuture<void> f2 = QtConcurrent::run(manager, &Manager::go, s2);
 
-	//f1.waitForFinished();
-	//f2.waitForFinished();
-
 	QFutureWatcher<void> futureWatcher;
 	futureWatcher.setFuture(f2);
-	QObject::connect(&futureWatcher, &QFutureWatcher<void>::finished, [] { std::cout << "We are done";  });
+	QObject::connect(&futureWatcher, &QFutureWatcher<void>::finished, [] { std::cout << "\n[Completed second thread]\n";  });
 
 	return a.exec();
 }

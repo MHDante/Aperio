@@ -54,10 +54,10 @@ namespace Utility
 	/// <param name="source">Polydata to generate texture coordinates for</param>
 	void generateTexCoords(vtkSmartPointer<vtkPolyData> source);
 
-	/// <summary> VTK method to build vertex and fragment shader and changes vtkShaderProgram2 object </summary>
+	/// <summary> VTK method to make vertex and fragment shader and add to vtkShaderProgram2 object </summary>
 	/// <param name="vertex_and_frag">vertex and fragment shader filenames (nullstring is default, meaning none)</param>
 	//vtkSmartPointer<vtkShaderProgram2> buildShader(vtkRenderWindow *context, std::string vert = "", std::string frag = "");
-	vtkSmartPointer<vtkShaderProgram2> buildShader(vtkRenderWindow *context, std::string vert, std::string frag);
+	vtkSmartPointer<vtkShaderProgram2> makeShader(vtkRenderWindow *context, std::string vert, std::string frag);
 
 	/// <summary> VTK method to reload new vertex (0) or fragment shader (1) files in vtkShaderProgram2 object </summary>
 	/// <param name="vertex_and_frag">vertex and fragment shader filenames (nullstring is default, meaning none, so no reloads)</param>
@@ -66,5 +66,10 @@ namespace Utility
 	/// <summary> Add to meshes collection (returns the CustomMesh) </summary>
 	/// <param name="vertex_and_frag"></param>
 	CustomMesh& addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity);
+
+	///-------------------------------------------------------------------------
+	/// <summary> Compute normals for a vtkPolyData source 
+	/// </summary>
+	vtkSmartPointer<vtkPolyData> computeNormals(vtkSmartPointer<vtkPolyData> source);
 }
 #endif

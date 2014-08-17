@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="aperio">
+    <file>glass.png</file>
+    <file>glass2.png</file>
     <file>flashlight2.png</file>
     <file>flashlight.png</file>
     <file>hide.png</file>
