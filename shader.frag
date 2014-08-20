@@ -11,6 +11,8 @@ in vec3 n;
 in vec3 v;
 in vec3 original_v;
 
+uniform bool outline;
+
 uniform vec3 mouse = vec3(0, 0, 0);
 uniform float mouseSize = 1.0;
 uniform float brushSize = 1.5;
@@ -257,5 +259,8 @@ void main()
 		}
 	}	
 	gl_FragColor = final_color;	
+	
+	if (outline == true)
+		gl_FragColor = vec4(1.0, 0.5, 0, gl_Color.a);
 }
 

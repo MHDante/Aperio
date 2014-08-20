@@ -99,7 +99,5 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 #include <vtkProperty2D.h>
 #include <vtkImageData.h>
 
-#include <vtkStripper.h>
 #include <vtkUniformVariables.h>
-
-#include <vtkContourFilter.h>
+#include <vtkDoubleArray.h>

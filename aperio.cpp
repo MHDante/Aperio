@@ -32,6 +32,9 @@
 #include <vtkRenderPass.h>
 #include <vtkLight.h>
 
+#include <vtkDoubleArray.h>
+#include <vtkOutlineSource.h>
+
 #define MAX(x,y) ((x)>(y)?(x):(y))
 #define MIN(x,y) ((x)<(y)?(x):(y))
 
@@ -67,7 +70,8 @@ void aperio::slot_afterShowWindow()
 	fps = 50.0;
 	//std::string fname = "cube.obj";
 	//std::string fname = "organs brain 250K.obj";
-	std::string fname = "hearttest.obj";
+	//std::string fname = "hearttest.obj";
+	std::string fname = "newestheart.obj";
 
 	// QT Variables
 	pause = false;
@@ -130,7 +134,7 @@ void aperio::slot_afterShowWindow()
 	renderWindow->SetMultiSamples(0);
 
 	renderer = vtkSmartPointer<vtkRenderer>::New();
-	renderer->GetActiveCamera()->SetClippingRange(0.01, 1000);
+	renderer->GetActiveCamera()->SetClippingRange(0.02, 1000);
 
 	/* float bgcolor[3] = { 235, 235, 235 };
 	float factor = 0.7;
@@ -196,6 +200,7 @@ void aperio::slot_afterShowWindow()
 
 	// Requires Depth from camera pass
 	vtkSmartPointer<vtkMyProcessingPass> ssaoP = vtkSmartPointer<vtkMyProcessingPass>::New();
+	ssaoP->setShaderFile("shader_ssao.vert", false);
 	ssaoP->setShaderFile("shader_ssao.frag", true);
 	ssaoP->SetDelegatePass(cameraP);
 
@@ -419,15 +424,12 @@ void aperio::readFile(std::string filename)
 			b = 1;
 		}
 		vtkPolyData *nextMesh = objectMeshCollection->GetNextItem();
-		nextMesh->BuildCells();
-		nextMesh->BuildLinks();
-
 		std::string groupname = shapes.at(z).name;
 
 		// Remove darkfactor when customizable colours implemented and saveable (1.4f currently in fragment shader)
 		
 		// Default random colours for heart
-		if (QString(filename.c_str()).contains("hearttest"))
+		if (QString(filename.c_str()).contains("newestheart.obj"))
 		{
 			if (QString::compare(QString(groupname.c_str()), QString("c_pericardium")) == 0)
 			{
@@ -482,7 +484,8 @@ void aperio::readFile(std::string filename)
 		//objectOBBTree->BuildLocator();
 		//CommonData::objectOBBTrees.push_back(objectOBBTree);
 
-		vtkSmartPointer<vtkPolyData> dataset = Utility::computeNormals(nextMesh);
+		//vtkSmartPointer<vtkPolyData> dataset = nextMesh;
+		vtkSmartPointer<vtkPolyData> dataset = Utility::smoothNormals(Utility::computeNormals(nextMesh));
 
 		vtkColor3f c(r, g, b);
 		float opacity = 1.0;
@@ -722,6 +725,16 @@ void aperio::updateOpacitySliderAndList()
 
 					ui.txtHingeAmount->setText(QString::number(hingeAmount));
 					ui.hingeSlider->setValue((hingeAngle / hingeAmount) * 100.0);
+
+					//interactorstyle->HighlightProp3D(NULL);
+					//interactorstyle->HighlightProp3D(selectedMesh->actor);
+
+					//vtkOutlineSource::SafeDownCast(interactorstyle->GetOutlineActor()->GetMapper()->GetInput())->Update();
+					//interactorstyle->GetOutlineActor()->highli
+					//interactorstyle->GetOutline()->SetInputData(selectedMesh->actor->GetMapper()->GetInputDataObject());
+
+					//interactorstyle->GetOutline()->SetInputData(selectedMesh->actor->GetMapper()->GetInput());
+					//interactorstyle->GetOutline()->Update();
 				}
 
 				vtkColor3f mycol = selectedMesh->color;
@@ -761,6 +774,9 @@ void aperio::slot_hingeSlider(int value)
 
 	selectedMesh->actor->SetUserTransform(transform);
 
+	// Update highlight
+	interactorstyle->HighlightProp3D(selectedMesh->actor);
+
 	QApplication::processEvents();
 	//}
 }
@@ -772,9 +788,15 @@ void aperio::slot_btnHide()
 		float newopacity;
 
 		if (selectedMesh->opacity == 0)
+		{
 			newopacity = 100;
+			//interactorstyle->HighlightProp3D(selectedMesh->actor);
+		}
 		else
+		{
 			newopacity = 0;
+			//interactorstyle->HighlightProp3D(nullptr);
+		}
 
 		selectedMesh->opacity = newopacity;
 		selectedMesh->actor->GetProperty()->SetOpacity(newopacity);
@@ -788,4 +810,28 @@ void aperio::slot_txtHingeAmount(const QString &string)
 		return;
 
 	selectedMesh->hingeAmount = ui.txtHingeAmount->text().toInt();
+}
+//-----------------------------------------------------------------------------------------
+void aperio::setSelectedMesh(std::vector<CustomMesh>::iterator &it)
+{
+	// Reset all meshes' selection parameter to false
+	for (int i = 0; i < meshes.size(); i++)
+		meshes[i].selected = false;
+
+	selectedMesh = it;			// Set selectedMesh to mesh clicked 
+
+	if (it != meshes.end())
+	{
+		selectedMesh->selected = true;	// Set selected property to true
+		updateOpacitySliderAndList();	// Update list
+
+		// Remove previous highlight
+		interactorstyle->HighlightProp(NULL);
+
+		// Highlight new prop
+		interactorstyle->HighlightProp3D(selectedMesh->actor);
+
+		interactorstyle->GetOutlineActor()->GetProperty()->SetLineWidth(1.65);
+		interactorstyle->GetOutlineActor()->GetProperty()->SetOpacity(0.9);
+	}
 }

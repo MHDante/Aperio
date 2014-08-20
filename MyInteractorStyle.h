@@ -44,13 +44,28 @@ public:
 	void initialize(aperio *window);
 
 	//--------------------------------------------------------------------------------------------------
+	/// <summary> Get Outline Actor
+	/// </summary>
+	vtkSmartPointer<vtkActor> GetOutlineActor()
+	{
+		return OutlineActor;
+	}
+	//--------------------------------------------------------------------------------------------------
+	/// <summary> Get Outline 
+	/// </summary>
+	vtkOutlineSource* GetOutline()
+	{
+		return Outline;
+	}
+
+	//--------------------------------------------------------------------------------------------------
 	void setPickList(int z);
 	vtkTypeMacro(MyInteractorStyle, vtkInteractorStyleTrackballCamera);
 
 	/// ---------------------------------------------------------------------------------------------
 	/// <summary> Called on key press (handles QT key events)
 	/// </summary>
-	virtual void MyInteractorStyle::OnKeyPress() override;
+	virtual void OnKeyPress() override;
 
 	//----------------------------------------------------------------------------
 	/// <summary>
@@ -75,6 +90,18 @@ public:
 	virtual void OnMouseWheelBackward() override;
 	//----------------------------------------------------------------------------
 	virtual void OnChar() override;
-	//--------------------------------------------------------------------------------------------
+	//----------------------------------------------------------------------------
+
+	///<summary> Override the following with same code but removing Render() call to limit framerate 
+	///</summary>
+	virtual void Rotate() override;
+	//----------------------------------------------------------------------------
+	virtual void Dolly(double factor) override;
+	//----------------------------------------------------------------------------
+	virtual void Pan() override;
+	//----------------------------------------------------------------------------
+	virtual void Spin() override;
+
+	//----------------------------------------------------------------------------
 };
 #endif

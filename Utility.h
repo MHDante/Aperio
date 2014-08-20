@@ -71,5 +71,10 @@ namespace Utility
 	/// <summary> Compute normals for a vtkPolyData source 
 	/// </summary>
 	vtkSmartPointer<vtkPolyData> computeNormals(vtkSmartPointer<vtkPolyData> source);
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary> Compute smooth normals for a vtkPolyData source (usually after computeNormals)
+	/// </summary>
+	vtkSmartPointer<vtkPolyData> smoothNormals(vtkSmartPointer<vtkPolyData> source);
 }
 #endif

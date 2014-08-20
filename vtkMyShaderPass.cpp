@@ -97,6 +97,10 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 
 	while (i < c)
 	{
+		// Manually set uniforms for each actor
+		bool outline = false;
+		uniforms->SetUniformit("outline", 1, &outline);
+
 		vtkProp *p = s->GetPropArray()[i];
 
 		if (p->HasKeys(s->GetRequiredKeys()))
@@ -126,7 +130,11 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				else
 				{
 					// Else,
-					// Not found the CustomMesh object, must be extra objects
+					// Not found the CustomMesh object, must be extra objects (The outliner)
+					bool outline = true;
+					uniforms->SetUniformit("outline", 1, &outline);
+
+					glEnable(GL_LINE_SMOOTH);
 				}
 			}
 

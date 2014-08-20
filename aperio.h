@@ -486,20 +486,8 @@ public:
 		/// <summary> Set SelectedMesh to an instance of vector<CustomMesh>::iterator (update list, variable & selected shader var)
 		/// </summary>
 		/// <param name="name">Name of object (string) </param>
-		void setSelectedMesh(std::vector<CustomMesh>::iterator &it)
-		{
-			// Reset all meshes' selection parameter to false
-			for (int i = 0; i < meshes.size(); i++)
-				meshes[i].selected = false;	
+		void setSelectedMesh(std::vector<CustomMesh>::iterator &it);
 
-			selectedMesh = it;			// Set selectedMesh to mesh clicked 
-
-			if (it != meshes.end())
-			{
-				selectedMesh->selected = true;	// Set selected property to true
-				updateOpacitySliderAndList();	// Update list
-			}
-		}
 		/// <summary> Obtain CustomMesh by name
 		/// </summary>
 		/// <param name="name">Name of object (string) </param>

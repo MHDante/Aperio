@@ -242,4 +242,64 @@ vtkSmartPointer<vtkPolyData> Utility::computeNormals(vtkSmartPointer<vtkPolyData
 
 	return dataset->GetOutput();
 }
+//-------------------------------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> Utility::smoothNormals(vtkSmartPointer<vtkPolyData> source)
+{
+	// Compute smooth normals for extra smooth lighting :)
+	vtkSmartPointer<vtkPolyData> dataset = source;
+	dataset->BuildCells();
+	dataset->BuildLinks();
+
+	// Smooth Normals Calculation (Interpolate normals from the point's neighbouring faces/triangles)
+	vtkSmartPointer<vtkDoubleArray> points_normal = vtkSmartPointer<vtkDoubleArray>::New();
+	points_normal->SetNumberOfComponents(3); //3d normals (ie x,y,z)
+	points_normal->SetNumberOfTuples(dataset->GetNumberOfPoints());
+
+	std::vector<vtkVector3f>* normal_buffer = new std::vector<vtkVector3f>[dataset->GetNumberOfPoints()];
+
+	vtkSmartPointer<vtkCellArray> polys = dataset->GetPolys();
+	polys->InitTraversal();
+
+	for (int i = 0; i < dataset->GetPolys()->GetNumberOfCells(); i++)
+	{
+		vtkIdType n_pts;
+		vtkIdType *pts = nullptr;
+		polys->GetNextCell(n_pts, pts);
+
+		vtkVector3f p1 = vtkVector3f(dataset->GetPoint(pts[0])[0], dataset->GetPoint(pts[0])[1], dataset->GetPoint(pts[0])[2]);
+		vtkVector3f p2 = vtkVector3f(dataset->GetPoint(pts[1])[0], dataset->GetPoint(pts[1])[1], dataset->GetPoint(pts[1])[2]);
+		vtkVector3f p3 = vtkVector3f(dataset->GetPoint(pts[2])[0], dataset->GetPoint(pts[2])[1], dataset->GetPoint(pts[2])[2]);
+
+		vtkVector3f v1 = vtkVector3f(p2.GetX() - p1.GetX(), p2.GetY() - p1.GetY(), p2.GetZ() - p1.GetZ());
+		vtkVector3f v2 = vtkVector3f(p3.GetX() - p1.GetX(), p3.GetY() - p1.GetY(), p3.GetZ() - p1.GetZ());
+
+		vtkVector3f normal = v1.Cross(v2);
+		normal.Normalize();
+
+		normal_buffer[pts[0]].push_back(normal);
+		normal_buffer[pts[1]].push_back(normal);
+		normal_buffer[pts[2]].push_back(normal);
+	}
+
+	// Now loop through each vertex vector, and average out all the normals stored.
+	for (int i = 0; i < dataset->GetNumberOfPoints(); ++i)
+	{
+		vtkVector3f sum = vtkVector3f(0, 0, 0);
+
+		for (int j = 0; j < normal_buffer[i].size(); ++j)
+		{
+			sum = vtkVector3f(sum.GetX() + normal_buffer[i][j].GetX(),
+				sum.GetY() + normal_buffer[i][j].GetY(),
+				sum.GetZ() + normal_buffer[i][j].GetZ());
+		}
+
+		sum = vtkVector3f(sum.GetX() / normal_buffer[i].size(),
+			sum.GetY() / normal_buffer[i].size(),
+			sum.GetZ() / normal_buffer[i].size());
+
+		points_normal->SetTuple3(i, sum.GetX(), sum.GetY(), sum.GetZ());
+	}
+	dataset->GetPointData()->SetNormals(points_normal);
+	return dataset;
+}
 

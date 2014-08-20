@@ -7,37 +7,30 @@
 
 uniform sampler2D source;
 
-void main()
-{  
-   vec4 finalcolor;
-
-   vec4 sum = vec4(0);
-   vec2 texcoord = vec2(gl_TexCoord[0]);
+uniform vec2 frameBufSize;
+int samples = 6; // pixels per axis; higher = bigger glow, worse performance
+float quality = 0.2; // lower = smaller glow, better quality
+ 
+vec4 effect(vec4 colour, sampler2D tex, vec2 tc)
+{
+  vec4 source = texture2D(tex, tc);
+  vec4 sum = vec4(0);
+  int diff = (samples - 1) / 2;
+  vec2 sizeFactor = vec2(1) / frameBufSize * quality;
   
-   for(int i= 0 ; i < 8; i++)
-   {
-        for (int j = 0; j < 8; j++)
-        {
-			//sum += texture2D(source, texcoord + vec2(j-3, i-3)*0.004) * 0.075;
-			sum += texture2D(source, texcoord + vec2(j-3, i-3)*0.008) * 0.065;
-        }
-   }
-   
-    if (texture2D(source, texcoord).r < 0.3)
+  for (int x = -diff; x <= diff; x++)
+  {
+    for (int y = -diff; y <= diff; y++)
     {
-       finalcolor = sum*sum*0.012 + texture2D(source, texcoord);
+      vec2 offset = vec2(x, y) * sizeFactor;
+      sum += texture2D(tex, tc + offset);
     }
-    else
-    {
-        if (texture2D(source, texcoord).r < 0.5)
-        {
-            finalcolor = sum*sum*0.009 + texture2D(source, texcoord);
-        }
-        else
-        {
-            finalcolor = sum*sum*0.0075 + texture2D(source, texcoord);
-        }
-    }
-	
-	gl_FragColor = finalcolor;
+  }
+  return ((sum / (samples * samples)) + source) * colour;
+}
+
+void main()
+{
+	gl_FragColor = effect(vec4(0.75, 0.675, 0.6, 1), source, gl_TexCoord[0].st);
+  //gl_FragColor = texture2D(source, gl_TexCoord[0].st);
 }

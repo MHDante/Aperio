@@ -52,10 +52,13 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::makeCube(float size, const 
 unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b, carve::csg::CSG::OP op, bool triangulate)
 {
 	carve::csg::CSG csg;
-	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
-	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::INTERSECTION_VERTEX_BIT);
-	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::EDGE_DIVISION_BIT);
-	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::RESULT_FACE_BIT);
+	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
+	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::INTERSECTION_VERTEX_BIT);
+	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::EDGE_DIVISION_BIT);
+	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::RESULT_FACE_BIT);
+	//csg.hooks.registerHook(CarveHoleResolver)
+
+	//csg.hooks.registerHook(new carve::csg::CarveHoleResolver, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
 
 	carve::csg::CSG::CLASSIFY_TYPE type = carve::csg::CSG::CLASSIFY_EDGE;
 	if (!triangulate)
@@ -64,7 +67,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::m
 	}	
 
 	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), op, NULL, type));
-
+	
 	return c;
 }
 //----------------------------------------------------------------------------------------------------
@@ -162,19 +165,18 @@ vtkSmartPointer<vtkPolyData> CarveConnector::cleanVtkPolyData(vtkSmartPointer<vt
 
 	vtkSmartPointer<vtkTriangleFilter> filter = vtkSmartPointer<vtkTriangleFilter>::New();
 	filter->SetInputData(thepolydata.GetPointer());
-	filter->PassLinesOff();
-	filter->PassVertsOff();
+	//filter->PassLinesOff();
+	//filter->PassVertsOff();
 	filter->Update();
-
-	//filter->GetOutput();
 
 	vtkSmartPointer<vtkCleanPolyData> clean = vtkSmartPointer<vtkCleanPolyData>::New();
 	clean->SetInputData(filter->GetOutput());
-	clean->PieceInvariantOn();
-	clean->ConvertPolysToLinesOn();
-	clean->ConvertLinesToPointsOn();
-	clean->ConvertStripsToPolysOn();
-	clean->PointMergingOn();
+	//clean->PieceInvariantOn();
+	//clean->ConvertPolysToLinesOn();
+	//clean->ConvertLinesToPointsOn();
+	//clean->ConvertStripsToPolysOn();
+	//clean->PointMergingOn();
+
 	clean->Update();
 
 	vtkSmartPointer<vtkPolyData> result(clean->GetOutput());

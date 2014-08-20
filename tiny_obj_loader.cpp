@@ -347,7 +347,7 @@ namespace tinyobj {
 				// set new mtl name
 				char namebuf[4096];
 				token += 7;
-				sscanf(token, "%s", namebuf);
+				sscanf(token, "%4096s", namebuf);
 				material.name = namebuf;
 				continue;
 			}
@@ -637,7 +637,7 @@ namespace tinyobj {
 
 				char namebuf[4096];
 				token += 7;
-				sscanf(token, "%s", namebuf);
+				sscanf(token, "%4096s", namebuf);
 
 				if (material_map.find(namebuf) != material_map.end()) {
 					material = material_map[namebuf];
@@ -655,7 +655,7 @@ namespace tinyobj {
 			if ((0 == strncmp(token, "mtllib", 6)) && isSpace((token[6]))) {
 				char namebuf[4096];
 				token += 7;
-				sscanf(token, "%s", namebuf);
+				sscanf(token, "%4096s", namebuf);
 
 				std::string err_mtl = readMatFn(namebuf, material_map);
 				if (!err_mtl.empty()) {
@@ -714,7 +714,7 @@ namespace tinyobj {
 				// @todo { multiple object name? }
 				char namebuf[4096];
 				token += 2;
-				sscanf(token, "%s", namebuf);
+				sscanf(token, "%4096s", namebuf);
 				name = std::string(namebuf);
 
 
