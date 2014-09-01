@@ -16,6 +16,9 @@
 #include <sstream>
 #include <iostream>
 
+// ----- Include GLEW -------
+#include <GL/glew.h>
+
 //------------ QT Includes ---------------------------------
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
@@ -38,6 +41,7 @@
 VTK_MODULE_INIT(vtkInteractionStyle)
 VTK_MODULE_INIT(vtkRenderingOpenGL)
 
+#include <vtkInformation.h>
 #include <vtkSmartPointer.h>
 #include <vtkNew.h>
 #include <vtkPolyData.h>

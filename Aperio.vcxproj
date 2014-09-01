@@ -59,7 +59,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_CONCURRENT_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtConcurrent;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtConcurrent;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;C:\Program Files (x86)\VTK\include\vtk-6.1;C:\Program Files (x86)\carve\include;C:\glew-1.11.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -71,9 +71,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\Program Files (x86)\VTK\lib\$(ConfigurationName);C:\Program Files (x86)\carve\lib\$(ConfigurationName);C:\glew-1.11.0\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Concurrentd.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5Concurrentd.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;carve.lib;vtkCommonCore-6.1.lib;vtkCommonMath-6.1.lib;vtkCommonDataModel-6.1.lib;vtkCommonExecutionModel-6.1.lib;vtkCommonTransforms-6.1.lib;vtkCommonComputationalGeometry-6.1.lib;vtkFiltersCore-6.1.lib;vtkFiltersGeneral-6.1.lib;vtkFiltersHybrid-6.1.lib;vtkFiltersModeling-6.1.lib;vtkFiltersSources-6.1.lib;vtkFiltersTexture-6.1.lib;vtkGUISupportQt-6.1.lib;vtkInteractionStyle-6.1.lib;vtkInteractionWidgets-6.1.lib;vtkIOImage-6.1.lib;vtkRenderingCore-6.1.lib;vtkRenderingQt-6.1.lib;vtkRenderingOpenGL-6.1.lib;vtksys-6.1.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -98,7 +98,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_CONCURRENT_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtConcurrent;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;C:\Program Files (x86)\VTK\include\vtk-6.1;C:\Program Files (x86)\carve\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtConcurrent;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;C:\Program Files (x86)\VTK\include\vtk-6.1;C:\Program Files (x86)\carve\include;C:\glew-1.11.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -110,9 +110,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\Program Files (x86)\VTK\lib\$(ConfigurationName);C:\Program Files (x86)\carve\lib\$(ConfigurationName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;C:\Program Files (x86)\VTK\lib\$(ConfigurationName);C:\Program Files (x86)\carve\lib\$(ConfigurationName);C:\glew-1.11.0\lib\Release\Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Concurrent.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;carve.lib;vtkCommonCore-6.1.lib;vtkCommonMath-6.1.lib;vtkCommonDataModel-6.1.lib;vtkCommonExecutionModel-6.1.lib;vtkCommonTransforms-6.1.lib;vtkFiltersCore-6.1.lib;vtkFiltersGeneral-6.1.lib;vtkFiltersHybrid-6.1.lib;vtkFiltersModeling-6.1.lib;vtkFiltersSources-6.1.lib;vtkFiltersTexture-6.1.lib;vtkGUISupportQt-6.1.lib;vtkInteractionStyle-6.1.lib;vtkIOImage-6.1.lib;vtkRenderingCore-6.1.lib;vtkRenderingQt-6.1.lib;vtkRenderingOpenGL-6.1.lib;vtksys-6.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5Concurrent.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;carve.lib;vtkCommonCore-6.1.lib;vtkCommonMath-6.1.lib;vtkCommonDataModel-6.1.lib;vtkCommonExecutionModel-6.1.lib;vtkCommonTransforms-6.1.lib;vtkCommonComputationalGeometry-6.1.lib;vtkFiltersCore-6.1.lib;vtkFiltersGeneral-6.1.lib;vtkFiltersHybrid-6.1.lib;vtkFiltersModeling-6.1.lib;vtkFiltersSources-6.1.lib;vtkFiltersTexture-6.1.lib;vtkGUISupportQt-6.1.lib;vtkInteractionStyle-6.1.lib;vtkInteractionWidgets-6.1.lib;vtkIOImage-6.1.lib;vtkRenderingCore-6.1.lib;vtkRenderingQt-6.1.lib;vtkRenderingOpenGL-6.1.lib;vtksys-6.1.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -140,6 +140,8 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyInteractorStyle.cpp" />
+    <ClCompile Include="vtkMyAdvancedPass.cpp" />
+    <ClCompile Include="vtkMyDepthPeelingPass.cpp" />
     <ClCompile Include="vtkMyProcessingPass.cpp" />
     <ClCompile Include="MySuperquadricSource.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -158,18 +160,20 @@
     <ClInclude Include="MySuperquadricSource.h" />
     <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="Utility.h" />
+    <ClInclude Include="vtkMyAdvancedPass.h" />
+    <ClInclude Include="vtkMyDepthPeelingPass.h" />
     <ClInclude Include="vtkMyProcessingPass.h" />
     <ClInclude Include="vtkMyShaderPass.h" />
     <CustomBuild Include="aperio.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing aperio.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fstdafx.h" "-f../../aperio.h"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtConcurrent" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB  "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtConcurrent" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-IC:\Program Files (x86)\VTK\include\vtk-6.1" "-IC:\Program Files (x86)\carve\include" "-IC:\glew-1.11.0\include" "-IC:\Program Files (x86)\Visual Leak Detector\include" "-fstdafx.h" "-f../../aperio.h"</Command>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing aperio.h...</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Moc%27ing aperio.h...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp" "-fstdafx.h" "-f../../aperio.h"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtConcurrent" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets"</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB  "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtConcurrent" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-IC:\Program Files (x86)\VTK\include\vtk-6.1" "-IC:\Program Files (x86)\carve\include" "-fstdafx.h" "-f../../aperio.h"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB  "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtConcurrent" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-IC:\Program Files (x86)\Visual Leak Detector\include" "-fstdafx.h" "-f../../aperio.h"</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_CONCURRENT_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB  "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtConcurrent" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-IC:\Program Files (x86)\VTK\include\vtk-6.1" "-IC:\Program Files (x86)\carve\include" "-IC:\glew-1.11.0\include" "-IC:\Program Files (x86)\Visual Leak Detector\include" "-fstdafx.h" "-f../../aperio.h"</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

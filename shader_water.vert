@@ -8,12 +8,12 @@
 //#extension GL_EXT_geometry_shader4 : enable
 
 uniform float time = 0.0;
-uniform bool selected;
-uniform bool wiggle;
+uniform bool selected = false;
+uniform bool wiggle = false;
 
-out vec3 n;
-out vec3 v;
-out vec3 original_v;
+smooth out vec3 n;
+smooth out vec3 v;
+smooth out vec3 original_v;
 
 // Values
 const float pi = 3.14159;
@@ -92,7 +92,7 @@ void water()
 
 void main()  
 {     
-   	v = vec3(gl_ModelViewMatrix * gl_Vertex);       
+   	v = vec3(gl_ModelViewMatrix * gl_Vertex);
     n = normalize(gl_NormalMatrix * gl_Normal);
 
 	original_v = vec3(gl_Vertex);
@@ -106,5 +106,5 @@ void main()
 	if (selected == true && wiggle == true)
 		water();
 
-	gl_Position = final_position;
+	gl_Position = final_position ;
 }

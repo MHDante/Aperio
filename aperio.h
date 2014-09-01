@@ -16,6 +16,7 @@
 // Forward declarations (pimpl)
 class MyInteractorStyle;
 class vtkMyShaderPass;
+class vtkMyDepthPeelingPass;
 
 // Custom
 #include "Utility.h"
@@ -40,7 +41,7 @@ public:
 	vtkVector3f normal;
 };
 ///-------------------------------------------------------------------------------------------
-/// <summary> MyElem, represents a Superquadric element - item inside elems vector (endpoints, avgnormal, actor, cellLocator etc.) 
+/// <summary> MyElem, represents a Superquadric element - item inside elems vector (endpoints, avgnormal, actor, cellLocator etc.)
 /// </summary>
 class MyElem
 {
@@ -79,7 +80,7 @@ struct CustomMesh
 	// Whether or not it is a generated mesh (cut piece) or original piece
 	bool generated;
 	// Generated piece properties:
-	vtkVector3f snormal;	// Superquadric normal 
+	vtkVector3f snormal;	// Superquadric normal
 	vtkVector3f sup;		// Superquadric up vector
 	vtkVector3f hingePivot; // Superquadric initial position is hinge
 
@@ -91,7 +92,7 @@ struct CustomMesh
 };
 
 // ----------------------------------------------------------------------------------------
-/// <summary> Main window class 
+/// <summary> Main window class
 /// </summary>
 class aperio : public QMainWindow
 {
@@ -130,12 +131,12 @@ public:
 	// Public variables
 	vtkSmartPointer<vtkMyShaderPass> opaqueP;
 	vtkSmartPointer<vtkMyShaderPass> transP;
-	vtkSmartPointer<vtkDepthPeelingPass> peelP;
-	
+	vtkSmartPointer<vtkMyDepthPeelingPass> peelP;
+
 	vtkSmartPointer<vtkRenderPassCollection> passes;
 
 	float roundnessScale = 50.0;	// Superquadric roundness (divider)
-	
+
 	// Shader programs
 	vtkSmartPointer<vtkShaderProgram2> pgm;
 	vtkSmartPointer<vtkTexture> cutterTexture;
@@ -143,6 +144,8 @@ public:
 	// QT Window variables (preview and original size of window)
 	QRect _orig_size;
 	bool preview;
+
+	bool glew_available;
 
 	QString path;
 
@@ -184,8 +187,8 @@ private:
 	/// <summary> Boolean to toggle pausing VTK rendering </summary>
 	bool pause;
 
-/////////////////////////////////////// PUBLIC SLOTS //////////////////////////////////////////////////////////////////
-public slots:
+	/////////////////////////////////////// PUBLIC SLOTS //////////////////////////////////////////////////////////////////
+	public slots:
 
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when mouse is hovering over list item
@@ -250,7 +253,7 @@ public slots:
 	void slot_hingeSlider(int value);
 
 	// ------------------------------------------------------------------------
-	/// <summary> Slot called when Hinge Amount changed in QLineEdit (textbox) 
+	/// <summary> Slot called when Hinge Amount changed in QLineEdit (textbox)
 	/// </summary>
 	void slot_txtHingeAmount(const QString &string);
 
@@ -260,7 +263,7 @@ public slots:
 	void slot_buttonclicked()
 	{
 		difftrans = !difftrans;
-		ui.btnLight->setText( (difftrans? QString("On") : QString("Off"))  );
+		ui.btnLight->setText((difftrans ? QString("On") : QString("Off")));
 
 		QPixmap pixmap;
 		if (difftrans)
@@ -280,7 +283,7 @@ public slots:
 		colorDialog->setVisible(true);
 	}
 	// ------------------------------------------------------------------------
-	/// <summary> Slot called when the Color is changed 
+	/// <summary> Slot called when the Color is changed
 	/// </summary>
 	void slot_colorchanged(const QColor & color)
 	{
@@ -383,7 +386,6 @@ public slots:
 
 			print_statusbar("Loading file...please be patient!");
 			readFile(fileName.toLocal8Bit().data());
-			renderer->ResetCamera();
 			print_statusbar("File loaded");
 		}
 		else
@@ -483,126 +485,131 @@ public slots:
 	// Public Methods ----------------------------------------------------------------------------------------------
 public:
 
-		/// <summary> Set SelectedMesh to an instance of vector<CustomMesh>::iterator (update list, variable & selected shader var)
-		/// </summary>
-		/// <param name="name">Name of object (string) </param>
-		void setSelectedMesh(std::vector<CustomMesh>::iterator &it);
+	/// <summary> Set SelectedMesh to an instance of vector<CustomMesh>::iterator (update list, variable & selected shader var)
+	/// </summary>
+	/// <param name="name">Name of object (string) </param>
+	void setSelectedMesh(std::vector<CustomMesh>::iterator &it);
 
-		/// <summary> Obtain CustomMesh by name
-		/// </summary>
-		/// <param name="name">Name of object (string) </param>
-		std::vector<CustomMesh>::iterator getMeshByName(std::string name)
-		{
-			auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c) { return c.name.compare(name) == 0; });
-			return it;
-		}
-		/// <summary> Obtain CustomMesh by vtkActor smartpointer
-		/// </summary>
-		/// <param name="name">vtkActor SmartPointer to compare with all CustomMeshes' actors</param>
-		std::vector<CustomMesh>::iterator getMeshByActor(vtkSmartPointer<vtkActor> actor)
-		{
-			auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c)
-			{ return c.actor.GetPointer() == actor.GetPointer(); });
-			return it;
-		}
-		/// <summary> Obtain CustomMesh by vtkActor raw pointer
-		/// </summary>
-		/// <param name="name">vtkActor raw pointer to compare with all CustomMeshes' actors</param>
-		std::vector<CustomMesh>::iterator getMeshByActorRaw(vtkActor* actor)
-		{
-			auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c)
-			{ return c.actor.GetPointer() == actor; });
-			return it;
-		}
-		/// <summary> Obtain Widget/Element by vtkActor raw pointer
-		/// </summary>
-		/// <param name="name">vtkActor raw pointer to compare with all myelems' actors</param>
-		std::vector<MyElem>::iterator getElemByActorRaw(vtkActor* actor)
-		{
-			auto it = std::find_if(myelems.begin(), myelems.end(), [=](MyElem &e)
-			{ return e.actor.GetPointer() == actor; });
-			return it;
-		}
-		/// <summary> Obtain ListItem and QListWidget by name
-		/// </summary>
-		/// <param name="name">Name of item (string) </param>
-		QListWidgetItem* getListItemByName(std::string name)
-		{
-			for (int i = 0; i < ui.listWidget->count(); i++) {
-				std::string itemString = ui.listWidget->item(i)->text().toStdString();
+	/// <summary> Obtain CustomMesh by name
+	/// </summary>
+	/// <param name="name">Name of object (string) </param>
+	std::vector<CustomMesh>::iterator getMeshByName(std::string name)
+	{
+		auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c) { return c.name.compare(name) == 0; });
+		return it;
+	}
+	/// <summary> Obtain CustomMesh by vtkActor smartpointer
+	/// </summary>
+	/// <param name="name">vtkActor SmartPointer to compare with all CustomMeshes' actors</param>
+	std::vector<CustomMesh>::iterator getMeshByActor(vtkSmartPointer<vtkActor> actor)
+	{
+		auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c)
+		{ return c.actor.GetPointer() == actor.GetPointer(); });
+		return it;
+	}
+	/// <summary> Obtain CustomMesh by vtkActor raw pointer
+	/// </summary>
+	/// <param name="name">vtkActor raw pointer to compare with all CustomMeshes' actors</param>
+	std::vector<CustomMesh>::iterator getMeshByActorRaw(vtkActor* actor)
+	{
+		auto it = std::find_if(meshes.begin(), meshes.end(), [=](CustomMesh &c)
+		{ return c.actor.GetPointer() == actor; });
+		return it;
+	}
+	/// <summary> Obtain Widget/Element by vtkActor raw pointer
+	/// </summary>
+	/// <param name="name">vtkActor raw pointer to compare with all myelems' actors</param>
+	std::vector<MyElem>::iterator getElemByActorRaw(vtkActor* actor)
+	{
+		auto it = std::find_if(myelems.begin(), myelems.end(), [=](MyElem &e)
+		{ return e.actor.GetPointer() == actor; });
+		return it;
+	}
+	/// <summary> Obtain ListItem and QListWidget by name
+	/// </summary>
+	/// <param name="name">Name of item (string) </param>
+	QListWidgetItem* getListItemByName(std::string name)
+	{
+		for (int i = 0; i < ui.listWidget->count(); i++) {
+			std::string itemString = ui.listWidget->item(i)->text().toStdString();
 
-				if (itemString.compare(name) == 0)	// If list item text == selected item text
-				{
-					return ui.listWidget->item(i);
-				}
-			}
-			return nullptr;
-		}
-		/// <summary> Add to list a new item with name
-		/// </summary>
-		/// <param name="name">Name of item (string) </param>
-		void addToList(std::string name)
-		{
-			QListWidgetItem* item = new QListWidgetItem(name.c_str(), ui.listWidget);
-
-			item->setCheckState(Qt::Checked);
-			ui.listWidget->addItem(item);
-		}
-		/// <summary> Replace old actor by new actor in Renderer
-		/// </summary>
-		/// <param name="oldActor">Reference to old actor </param>
-		/// <param name="newActor">Reference to new actor </param>
-		void replaceActor(vtkSmartPointer<vtkActor> oldActor, vtkSmartPointer<vtkActor> newActor)
-		{
-			// Now replace mesh too
-			vtkPropCollection* actors = renderer->GetViewProps();
-			actors->InitTraversal();
-
-			vtkProp* current_actor = nullptr;
-			int i = -1;
-			while ((current_actor = actors->GetNextProp()) != nullptr)
+			if (itemString.compare(name) == 0)	// If list item text == selected item text
 			{
-				i++;
-				if (vtkActor::SafeDownCast(current_actor) == oldActor)	// Find selectedMesh's old actor to replace (Found)
-				{
-					renderer->GetViewProps()->ReplaceItem(i, newActor);
-					break;
-				}
+				return ui.listWidget->item(i);
 			}
 		}
-		/// <summary> Event called when window resized (resizes qvtkwidget)	
-		/// </summary>
-		/// <param name="event">Event object (Qt-based)</param>
-		virtual void resizeEvent(QResizeEvent *) override;
+		return nullptr;
+	}
+	/// <summary> Add to list a new item with name
+	/// </summary>
+	/// <param name="name">Name of item (string) </param>
+	void addToList(std::string name)
+	{
+		QListWidgetItem* item = new QListWidgetItem(name.c_str(), ui.listWidget);
 
-		/// <summary> Event called when mouse moves over window 
-		/// </summary>
-		/// <param name="">Event object (Qt-based)</param>
-		virtual void mouseMoveEvent(QMouseEvent *) override;
+		item->setCheckState(Qt::Checked);
+		ui.listWidget->addItem(item);
+	}
+	/// <summary> Replace old actor by new actor in Renderer
+	/// </summary>
+	/// <param name="oldActor">Reference to old actor </param>
+	/// <param name="newActor">Reference to new actor </param>
+	void replaceActor(vtkSmartPointer<vtkActor> oldActor, vtkSmartPointer<vtkActor> newActor)
+	{
+		// Now replace mesh too
+		vtkPropCollection* actors = renderer->GetViewProps();
+		actors->InitTraversal();
 
-		// Custom methods
-		void resizeInternal(const QSize &newWindowSize, bool using_preview);
-		void update_orig_size();
-
-		// ------------------------------------------------------------------------
-		/// <summary> Reads an .obj file and loads into meshes vector
-		/// </summary>
-		/// <param name="filename">filename.</param>
-		void readFile(std::string filename);
-
-		// ------------------------------------------------------------------------
-		/// <summary> Changes label in status bar to a new message
-		/// </summary>
-		/// <param name="text">The message.</param>
-		void print_statusbar(std::string text)
+		vtkProp* current_actor = nullptr;
+		int i = -1;
+		while ((current_actor = actors->GetNextProp()) != nullptr)
 		{
-			status_label->setText(text.c_str());
-			QApplication::processEvents();
+			i++;
+			if (vtkActor::SafeDownCast(current_actor) == oldActor)	// Find selectedMesh's old actor to replace (Found)
+			{
+				renderer->GetViewProps()->ReplaceItem(i, newActor);
+				break;
+			}
 		}
-		// ------------------------------------------------------------------------
-		/// <summary> Updates slider opacity value; called when list item clicked
-		/// </summary>
-		void updateOpacitySliderAndList();
+	}
+	/// <summary> Event called when window resized (resizes qvtkwidget)
+	/// </summary>
+	/// <param name="event">Event object (Qt-based)</param>
+	virtual void resizeEvent(QResizeEvent *) override;
+
+	/// <summary> Event called when mouse moves over window
+	/// </summary>
+	/// <param name="">Event object (Qt-based)</param>
+	virtual void mouseMoveEvent(QMouseEvent *) override;
+
+	// Custom methods
+	void resizeInternal(const QSize &newWindowSize, bool using_preview);
+	void update_orig_size();
+
+	// ------------------------------------------------------------------------
+	/// <summary> Reads an .obj file and loads into meshes vector
+	/// </summary>
+	/// <param name="filename">filename.</param>
+	void readFile(std::string filename);
+
+	// ------------------------------------------------------------------------------------------
+	/// <summary> Reset clipping plane (call this after any resetCamera calls, flyTo, etc.)
+	/// </summary>
+	void resetClippingPlane();
+
+	// ------------------------------------------------------------------------
+	/// <summary> Changes label in status bar to a new message
+	/// </summary>
+	/// <param name="text">The message.</param>
+	void print_statusbar(std::string text)
+	{
+		status_label->setText(text.c_str());
+		QApplication::processEvents();
+	}
+	// ------------------------------------------------------------------------
+	/// <summary> Updates slider opacity value; called when list item clicked
+	/// </summary>
+	void updateOpacitySliderAndList();
 };
 
 #endif // APERIO_H

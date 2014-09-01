@@ -46,10 +46,8 @@ public:
 	//--------------------------------------------------------------------------------------------------
 	/// <summary> Get Outline Actor
 	/// </summary>
-	vtkSmartPointer<vtkActor> GetOutlineActor()
-	{
-		return OutlineActor;
-	}
+	vtkSmartPointer<vtkActor> GetOutlineActor();
+
 	//--------------------------------------------------------------------------------------------------
 	/// <summary> Get Outline 
 	/// </summary>

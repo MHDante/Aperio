@@ -140,7 +140,8 @@ vtkSmartPointer<vtkShaderProgram2> Utility::makeShader(vtkRenderWindow *context,
 	}
 	else
 	{
-		std::cout << "Shader has errors.\n";
+		
+		std::cout << "Shader has errors.\n" << shaderProgram->GetLastLinkLog() << "\n";
 	}	
 	return shaderProgram;
 }
@@ -300,6 +301,10 @@ vtkSmartPointer<vtkPolyData> Utility::smoothNormals(vtkSmartPointer<vtkPolyData>
 		points_normal->SetTuple3(i, sum.GetX(), sum.GetY(), sum.GetZ());
 	}
 	dataset->GetPointData()->SetNormals(points_normal);
+
+	//cleanup
+	delete[] normal_buffer;
+
 	return dataset;
 }
 

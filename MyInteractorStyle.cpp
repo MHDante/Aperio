@@ -13,6 +13,7 @@
 #include <vtkSphereSource.h>
 
 #include <vtkOutlineSource.h>
+#include <vtkMyShaderPass.h>
 
 vtkStandardNewMacro(MyInteractorStyle);
  
@@ -640,6 +641,7 @@ void MyInteractorStyle::OnChar()
 			rwi->FlyTo(this->CurrentRenderer, cellPicker->GetPickPosition());
 		}
 		this->AnimState = VTKIS_ANIM_OFF;
+		a->resetClippingPlane();
 	}
 		break;
 	case 'r':
@@ -808,4 +810,13 @@ void MyInteractorStyle::Spin()
 	camera->OrthogonalizeViewUp();
 
 	//rwi->Render();
+}
+//--------------------------------------------------------------------------------------------------
+vtkSmartPointer<vtkActor> MyInteractorStyle::GetOutlineActor()
+{
+	vtkSmartPointer<vtkInformation> information = vtkSmartPointer<vtkInformation>::New();
+	information->Set(vtkMyShaderPass::OUTLINEKEY(), 0);	// dummy value
+	OutlineActor->SetPropertyKeys(information);
+	
+	return OutlineActor;
 }

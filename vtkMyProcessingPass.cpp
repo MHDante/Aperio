@@ -41,6 +41,8 @@ vtkMyProcessingPass::vtkMyProcessingPass()
 
 	// CUSTOM - Depth texture
 	this->Pass1Depth = 0;
+	this->Pass1Normal = 0;
+	this->Pass1Noise = 0;
 
 	this->Program1 = 0;
 }
@@ -58,6 +60,14 @@ vtkMyProcessingPass::~vtkMyProcessingPass()
 	if (this->Pass1Depth != 0)
 	{
 		vtkErrorMacro(<< "Pass1Depth should have been deleted in ReleaseGraphicsResources().");
+	}
+	if (this->Pass1Normal != 0)
+	{
+		vtkErrorMacro(<< "Pass1Normal should have been deleted in ReleaseGraphicsResources().");
+	}
+	if (this->Pass1Noise != 0)
+	{
+		vtkErrorMacro(<< "Pass1Noise should have been deleted in ReleaseGraphicsResources().");
 	}
 	if (this->Program1 != 0)
 	{
@@ -145,6 +155,16 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 			this->Pass1Depth = vtkTextureObject::New();
 			this->Pass1Depth->SetContext(r->GetRenderWindow());
 		}
+		if (this->Pass1Normal == 0)
+		{
+			this->Pass1Normal = vtkTextureObject::New();
+			this->Pass1Normal->SetContext(r->GetRenderWindow());
+		}
+		if (this->Pass1Noise == 0)
+		{
+			this->Pass1Noise = vtkTextureObject::New();
+			this->Pass1Noise->SetContext(r->GetRenderWindow());
+		}
 
 		if (this->FrameBufferObject == 0)
 		{
@@ -152,7 +172,7 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 			this->FrameBufferObject->SetContext(r->GetRenderWindow());
 		}
 
-		this->MyRenderDelegate(s, width, height, w, h, this->FrameBufferObject, this->Pass1, this->Pass1Depth);
+		this->MyRenderDelegate(s, width, height, w, h, this->FrameBufferObject, this->Pass1, this->Pass1Depth, this->Pass1Normal, this->Pass1Noise);
 
 		// Unbind the framebuffer so we can draw to screen
 		this->FrameBufferObject->UnBind();
@@ -203,20 +223,37 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		// id0 is source
 		int id0 = tu->Allocate();
 		int id1 = tu->Allocate();
+		int id2 = tu->Allocate();
+		int id3 = tu->Allocate();
 
 		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id0);
 		this->Pass1->Bind();
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 
 		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id1);
 		this->Pass1Depth->Bind();
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id2);
+		this->Pass1Normal->Bind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id3);
+		this->Pass1Noise->Bind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		vtkUniformVariables *var = this->Program1->GetUniformVariables();
 
@@ -224,8 +261,40 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 
 		var->SetUniformi("source", 1, &id0);
 		var->SetUniformi("sourceDepth", 1, &id1);
+		var->SetUniformi("sourceNormal", 1, &id2);
+		var->SetUniformi("sourceNoise", 1, &id3);
 		var->SetUniformf("frameBufSize", 2, fsize);
 
+		// --- Get projection matrix
+		double aspect[2];
+		int  lowerLeft[2];
+		int usize, vsize;
+		vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
+
+		r->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
+
+		r->ComputeAspect();
+		r->GetAspect(aspect);
+		double aspect2[2];
+		r->vtkViewport::ComputeAspect();
+		r->vtkViewport::GetAspect(aspect2);
+		double aspectModification = aspect[0] * aspect2[1] / (aspect[1] * aspect2[0]);
+
+		if (usize && vsize)
+		{
+			matrix->DeepCopy(r->GetActiveCamera()->GetProjectionTransformMatrix(aspectModification * usize / vsize, -1, 1));
+			matrix->Transpose();
+
+			float projMat[16];
+			int z = 0;
+			for (int i = 0; i < 4; i++)
+				for (int j = 0; j < 4; j++)
+					projMat[z++] = matrix->GetElement(i, j);
+
+			var->SetUniformMatrix("projMat", 4, 4, projMat);
+		}
+
+		// Start using program
 		this->Program1->Use();
 
 		if (!this->Program1->IsValid())
@@ -243,6 +312,12 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		// Trigger a draw on Gy1 (could be called on Gx1).
 		this->Pass1->CopyToFrameBuffer(extraPixels, extraPixels, w - 1 - extraPixels, h - 1 - extraPixels, 0, 0, width, height);
 
+		this->Pass1Noise->UnBind();
+		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id3);
+
+		this->Pass1Normal->UnBind();
+		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id2);
+
 		this->Pass1Depth->UnBind();
 		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id1);
 
@@ -251,6 +326,8 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 
 		tu->Free(id0);
 		tu->Free(id1);
+		tu->Free(id2);
+		tu->Free(id3);
 		this->Program1->Restore();
 	}
 	else
@@ -275,7 +352,9 @@ void vtkMyProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 	int newHeight,
 	vtkFrameBufferObject *fbo,
 	vtkTextureObject *target,
-	vtkTextureObject *targetDepth)
+	vtkTextureObject *targetDepth,
+	vtkTextureObject *targetNormal,
+	vtkTextureObject * targetNoise)
 {
 	assert("pre: s_exists" && s != 0);
 	assert("pre: fbo_exists" && fbo != 0);
@@ -284,6 +363,9 @@ void vtkMyProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 	assert("pre: target_has_context" && target->GetContext() != 0);
 	assert("pre: target_depth_exists" && targetDepth != 0);
 	assert("pre: target_depth_has_context" && targetDepth->GetContext() != 0);
+
+	assert("pre: target_normal_exists" && targetNormal != 0);
+	assert("pre: target_normal_has_context" && targetNormal->GetContext() != 0);
 
 	vtkRenderer *r = s->GetRenderer();
 	vtkRenderState s2(r);
@@ -337,17 +419,37 @@ void vtkMyProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 	if (targetDepth->GetWidth() != static_cast<unsigned int>(newWidth) ||
 		targetDepth->GetHeight() != static_cast<unsigned int>(newHeight))
 	{
+		targetDepth->SetRequireDepthBufferFloat(true);
+		targetDepth->SetRequireTextureFloat(true);
+
+		//targetDepth->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
 		targetDepth->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
 	}
 
-	fbo->SetNumberOfRenderTargets(1);
+	if (targetNormal->GetWidth() != static_cast<unsigned int>(newWidth) ||
+		targetNormal->GetHeight() != static_cast<unsigned int>(newHeight))
+	{
+		targetNormal->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
+	}
+	if (targetNoise->GetWidth() != static_cast<unsigned int>(newWidth) ||
+		targetNoise->GetHeight() != static_cast<unsigned int>(newHeight))
+	{
+		targetNoise->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
+	}
+
+	fbo->SetNumberOfRenderTargets(3);
 	fbo->SetColorBuffer(0, target);
+	fbo->SetColorBuffer(1, targetNormal);
+	fbo->SetColorBuffer(2, targetNoise);
 	fbo->SetDepthBuffer(targetDepth);
+
+	unsigned int indices[3] = { 0, 1, 2};
+	fbo->SetActiveBuffers(3, indices);
 
 	// because the same FBO can be used in another pass but with several color
 	// buffers, force this pass to use 1, to avoid side effects from the
 	// render of the previous frame.
-	fbo->SetActiveBuffer(0);
+	//fbo->SetActiveBuffer(0);
 
 	fbo->SetDepthBufferNeeded(true);
 	fbo->StartNonOrtho(newWidth, newHeight, false);
@@ -402,6 +504,16 @@ void vtkMyProcessingPass::ReleaseGraphicsResources(vtkWindow *w)
 	{
 		this->Pass1Depth->Delete();
 		this->Pass1Depth = 0;
+	}
+	if (this->Pass1Normal != 0)
+	{
+		this->Pass1Normal->Delete();
+		this->Pass1Normal = 0;
+	}
+	if (this->Pass1Noise != 0)
+	{
+		this->Pass1Noise->Delete();
+		this->Pass1Noise = 0;
 	}
 }
 //--------------------------------------------------------------------------------------------------

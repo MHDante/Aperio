@@ -15,6 +15,8 @@
 #include "Utility.h"
 #include "vtkMyShaderPass.h"
 #include "vtkMyProcessingPass.h"
+#include "vtkMyDepthPeelingPass.h"
+#include "vtkMyAdvancedPass.h"
 
 // More VTK
 #include <vtkLightsPass.h>
@@ -41,11 +43,43 @@
 using namespace std;
 #include "aperio.h"
 
+// Include widgets
+#include <vtkAffineWidget.h>
+#include <vtkAffineRepresentation2D.h>
+
+#include <vtkParametricEllipsoid.h>
+#include <vtkParametricFunctionSource.h>
+
+#include <vtkPlaneWidget.h>
+#include <vtkBoxWidget.h>
+#include <vtkBoxWidget2.h>
+#include <vtkAngleWidget.h>
+#include <vtkAxesTransformWidget.h>
+#include <vtkBorderWidget.h>
+#include <vtkButtonWidget.h>
+#include <vtkCenteredSliderWidget.h>
+#include <vtkContourWidget.h>
+#include <vtkHandleWidget.h>
+#include <vtkHoverWidget.h>
+#include <vtkLineWidget2.h>
+#include <vtkParallelopipedWidget.h>
+#include <vtkResliceCursorWidget.h>
+#include <vtkResliceCursorWidget.h>
+#include <vtkSliderWidget.h>
+#include <vtkSphereWidget2.h>
+#include <vtkSplineWidget2.h>
+#include <vtkTensorProbeWidget.h>
+
+#include <vtkBoxRepresentation.h>
+
 //-------------------------------------------------------------------------------------------------------------
 aperio::aperio(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
+
+	// Constructor (initialize variables)
+	glew_available = false;
 
 	QTimer::singleShot(0, this, SLOT(slot_afterShowWindow()));
 }
@@ -92,7 +126,7 @@ void aperio::slot_afterShowWindow()
 	mouse[2] = 0;
 
 	wavetime = 0;
-	difftrans = true;
+	difftrans = ui.btnLight->text().compare("On") == 0 ? true: false;
 	shininess = ui.shininessSlider->value();
 	darkness = (ui.darknessSlider->value() + 128) / 128.0f;
 
@@ -134,7 +168,6 @@ void aperio::slot_afterShowWindow()
 	renderWindow->SetMultiSamples(0);
 
 	renderer = vtkSmartPointer<vtkRenderer>::New();
-	renderer->GetActiveCamera()->SetClippingRange(0.02, 1000);
 
 	/* float bgcolor[3] = { 235, 235, 235 };
 	float factor = 0.7;
@@ -163,7 +196,7 @@ void aperio::slot_afterShowWindow()
 	ui.mainWidget->setLayout(new QGridLayout(ui.mainWidget));
 	ui.mainWidget->layout()->setMargin(2);
 	ui.mainWidget->layout()->addWidget(qv);
-	
+
 	// Prepare all the rendering passes for vtkMyShaderPass
 	vtkSmartPointer<vtkCameraPass> cameraP = vtkSmartPointer<vtkCameraPass>::New();
 	vtkSmartPointer<vtkSequencePass> seq = vtkSmartPointer<vtkSequencePass>::New();
@@ -174,7 +207,7 @@ void aperio::slot_afterShowWindow()
 	transP = vtkSmartPointer<vtkMyShaderPass>::New();
 	transP->initialize(this, ShaderPassType::PASS_TRANSLUCENT);
 
-	peelP = vtkSmartPointer<vtkDepthPeelingPass>::New();
+	peelP = vtkSmartPointer<vtkMyDepthPeelingPass>::New();
 	peelP->SetMaximumNumberOfPeels(2);
 	peelP->SetOcclusionRatio(0.1);
 	peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
@@ -187,7 +220,7 @@ void aperio::slot_afterShowWindow()
 	passes->AddItem(transP);
 	//passes->AddItem(vtkSmartPointer<vtkOpaquePass>::New());
 	//passes->AddItem(vtkSmartPointer<vtkTranslucentPass>::New());
-	//passes->AddItem(vtkSmartPointer<vtkOverlayPass>::New());
+	passes->AddItem(vtkSmartPointer<vtkOverlayPass>::New());
 	//passes->AddItem(peelP);
 
 	seq->SetPasses(passes);
@@ -197,6 +230,11 @@ void aperio::slot_afterShowWindow()
 	//vtkSmartPointer<vtkMyProcessingPass> dofP = vtkSmartPointer<vtkMyProcessingPass>::New();
 	//dofP->setShaderFile("shader_dof.frag", true);
 	//dofP->SetDelegatePass(cameraP);
+
+	// Requires camera pass (actual geometry, depth stores into frame buffer objects)
+	
+	vtkSmartPointer<vtkMyAdvancedPass> advP = vtkSmartPointer<vtkMyAdvancedPass>::New();
+	advP->SetDelegatePass(cameraP);
 
 	// Requires Depth from camera pass
 	vtkSmartPointer<vtkMyProcessingPass> ssaoP = vtkSmartPointer<vtkMyProcessingPass>::New();
@@ -217,13 +255,13 @@ void aperio::slot_afterShowWindow()
 	bloomP->setShaderFile("shader_bloom.frag", true);
 	bloomP->SetDelegatePass(fxaaP);
 
-
 	vtkOpenGLRenderer::SafeDownCast(renderer.GetPointer())->SetPass(bloomP);
 
 	// Render window interactor
 	vtkSmartPointer<QVTKInteractor> renderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
 
 	interactorstyle = vtkSmartPointer<MyInteractorStyle>::New();
+	interactorstyle->SetAutoAdjustCameraClippingRange(false);
 	interactorstyle->initialize(this);
 
 	renderWindowInteractor->SetInteractorStyle(interactorstyle);
@@ -232,6 +270,21 @@ void aperio::slot_afterShowWindow()
 	qv->GetRenderWindow()->SetInteractor(renderWindowInteractor);
 
 	QApplication::processEvents();
+
+	// --- Initialize GLEW (After OpenGL context is set up!)
+	GLenum err = glewInit();
+	if (GLEW_OK != err)
+	{
+		/* Problem: glewInit failed, something is seriously wrong. */
+		std::cout << "Error: \n" << glewGetErrorString(err) << "\n";
+		system("pause");
+		exit(1);
+	}
+	else
+	{
+		glew_available = true;
+		std::cout << "GLEW Initialized: " << glewGetString(GLEW_VERSION) << "\n";
+	}
 
 	// Set up text validators for QLineEdits in form
 	ui.txtHingeAmount->setValidator(new QIntValidator(-360, 360, this));
@@ -284,7 +337,7 @@ void aperio::slot_afterShowWindow()
 
 	// Transform buttons
 	//connect(ui.btnHinge, &QLabel::c, this, &aperio::slot_hingeSlider);
-
+	
 	readFile(fname);
 }
 // ------------------------------------------------------------------------
@@ -491,11 +544,104 @@ void aperio::readFile(std::string filename)
 		float opacity = 1.0;
 		Utility::addMesh(this, dataset, z, groupname, c, opacity);
 	
+		/*double bounds[6];		
+		meshes[z].actor->GetBounds(bounds);
+
+		std::cout << bounds[0] << ","
+			<< bounds[1] << ","
+			<< bounds[2] << ","
+			<< bounds[3] << ","
+			<< bounds[4] << ","
+			<< bounds[5] << "\n";
+			*/
+
 		// add actor to renderer
 		renderer->AddActor(meshes[z].actor);
 		renderer->ResetCamera();
+		resetClippingPlane();
+
 		qv->GetRenderWindow()->Render();
 	}
+	// Reset clipping plane AFTER camera reset AND render (also after FlyTo call in interactor)
+	resetClippingPlane();
+
+
+	/*vtkSmartPointer<vtkParametricEllipsoid> ellipse = vtkSmartPointer<vtkParametricEllipsoid>::New();
+
+	vtkSmartPointer<vtkParametricFunctionSource> source = vtkSmartPointer<vtkParametricFunctionSource>::New();
+	source->SetParametricFunction(ellipse);
+	source->Update();*/
+
+	/*
+	#include <vtkPlaneWidget.h>
+#include <vtkBoxWidget.h>
+#include <vtkBoxWidget2.h>
+#include <vtkAngleWidget.h>
+#include <vtkAxesTransformWidget.h>
+#include <vtkBorderWidget.h>
+#include <vtkButtonWidget.h>
+#include <vtkCenteredSliderWidget.h>
+#include <vtkContourWidget.h>
+#include <vtkHandleWidget.h>
+#include <vtkHoverWidget.h>
+#include <vtkLineWidget2.h>
+#include <vtkParallelopipedWidget.h>
+#include <vtkResliceCursorWidget.h>
+#include <vtkResliceCursorWidget.h>
+#include <vtkSliderWidget.h>
+#include <vtkSphereWidget2.h>
+#include <vtkSplineWidget2.h>
+#include <vtkTensorProbeWidget.h>
+	*/
+	//vtkSmartPointer<vtkPlaneWidget> planeWidget = vtkSmartPointer<vtkPlaneWidget>::New();
+	//vtkSmartPointer<vtkBoxWidget> planeWidget = vtkSmartPointer<vtkBoxWidget>::New();
+	vtkSmartPointer<vtkBoxWidget> planeWidget = vtkSmartPointer<vtkBoxWidget>::New();
+	
+	planeWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
+	//planeWidget->On();
+	/*vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputData(planeWidget);
+	//mapper->set
+	
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+	actor->DragableOn();
+
+	renderer->AddActor(actor);*/
+
+
+	/*
+	class vtkAffineCallback : public vtkCommand
+	{
+	public:
+		static vtkAffineCallback *New()
+		{
+			return new vtkAffineCallback;
+		}
+		virtual void Execute(vtkObject *caller, unsigned long, void*);
+		vtkAffineCallback() :Actor(0), AffineRep(0)
+		{
+			this->Transform = vtkTransform::New();
+		}
+		~vtkAffineCallback()
+		{
+			this->Transform->Delete();
+		}
+		vtkActor *Actor;
+		vtkAffineRepresentation2D *AffineRep;
+		vtkTransform *Transform;
+	};
+
+	void vtkAffineCallback::Execute(vtkObject*, unsigned long vtkNotUsed(event), void*)
+	{
+		this->AffineRep->GetTransform(this->Transform);
+		this->Actor->SetUserTransform(this->Transform);
+	}
+
+	vtkSmartPointer<vtkAffineWidget> affine = vtkSmartPointer<vtkAffineWidget>::New();
+	affine
+	renderer->
+	*/
 
 	// Added meshes, now set selectedMesh to last one (Might have to update this for future selections)
 	setSelectedMesh(meshes.end());	// Reset selectedMesh to nothing
@@ -672,7 +818,9 @@ void aperio::slot_listitemclicked(int i)
 void aperio::slot_timeout_fps()
 {
 	if (GetAsyncKeyState(VK_ESCAPE))
-		exit(0);
+	{
+		this->close();
+	}
 
 	// Increment wave-time in seconds for wiggle
 	wavetime = wavetime + 0.0125;
@@ -834,4 +982,15 @@ void aperio::setSelectedMesh(std::vector<CustomMesh>::iterator &it)
 		interactorstyle->GetOutlineActor()->GetProperty()->SetLineWidth(1.65);
 		interactorstyle->GetOutlineActor()->GetProperty()->SetOpacity(0.9);
 	}
+}
+//--------------------------------------------------------------------------------------------------------------
+void aperio::resetClippingPlane()
+{
+	//double d[2];
+	renderer->ResetCameraClippingRange();
+
+	renderer->GetActiveCamera()->SetClippingRange(0.05, 7500);
+	
+	std::cout << renderer->GetRenderWindow()->GetDepthBufferSize();
+	//renderer->toler
 }

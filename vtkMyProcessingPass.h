@@ -64,7 +64,7 @@ protected:
 
 	///<summary>My Custom delegate method that enables alpha blending in render to target </summary>
 	void MyRenderDelegate(const vtkRenderState *s, int width, int height, int newWidth, int newHeight,
-		vtkFrameBufferObject *fbo, vtkTextureObject *target, vtkTextureObject *targetDepth);
+		vtkFrameBufferObject *fbo, vtkTextureObject *target, vtkTextureObject *targetDepth, vtkTextureObject *targetNormal, vtkTextureObject *targetNoise);
 
 	// Description:
 	// Graphics resources.
@@ -73,6 +73,8 @@ protected:
 	vtkShaderProgram2 *Program1; // shader to compute final result
 
 	vtkTextureObject *Pass1Depth;	// CUSTOM - Depth texture object
+	vtkTextureObject *Pass1Normal;	// CUSTOM - Normal texture object
+	vtkTextureObject *Pass1Noise;	// CUSTOM - Normal texture object
 
 	std::stringstream bufferV;	// Vertex  shader stringstream
 	std::stringstream bufferF;	// Fragment shader stringstream

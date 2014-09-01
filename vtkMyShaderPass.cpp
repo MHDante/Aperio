@@ -33,6 +33,10 @@
 
 vtkStandardNewMacro(vtkMyShaderPass);
 
+// Set up Property Keys (globally accessible from this class)
+vtkInformationKeyMacro(vtkMyShaderPass, OUTLINEKEY, Integer);
+
+
 // Set up property key accessors using macro
 //vtkInformationKeyMacro(vtkMyShaderPass,UNIFORMS, ObjectBase);
 
@@ -130,19 +134,37 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				else
 				{
 					// Else,
-					// Not found the CustomMesh object, must be extra objects (The outliner)
-					bool outline = true;
-					uniforms->SetUniformit("outline", 1, &outline);
-
-					glEnable(GL_LINE_SMOOTH);
+					// Not found the CustomMesh object, must be extra objects (The outliner, UI widgets, etc)
+					
+					if (p->GetPropertyKeys() && p->GetPropertyKeys()->Has(vtkMyShaderPass::OUTLINEKEY()))
+					{
+						bool outline = true;
+						uniforms->SetUniformit("outline", 1, &outline);
+						glEnable(GL_LINE_SMOOTH);
+					}
 				}
 			}
-
 			int rendered;
 
+			// Creating subclass of vtkShaderProgram2 to access protected Program Id variable			
+			class MyShaderProgram2 : public vtkShaderProgram2
+			{
+			public:
+				GLint getID() { return this->Id; }
+			};					
+
 			a->pgm->SetUniformVariables(uniforms);
+		
 			//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->pgm); // Dangerous, constantly allocs
 			a->pgm->Use();
+
+			// Custom GL Code
+			GLint progID = static_cast<MyShaderProgram2*>(a->pgm.Get())->getID();
+			if (a->glew_available)
+			{
+				//GLuint loc = glGetUniformLocation(progID, "test");
+				//glProgramUniform1f(progID, loc, 1.0);
+			}
 
 			if (passType == ShaderPassType::PASS_TRANSLUCENT)
 			{

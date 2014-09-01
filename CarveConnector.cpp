@@ -52,10 +52,10 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::makeCube(float size, const 
 unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b, carve::csg::CSG::OP op, bool triangulate)
 {
 	carve::csg::CSG csg;
-	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
-	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::INTERSECTION_VERTEX_BIT);
-	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::EDGE_DIVISION_BIT);
-	//csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::RESULT_FACE_BIT);
+	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
+	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::INTERSECTION_VERTEX_BIT);
+	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::EDGE_DIVISION_BIT);
+	csg.hooks.registerHook(new carve::csg::CarveTriangulator, carve::csg::CSG::Hooks::RESULT_FACE_BIT);
 	//csg.hooks.registerHook(CarveHoleResolver)
 
 	//csg.hooks.registerHook(new carve::csg::CarveHoleResolver, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);

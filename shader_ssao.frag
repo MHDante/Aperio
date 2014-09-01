@@ -1,189 +1,143 @@
-/*******************************************************************
-Fragment
-SSAO Post-process Shader : Screen Space Ambient Occlusion Shader 
-*******************************************************************/
-
 #version 440 compatibility
-
-/**
-* @author alteredq / http://alteredqualia.com/
-*
-* Screen-space ambient occlusion shader
-* - ported from
-*   SSAO GLSL shader v1.2
-*   assembled by Martins Upitis (martinsh) (http://devlog-martinsh.blogspot.com)
-*   original technique is made by ArKano22 (http://www.gamedev.net/topic/550699-ssao-no-halo-artifacts/)
-* - modifications
-* - modified to use RGBA packed depth texture (use clear color 1,1,1,1 for depth pass)
-* - refactoring and optimizations
-*/
-
-uniform sampler2D source;
-uniform sampler2D sourceDepth;
-uniform vec2 frameBufSize;        // texture width, height
-
-float cameraNear = 0.02;
-float cameraFar = 1000;
-
-bool onlyAO = false;      // use only ambient occlusion pass?
-
-float aoClamp = 0.5;    // depth clamp - reduces haloing at screen edges
-
-float lumInfluence = 0.5;  // how much luminance affects occlusion
 
 smooth in vec2 vUv;
 
-// #define PI 3.14159265
-#define DL 2.399963229728653  // PI * ( 3.0 - sqrt( 5.0 ) )
-#define EULER 2.718281828459045
+uniform sampler2D source;
+uniform sampler2D sourceNoise;
+uniform sampler2D sourceNormal;
+uniform sampler2D sourceDepth;
+uniform vec2 frameBufSize;
 
-// helpers
-float width = frameBufSize.x;   // texture width
-float height = frameBufSize.y;  // texture height
+uniform mat4 projMat;
+mat4 iprojMat = inverse(projMat);
 
-float cameraFarPlusNear = cameraFar + cameraNear;
-float cameraFarMinusNear = cameraFar - cameraNear;
-float cameraCoef = 2.0 * cameraNear;
+bool onlyAO =false;
 
-// user variables
+float zNear = 0.01;
+float zFar = 100;
+float cameraCoef = 2;
 
-const int samples = 40;     // ao sample count
-const float radius = 7.5;  // ao radius
+float distanceThreshold = 0.03;
+vec2 filterRadius = vec2(10.0 / frameBufSize.x, 10.0 / frameBufSize.y);
 
-const bool useNoise = false;      // use noise instead of pattern for sample dithering
-const float noiseAmount = 0.0003; // dithering amount
+const int sample_count = 40;
+const vec2 poisson16[] = vec2[](    // These are the Poisson Disk Samples
+vec2(-0.2918438f, 0.7097818f),
+vec2(-0.5697373f, 0.3234968f),
+vec2(0.08700638f, 0.5978211f),
+vec2(-0.6084387f, 0.5826824f),
+vec2(-0.5492917f, 0.8244911f),
+vec2(-0.2969716f, 0.2535218f),
+vec2(-0.1380409f, 0.505855f),
+vec2(-0.09842424f, 0.9828971f),
+vec2(0.1446213f, 0.8812384f),
+vec2(0.0300821f, 0.3272773f),
+vec2(0.417667f, 0.7309052f),
+vec2(0.3703419f, 0.3500031f),
+vec2(-0.07869275f, 0.03726918f),
+vec2(0.2422249f, -0.07930708f),
+vec2(-0.7164432f, 0.03987473f),
+vec2(-0.8841425f, 0.4390802f),
+vec2(-0.4693542f, -0.08020838f),
+vec2(-0.957849f, 0.1858903f),
+vec2(0.5524602f, -0.1926276f),
+vec2(-0.1098147f, -0.2047909f),
+vec2(0.1686378f, -0.4164315f),
+vec2(0.5009063f, 0.06640533f),
+vec2(0.5136947f, -0.4606736f),
+vec2(-0.03520988f, -0.5709935f),
+vec2(-0.4799206f, -0.4785594f),
+vec2(-0.2276017f, -0.4257426f),
+vec2(0.8122018f, -0.3806681f),
+vec2(0.7720947f, 0.01240732f),
+vec2(0.6623059f, 0.4374966f),
+vec2(0.6804902f, 0.7129371f),
+vec2(0.3109443f, -0.8586086f),
+vec2(0.03161683f, -0.8538675f),
+vec2(-0.4194146f, -0.7615957f),
+vec2(-0.6958252f, -0.3399802f),
+vec2(-0.9348733f, -0.1859573f),
+vec2(0.9477305f, 0.2047868f),
+vec2(0.9574907f, -0.1537475f),
+vec2(-0.6839828f, -0.6736622f),
+vec2(-0.2138845f, -0.9265943f),
+vec2(0.6941394f, -0.6445384f)
+);
 
-const float diffArea = 0.4;   // self-shadowing reduction
-const float gDisplace = 0.4;  // gauss bell center
+float linearizeDepth(in float depth) {
+	//return projMatrix[3][2] / (depth - projMatrix[2][2]);
 
-
-// RGBA depth
-
-float unpackDepth( const in vec4 rgba_depth ) {
-
-	const vec4 bit_shift = vec4( 1.0 / ( 256.0 * 256.0 * 256.0 ), 1.0 / ( 256.0 * 256.0 ), 1.0 / 256.0, 1.0 );
-	float depth = dot( rgba_depth, bit_shift );
-	return depth;
+	return (cameraCoef * zNear) / (zFar + zNear - depth * (zFar - zNear));
 }
 
-// generating noise / pattern texture for dithering
+vec3 calculatePosition(in vec2 coord, in float depth)
+{
+	depth = linearizeDepth(depth);
 
-vec2 rand( const vec2 coord ) {
-
-	vec2 noise;
-
-	if ( useNoise ) {
-
-		float nx = dot ( coord, vec2( 12.9898, 78.233 ) );
-		float ny = dot ( coord, vec2( 12.9898, 78.233 ) * 2.0 );
-
-		noise = clamp( fract ( 43758.5453 * sin( vec2( nx, ny ) ) ), 0.0, 1.0 );
-
-	} else {
-
-		float ff = fract( 1.0 - coord.s * ( width / 2.0 ) );
-		float gg = fract( coord.t * ( height / 2.0 ) );
-
-		noise = vec2( 0.25, 0.75 ) * vec2( ff ) + vec2( 0.75, 0.25 ) * gg;
-
-	}
-
-	return ( noise * 2.0  - 1.0 ) * noiseAmount;
-
+	vec4 pos = iprojMat * vec4(coord.x * 2 - 1, coord.y * 2 - 1, depth * 2 - 1, 1);
+	
+	pos /= pos.w;
+	return pos.xyz;
 }
 
-float readDepth( const in vec2 coord ) {
-
-	// return ( 2.0 * cameraNear ) / ( cameraFar + cameraNear - unpackDepth( texture2D( sourceDepth, coord ) ) * ( cameraFar - cameraNear ) );
-	return cameraCoef / ( cameraFarPlusNear - unpackDepth( texture2D( sourceDepth, coord ) ) * cameraFarMinusNear );
+// Depth unpacking function and constants adapted from
+// SpiderGL Example 6: Shadow Mapping:
+// http://spidergl.org/example.php?id=6
+float unpackDepth(vec4 rgbaDepth) {
+vec4 bitShift = vec4(1./(256.*256.*256.),
+	1./(256.*256.), 1./256., 1.);
+return dot(rgbaDepth, bitShift);
 }
+		
+void main()
+{
+	// reconstruct position from depth, USE YOUR CODE HERE
+	float depth = texture(sourceDepth, vUv).r;	
+	vec3 viewPos = calculatePosition(vUv, depth);
+	
+	
 
-float compareDepths( const in float depth1, const in float depth2, inout int far ) {
+	// get the view space normal, USE YOUR CODE HERE
+	//vec2 normalXY = texture(sourceNormal, vUv).xy * 2.0 - 1.0;
+	//vec3 viewNormal = decodeNormal(normalXY);
+	vec3 viewNormal = texture(sourceNormal, vUv).xyz * 2.0 - 1.0;
 
-	float garea = 2.0;                         // gauss bell width
-	float diff = ( depth1 - depth2 ) * 100.0;  // depth difference (0-100)
+    float ambientOcclusion = 0;
+    // perform AO
+    for (int i = 0; i < sample_count; ++i)
+    {
+        // sample at an offset specified by the current Poisson-Disk sample and scale it by a radius (has to be in Texture-Space)
+        vec2 sampleTexCoord = vUv + (poisson16[i] * (filterRadius));
+        float sampleDepth = texture(sourceDepth, sampleTexCoord).r;
 
-	// reduce left bell width to avoid self-shadowing
+		vec3 samplePos = calculatePosition(sampleTexCoord, sampleDepth);
+        vec3 sampleDir = normalize(samplePos - viewPos);
 
-	if ( diff < gDisplace ) {
+        // angle between SURFACE-NORMAL and SAMPLE-DIRECTION (vector from SURFACE-POSITION to SAMPLE-POSITION)
+        float NdotS = max(dot(viewNormal, sampleDir), 0);
+        // distance between SURFACE-POSITION and SAMPLE-POSITION
+        float VPdistSP = distance(viewPos, samplePos);
 
-		garea = diffArea;
+        // a = distance function
+        float a = 1.0 - smoothstep(distanceThreshold, distanceThreshold * 2, VPdistSP);
+        // b = dot-Product
+        float b = NdotS;
 
-	} else {
+        ambientOcclusion += (a * b);
+    }
+	float ao = 1.0 - (ambientOcclusion / sample_count);	
+	
+	vec4 onlyAOColor = vec4( 1.0, 0.7, 0.5, 1);		
+	
+	if (onlyAO)
+		gl_FragColor = onlyAOColor * vec4(ao, ao, ao, 1);
+	else
+		gl_FragColor = texture(source, vUv) * vec4(ao, ao, ao, 1);
+		
+  
+//float x = unpackDepth(texture(sourceDepth, vUv));
+//float x = texture(sourceDepth, vUv).r;
+//x = linearizeDepth(x);
+//gl_FragColor = vec4(x, x, x, 1);
 
-		far = 1;
-
-	}
-
-	float dd = diff - gDisplace;
-	float gauss = pow( EULER, -2.0 * dd * dd / ( garea * garea ) );
-	return gauss;
-}
-
-float calcAO( float depth, float dw, float dh ) {
-
-	float dd = radius - depth * radius;
-	vec2 vv = vec2( dw, dh );
-
-	vec2 coord1 = vUv + dd * vv;
-	vec2 coord2 = vUv - dd * vv;
-
-	float temp1 = 0.0;
-	float temp2 = 0.0;
-
-	int far = 0;
-	temp1 = compareDepths( depth, readDepth( coord1 ), far );
-
-	// DEPTH EXTRAPOLATION
-	if ( far > 0 ) {
-		temp2 = compareDepths( readDepth( coord2 ), depth, far );
-		temp1 += ( 1.0 - temp1 ) * temp2;
-	}
-	return temp1;
-
-}
-
-void main() {
-
-	vec2 noise = rand( vUv );
-	float depth = readDepth( vUv );
-
-	float tt = clamp( depth, aoClamp, 1.0 );
-
-	float w = ( 1.0 / width )  / tt + ( noise.x * ( 1.0 - noise.x ) );
-	float h = ( 1.0 / height ) / tt + ( noise.y * ( 1.0 - noise.y ) );
-
-	float ao = 0.0;
-
-	float dz = 1.0 / float( samples );
-	float z = 1.0 - dz / 2.0;
-	float l = 0.0;
-
-	for ( int i = 0; i <= samples; i ++ ) {
-
-		float r = sqrt( 1.0 - z );
-
-		float pw = cos( l ) * r;
-		float ph = sin( l ) * r;
-		ao += calcAO( depth, pw * w, ph * h );
-		z = z - dz;
-		l = l + DL;
-
-	}
-
-	ao /= float( samples );
-	ao = 1.0 - ao;
-
-	vec3 color = texture2D( source, vUv ).rgb;
-
-	vec3 lumcoeff = vec3( 0.299, 0.587, 0.114 );
-	float lum = dot( color.rgb, lumcoeff );
-	vec3 luminance = vec3( lum );
-
-	vec3 final = vec3( color * mix( vec3( ao ), vec3( 1.0 ), luminance * lumInfluence ) );  // mix( color * ao, white, luminance )
-
-	if ( onlyAO ) {
-		final = vec3( mix( vec3( ao ), vec3( 1.0 ), luminance * lumInfluence ) );  // ambient occlusion only
-	}
-	gl_FragColor = vec4( final, 1.0 );
 }

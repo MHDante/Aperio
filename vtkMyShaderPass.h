@@ -30,6 +30,7 @@
 
 #include <vtkRenderingOpenGLModule.h> // For export macro
 #include <vtkDefaultPass.h>
+#include "vtkInformationIntegerKey.h"
 
 class aperio;	// pimpl
 
@@ -45,6 +46,9 @@ public:
 	static vtkMyShaderPass *New();
 	vtkTypeMacro(vtkMyShaderPass, vtkDefaultPass);
 	void PrintSelf(ostream& os, vtkIndent indent);
+
+	// --- Custom Property Keys
+	static vtkInformationIntegerKey *OUTLINEKEY();
 
 	//BTX
 	// Description:

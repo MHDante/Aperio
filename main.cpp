@@ -85,6 +85,8 @@ Graphics card with GLSL shader support (OpenGL 2.1 or higher)
 #include <qtconcurrentrun.h>
 #include <QFutureWatcher>
 
+//#include <vld.h>
+
 class Manager
 {
 public:
@@ -98,6 +100,9 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 	QApplication::setStyle("Fusion");
+
+	a.processEvents();
+
 
 	QPixmap pixmap("splash.png");
 	QSplashScreen splash(pixmap, Qt::WindowStaysOnTopHint);
@@ -124,6 +129,9 @@ int main(int argc, char *argv[])
 	QFutureWatcher<void> futureWatcher;
 	futureWatcher.setFuture(f2);
 	QObject::connect(&futureWatcher, &QFutureWatcher<void>::finished, [] { std::cout << "\n[Completed second thread]\n";  });
+	
+	// Cleanup
+	delete manager;
 
 	return a.exec();
 }
