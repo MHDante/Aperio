@@ -103,7 +103,6 @@ int main(int argc, char *argv[])
 
 	a.processEvents();
 
-
 	QPixmap pixmap("splash.png");
 	QSplashScreen splash(pixmap, Qt::WindowStaysOnTopHint);
 	splash.setWindowOpacity(0.8);

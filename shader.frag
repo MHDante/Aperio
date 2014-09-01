@@ -9,42 +9,45 @@ smooth in vec3 n;
 smooth in vec3 v;
 smooth in vec3 original_v;
 
-uniform bool outline;
+// Shader uniforms
+uniform sampler2D source;
+uniform bool outline = false;
+uniform bool iselem = false;
+
+uniform bool selected = false;
+uniform bool peerInside = false;
+uniform bool difftrans = true;
 
 uniform vec3 mouse = vec3(0, 0, 0);
 uniform float mouseSize = 1.0;
 uniform float brushSize = 1.5;
-uniform bool peerInside = false;
-
-uniform float myexp = 1.0;
-uniform sampler2D source ;
 
 uniform int shadingnum = 0;
-uniform bool difftrans = true;
 uniform int shininess = 128;
-
 uniform float darkness = 1.0;
 
-uniform bool selected = false;
-uniform bool iselem = false;
-
+uniform float myexp = 1.0;
 uniform float time = 0.0;
 
-float zFar = 1000;
-
 // Light parameters
-vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1);
-vec4 light_diffuse = vec4(0.6, 0.6, 0.6, 1);
-vec4 light_specular = vec4(1.0, 1.0, 1.0, 1);
-vec3 light_position = normalize(vec3(-0.080999853,6.4752009809,2.6762204566));
+const vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1);
+const vec4 light_diffuse = vec4(0.6, 0.6, 0.6, 1);
+const vec4 light_specular = vec4(1.0, 1.0, 1.0, 1);
+const vec3 light_position = normalize(vec3(-0.080999853,6.4752009809,2.6762204566));
 
-// Global variables/Constants
+// Global variables
 vec4 final_color = vec4(1, 1, 1, 1);
+
+vec3 E = normalize(-v); // in Eye coords, so EyePos is (0,0,0) surf2Eye  	
+vec3 L = light_position;
+vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
+vec3 h = normalize(E + L);
 
 const float PI = 3.141592653;
 
 //---Minnaert limb darkening diffuse term
-vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color) {
+vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color) 
+{
 	float ndotl = max(0.0, dot(L, n));
 	return  light_color * pow(ndotl, k);
 }
@@ -52,38 +55,18 @@ vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color) {
 //---------------- Phong lighting (Directional) ----------------------//
 void phongLighting(vec3 n)
 {
-	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  	
-	//L = normalize(vec3(-0.080999853,6.4752009809,3.6762204566)); // surf2Light, for directional lights
-	vec3 L = light_position;
-	vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
-	vec3 h = normalize(E + L);
-
 	//calculate Ambient Term:    
 	vec4 theamb = gl_FrontMaterial.ambient;
 	theamb.b /= 1.4;
 	vec4 Iamb = (theamb * light_ambient * 1.25);
-	//Iamb = vec4(0, 0, 0, 0);
 
 	//--- Computation of forward scattered translucency: 
 	vec3 _DiffuseTranslucentColor = vec3(1,1,1);
-	vec3 _ForwardTranslucentColor = vec3(1, 1, 1);
-	float _Sharpness = 0.5f;
 
 	float att = 0.8;
 	vec3 diffuseTranslucency = att * light_specular.rgb
 		* vec3(_DiffuseTranslucentColor)
 		* max(0.0, dot(L, -n));
-
-	vec3 forwardTranslucency;
-	if (dot(n, L) > 0.0) // light source on the wrong side?
-	{
-		forwardTranslucency = vec3(0.0, 0.0, 0.0); // no forward-scattered translucency
-	}
-	else // light source on the right side
-	{
-		forwardTranslucency = att * light_specular.rgb
-			* vec3(_ForwardTranslucentColor) * pow(max(0.0, dot(-L, E)), _Sharpness);
-	}
 
 	//--- Minnaert for darker diffuse (moon shading)
 	float roughness = darkness; // minnaert roughness  1.5 default (1.0 is lambert)
@@ -120,34 +103,27 @@ void phongLighting(vec3 n)
 	vec3 myspecular = (PI / 4.0f) * specular_term * cosine_term * fresnel_term * visibility_term * light_specular.rgb;
 	myspecular = clamp(myspecular, 0, 1);
 
-	int difftransamount = 1;	
-	if (difftrans == false)
-		difftransamount = 0;
-	
 	//--- Final color
-	final_color = vec4(myspecular +  difftransamount * (diffuseTranslucency) + Idiff.xyz + Iamb.xyz, gl_Color.a);
+	final_color = vec4(myspecular +  int(difftrans) * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
 	
-	if (iselem == true)
+	if (iselem)
 	{
 		vec3 tex = texture2D(source, gl_TexCoord[0].st * 5).rgb;
 		
 		final_color = vec4(		
-		1*myspecular +  0.8* difftransamount * diffuseTranslucency + 1.0 * ( (Idiff.rgb + vec3(0.35,0.35,0.35)) * (tex - vec3(.0,.0,.0) ) ) - 0.0 * Iamb.xyz
+		1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
+		(Idiff.rgb + vec3(0.35,0.35,0.35)) * tex ) - 0.0 * Iamb.xyz
 		, 0.5) ;
 	}
 }
 
 // ---------------- Toon Shader ----------------------//
-void toon()
+void toon(vec3 n)
 {
 	const int levels = 5;
 	const float scaleFactor = 1.0 / levels;
 
 	vec4 col = gl_Color;
-
-	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0) surf2Eye  
-	vec3 L = normalize(light_position);   // surf2Light
-	vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
 
 	float intensity = max(dot(n, normalize(L)), 0.0);
 	vec3 diffuse = gl_Color.rgb * floor(intensity * levels) * scaleFactor;
@@ -166,7 +142,7 @@ float blinnPhongSpecular(in vec3 normalVec, in vec3 lightVec, in float specPower
 	return pow(clamp(0.0, 1.0, dot(normalVec, halfAngle)), specPower);
 }
 // Main fake sub-surface scatter lighting function
-void subScatterFS()
+void subScatterFS(vec3 n)
 {
 	// Variables for lighting properties
 	float MaterialThickness = 0.6f;
@@ -211,28 +187,7 @@ void subScatterFS()
 	final_color.a = gl_Color.a;
 }
 
-// Depth packing function and constants adapted from
-// SpiderGL Example 6: Shadow Mapping:
-// http://spidergl.org/example.php?id=6
-vec4 packDepth(float depth) 
-{
-	vec4 bitShift = vec4(256.*256.*256., 256.*256., 256., 1.);
-	vec4 bitMask = vec4(0., 1./256., 1./256., 1./256.);
-	vec4 result = fract(depth * bitShift);
-	result -= result.xxyz * bitMask;
-	return result;
-}
-
-// Depth unpacking function and constants adapted from
-// SpiderGL Example 6: Shadow Mapping:
-// http://spidergl.org/example.php?id=6
-float unpackDepth(vec4 rgbaDepth) 
-{
-	vec4 bitShift = vec4(1./(256.*256.*256.), 1./(256.*256.), 1./256., 1.);
-	return dot(rgbaDepth, bitShift);
-}
-
-// ***************-------------------- Main function -------------------------***************//
+// ************-------- Main function --------***************//
 void main()
 {
 	vec3 newN = n;
@@ -243,9 +198,9 @@ void main()
 	if (shadingnum == 0)
 		phongLighting(newN);
 	else if (shadingnum == 1)
-		subScatterFS();
+		subScatterFS(newN);
 	else
-		toon();
+		toon(newN);
 
 	// convert mouse world coords to view coords (so same as v)
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
@@ -257,69 +212,34 @@ void main()
 	float d = pow(pow(abs(v.y - mouseV.y) / 1.0, 2.0 / ee) + pow(abs(v.x - mouseV.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(v.z - mouseV.z) / 1.0, 2.0 / nn) - 1.0;
 	//float d = pow(pow(abs(original_v.y - mouseV.y) / 1.0, 2.0/ee) + pow(abs(original_v.x - mouseV.x) / 1.0, 2.0/ee), ee/nn) + pow(abs(original_v.z - mouseV.z) / 1.0, 2.0/nn) - 1.0;
 	
-	if (selected == true)	// if selected
+	if (selected)	// if selected
 	{
 		float minDist = brushSize;
 		
-		//final_color = vec4(1, 0, 0, 1);
-		if (peerInside == true)
+		if (peerInside)
 		{
-		
 			if (d < minDist)
 			{			
 				discard;
-				final_color = final_color * vec4(1.75, 1.25, 0.25, 0.35);
-				//final_color = final_color * vec4(1.75, 1.25, 0.25, 1 - (0.1 - d) );
-				//final_color = final_color * vec4(1.75, 1.25, 0.25, 0.75 - (minDist - d));
-				//final_color = final_color * vec4(1.75, 1.25, 0.25, 0.0);
+				//final_color = final_color * vec4(1.75, 1.25, 0.25, 0.35);
 			}
 			else if (d < 1.75 * minDist)
 			{
 				float dd = d / (1.5 * minDist);
 				final_color = vec4(1, 0.7, 0.4,  dd - 0.55);
 			}
-
 		}
-	}	
+	}
 	gl_FragData[0] = final_color;
 	
 	if (outline == true)
 		gl_FragData[0] = vec4(1.0, 0.5, 0, gl_Color.a);
 	
-	// Write normals to second texture
+	// Encode normals to second texture (sourceNormal)
 	vec3 encodedN = newN * 0.5 + 0.5;
 	gl_FragData[1] = vec4(encodedN, 1);
 
-	// Random noise
-	float noiseR =  (fract(sin(dot(gl_TexCoord[0].st ,vec2(12.9898,78.233)+time)) * 43758.5453));
-    float noiseG =  (fract(sin(dot(gl_TexCoord[0].st ,vec2(12.9898,78.233)+time*2)) * 43758.5453)); 
-    float noiseB =  (fract(sin(dot(gl_TexCoord[0].st ,vec2(12.9898,78.233)+time*3)) * 43758.5453));
-     
-    //gl_FragData[2] = vec4(noiseR,noiseG,noiseB,1.0);
-	//float depth = v.z;
-	vec3 encodedPos = v * 0.5 + 0.5;
-	
-	//float depth = abs(v.z / zFar);
-      
-	  
-  //float depth = (position.z - near) / (far - near);
-  //float depth = (length(v) - 0.1)/(zFar - 0.1);
-  //depth = clamp(depth, 0.0, 1.0);
-
-	//if (gl_FrontFacing)
-	//float mydepth = gl_FragCoord.z / gl_FragCoord.w ;
-	
-	//v.z
-	//float mydepth = gl_FragCoord.z;
-	//if (gl_FrontFacing)
-	
-	gl_FragData[2] =  packDepth(gl_FragCoord.z);	  
-		
-	//gl_FragData[2] = vec4(depth, depth, depth, 1);
-	//gl_FragData[2] = vec4(0.5, 1, 1, 1);
-	//gl_FragData[2].r = -depth/zFar;
-
-    //gl_FragColor = texture2D(bgl_RenderedTexture, gl_TexCoord[0].st) + (noise*noise_amount);
-	 //= vec4(1, 1, 1, 1);
+	// Encode noise? for third texture (sourceNoise) TBA
+	gl_FragData[2] = vec4(0.5, 1, 1, 1);
 }
 

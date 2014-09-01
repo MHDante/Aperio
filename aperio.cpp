@@ -987,5 +987,8 @@ void aperio::setSelectedMesh(std::vector<CustomMesh>::iterator &it)
 void aperio::resetClippingPlane()
 {
 	renderer->ResetCameraClippingRange();
-	renderer->GetActiveCamera()->SetClippingRange(0.05, 7500);
+	double d[2];
+	renderer->GetActiveCamera()->GetClippingRange(d);
+	//renderer->GetActiveCamera()->SetClippingRange(0.05, 7500);
+	renderer->GetActiveCamera()->SetClippingRange(0.05, d[1] + 1000.0);
 }

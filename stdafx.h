@@ -31,6 +31,7 @@
 #include <QDebug>
 #include <QString>
 
+
 //------------ VTK Includes -----------------------
 
 
@@ -85,6 +86,7 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 
 // OpenGL-VTK
 #include <vtkgl.h>
+#include <vtkOpenGLRenderWindow.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOpenGLProperty.h>
 #include <vtkOpenGLPolyDataMapper.h>

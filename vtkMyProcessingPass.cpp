@@ -273,6 +273,7 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 
 		r->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
 
+		// Projection Matrix uniform
 		r->ComputeAspect();
 		r->GetAspect(aspect);
 		double aspect2[2];
@@ -311,6 +312,8 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 
 		// Trigger a draw on Gy1 (could be called on Gx1).
 		this->Pass1->CopyToFrameBuffer(extraPixels, extraPixels, w - 1 - extraPixels, h - 1 - extraPixels, 0, 0, width, height);
+
+		this->Pass1Normal->CopyToFrameBuffer(extraPixels, extraPixels, w - 1 - extraPixels, h - 1 - extraPixels, 0, 0, width, height);
 
 		this->Pass1Noise->UnBind();
 		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id3);

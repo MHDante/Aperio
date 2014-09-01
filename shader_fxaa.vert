@@ -38,7 +38,7 @@
 //----------------------------------------------------------------------------------
 #version 440 compatibility
 
-smooth out vec2 vTexCoord;
+noperspective out vec2 vTexCoord;
 
 void main(void)
 {

@@ -1,9 +1,15 @@
+/******************************************************************
+* Fragment Shader - Hemispherical Screen Space Ambient Occlusion 
+* Edited by David Tran
+* Adapted from:
+* http://blog.evoserv.at/index.php/2012/12/hemispherical-screen-space-ambient-occlusion-ssao-for-deferred-renderers-using-openglglsl/
+******************************************************************/
+
 #version 440 compatibility
 
 smooth in vec2 vUv;
 
 uniform sampler2D source;
-uniform sampler2D sourceNoise;
 uniform sampler2D sourceNormal;
 uniform sampler2D sourceDepth;
 uniform vec2 frameBufSize;
@@ -13,14 +19,14 @@ mat4 iprojMat = inverse(projMat);
 
 bool onlyAO =false;
 
-float zNear = 0.01;
+float zNear = 0.015;
 float zFar = 100;
 float cameraCoef = 2;
 
 float distanceThreshold = 0.03;
 vec2 filterRadius = vec2(10.0 / frameBufSize.x, 10.0 / frameBufSize.y);
 
-const int sample_count = 40;
+const int sample_count = 0;			// 40 is good
 const vec2 poisson16[] = vec2[](    // These are the Poisson Disk Samples
 vec2(-0.2918438f, 0.7097818f),
 vec2(-0.5697373f, 0.3234968f),
@@ -64,42 +70,28 @@ vec2(-0.2138845f, -0.9265943f),
 vec2(0.6941394f, -0.6445384f)
 );
 
-float linearizeDepth(in float depth) {
-	//return projMatrix[3][2] / (depth - projMatrix[2][2]);
-
+float linearizeDepth(const in float depth) 
+{
 	return (cameraCoef * zNear) / (zFar + zNear - depth * (zFar - zNear));
 }
 
-vec3 calculatePosition(in vec2 coord, in float depth)
+vec3 calculatePosition(const in vec2 coord)
 {
+	float depth = texture(sourceDepth, coord).r;
 	depth = linearizeDepth(depth);
 
-	vec4 pos = iprojMat * vec4(coord.x * 2 - 1, coord.y * 2 - 1, depth * 2 - 1, 1);
-	
+	vec4 pos = iprojMat * vec4(coord.x * 2 - 1, coord.y * 2 - 1, depth * 2 - 1, 1);	
 	pos /= pos.w;
+	
 	return pos.xyz;
 }
-
-// Depth unpacking function and constants adapted from
-// SpiderGL Example 6: Shadow Mapping:
-// http://spidergl.org/example.php?id=6
-float unpackDepth(vec4 rgbaDepth) {
-vec4 bitShift = vec4(1./(256.*256.*256.),
-	1./(256.*256.), 1./256., 1.);
-return dot(rgbaDepth, bitShift);
-}
-		
+	
 void main()
 {
-	// reconstruct position from depth, USE YOUR CODE HERE
-	float depth = texture(sourceDepth, vUv).r;	
-	vec3 viewPos = calculatePosition(vUv, depth);
-	
-	
+	// reconstruct position from depth
+	vec3 viewPos = calculatePosition(vUv);
 
-	// get the view space normal, USE YOUR CODE HERE
-	//vec2 normalXY = texture(sourceNormal, vUv).xy * 2.0 - 1.0;
-	//vec3 viewNormal = decodeNormal(normalXY);
+	// get the view space normal
 	vec3 viewNormal = texture(sourceNormal, vUv).xyz * 2.0 - 1.0;
 
     float ambientOcclusion = 0;
@@ -108,9 +100,8 @@ void main()
     {
         // sample at an offset specified by the current Poisson-Disk sample and scale it by a radius (has to be in Texture-Space)
         vec2 sampleTexCoord = vUv + (poisson16[i] * (filterRadius));
-        float sampleDepth = texture(sourceDepth, sampleTexCoord).r;
-
-		vec3 samplePos = calculatePosition(sampleTexCoord, sampleDepth);
+		
+		vec3 samplePos = calculatePosition(sampleTexCoord);
         vec3 sampleDir = normalize(samplePos - viewPos);
 
         // angle between SURFACE-NORMAL and SAMPLE-DIRECTION (vector from SURFACE-POSITION to SAMPLE-POSITION)
@@ -127,17 +118,12 @@ void main()
     }
 	float ao = 1.0 - (ambientOcclusion / sample_count);	
 	
-	vec4 onlyAOColor = vec4( 1.0, 0.7, 0.5, 1);		
+	const vec4 onlyAOColor = vec4( 1.0, 0.7, 0.5, 1);		
 	
 	if (onlyAO)
 		gl_FragColor = onlyAOColor * vec4(ao, ao, ao, 1);
 	else
-		gl_FragColor = texture(source, vUv) * vec4(ao, ao, ao, 1);
+		gl_FragColor = texture(source, vUv) * vec4(ao, ao, ao, 1);	
 		
-  
-//float x = unpackDepth(texture(sourceDepth, vUv));
-//float x = texture(sourceDepth, vUv).r;
-//x = linearizeDepth(x);
-//gl_FragColor = vec4(x, x, x, 1);
-
+	//gl_FragColor = texture(source, vUv);
 }

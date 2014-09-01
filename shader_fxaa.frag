@@ -39,17 +39,17 @@
 //#version 100
 
 #version 440 compatibility
+#extension GL_ARB_gpu_shader5 : enable	// For FXAA_FAST_PIXEL_OFFSET
 
 #define FXAA_PC 1
 #define FXAA_GLSL_130 1
 
-//#define FXAA_QUALITY__PRESET 10	// Fastest
+#define FXAA_QUALITY__PRESET 10	// Fastest
 //#define FXAA_QUALITY__PRESET 12	// Default
-#define FXAA_QUALITY__PRESET 29		// High Quality
+//#define FXAA_QUALITY__PRESET 29		// High Quality 
 //#define FXAA_QUALITY__PRESET 39	// Extreme Quality
 
 #define FXAA_GREEN_AS_LUMA 1
-
 
 /*--------------------------------------------------------------------------*/
 #ifndef FXAA_PC_CONSOLE
@@ -1043,13 +1043,13 @@ precision highp float;
 uniform sampler2D source;
 uniform vec2 frameBufSize;
 
-vec2 RCPFrame = vec2(1.0 / frameBufSize.x, 1.0 / frameBufSize.y);
-smooth in vec2 vTexCoord;
+const vec2 RCPFrame = vec2(1.0 / frameBufSize.x, 1.0 / frameBufSize.y);
+noperspective in vec2 vTexCoord;
 
 void main(void)
 {
     gl_FragColor = FxaaPixelShader(vTexCoord,
-				FxaaFloat4(0.0f, 0.0f, 0.0f, 0.0f),		// FxaaFloat4 fxaaConsolePosPos,
+		FxaaFloat4(0.0f, 0.0f, 0.0f, 0.0f),		// FxaaFloat4 fxaaConsolePosPos,
         source,							// FxaaTex tex,
         source,							// FxaaTex fxaaConsole360TexExpBiasNegOne,
         source,							// FxaaTex fxaaConsole360TexExpBiasNegTwo,
