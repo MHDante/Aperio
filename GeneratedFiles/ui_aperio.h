@@ -365,7 +365,7 @@ public:
         shininessSlider->setEnabled(true);
         shininessSlider->setGeometry(QRect(250, 50, 22, 91));
         shininessSlider->setMaximum(256);
-        shininessSlider->setValue(128);
+        shininessSlider->setValue(32);
         shininessSlider->setOrientation(Qt::Vertical);
         shininessSlider->setInvertedAppearance(false);
         btnLight = new QPushButton(centralWidget);

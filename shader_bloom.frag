@@ -13,7 +13,7 @@ const float BRIGHT_PASS_OFFSET = 2.5;		// 0.8
 const float blurclamp = 0.003;	// 0.003
 const float bias = 0.01;		// 0.01
  
-const float KERNEL_SIZE = 0;		// 5 (4 is okay)
+float KERNEL_SIZE = 3;		// 5 (3 won't slow down)
  
 vec4 bright(const in vec2 coord)
 {

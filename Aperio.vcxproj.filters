@@ -61,9 +61,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_aperio.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="tiny_obj_loader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -88,6 +85,9 @@
     <ClCompile Include="vtkMyAdvancedPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vtkMyFillHolesFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -95,9 +95,6 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_aperio.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tiny_obj_loader.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Utility.h">
       <Filter>Header Files</Filter>
@@ -121,6 +118,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="vtkMyAdvancedPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vtkMyFillHolesFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

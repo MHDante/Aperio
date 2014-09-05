@@ -80,6 +80,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	// Set global uniform variables
 	float mousepos[3] = {a->mouse[0], a->mouse[1], a->mouse[2]};
 	int source = 0;		// potential source texture
+	int sourceBump = 1;		// potential source texture
 
 	uniforms->SetUniformit("wiggle", 1, &a->wiggle);
 	uniforms->SetUniformf("mouse", 3, mousepos);
@@ -89,6 +90,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	uniforms->SetUniformf("myexp", 1, &a->myexp);
 	uniforms->SetUniformi("shadingnum", 1, &a->shadingnum);
 	uniforms->SetUniformi("source", 1, &source);
+	uniforms->SetUniformi("sourceBump", 1, &sourceBump);
 
 	uniforms->SetUniformf("pos1", 3, a->pos1);
 	uniforms->SetUniformf("pos2", 3, a->pos2);

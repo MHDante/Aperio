@@ -11,6 +11,8 @@ smooth in vec3 original_v;
 
 // Shader uniforms
 uniform sampler2D source;
+uniform sampler2D sourceBump;
+
 uniform bool outline = false;
 uniform bool iselem = false;
 
@@ -66,12 +68,12 @@ void phongLighting(vec3 n)
 	float att = 0.8;
 	vec3 diffuseTranslucency = att * light_specular.rgb
 		* vec3(_DiffuseTranslucentColor)
-		* max(0.0, dot(L, -n));
+		* max(0.0, dot(L + vec3(0.0, -0.0, 0.0), -n));
 
 	//--- Minnaert for darker diffuse (moon shading)
 	float roughness = darkness; // minnaert roughness  1.5 default (1.0 is lambert)
 	vec4 Idiff = vec4(0, 0, 0, 0);	
-
+	
 	vec3 light_color = light_diffuse.rgb;
 	Idiff += vec4(minnaert(L, n, roughness, light_color), 0);
 	Idiff = vec4(Idiff.rgb * gl_FrontMaterial.diffuse.rgb, 1.0);	
@@ -103,8 +105,10 @@ void phongLighting(vec3 n)
 	vec3 myspecular = (PI / 4.0f) * specular_term * cosine_term * fresnel_term * visibility_term * light_specular.rgb;
 	myspecular = clamp(myspecular, 0, 1);
 
-	//--- Final color
-	final_color = vec4(myspecular +  int(difftrans) * diffuseTranslucency + Idiff.xyz + Iamb.xyz, gl_Color.a);
+	//--- Final color	
+	vec3 tex = texture2D(source, gl_TexCoord[0].st * 20).rgb;		
+	
+	final_color = vec4(myspecular +  int(difftrans) * diffuseTranslucency + 1.0*Idiff.xyz + 0.0*tex + Iamb.xyz, gl_Color.a);
 	
 	if (iselem)
 	{

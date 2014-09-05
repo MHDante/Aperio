@@ -345,7 +345,7 @@ background: #82766A;
      <number>256</number>
     </property>
     <property name="value">
-     <number>128</number>
+     <number>32</number>
     </property>
     <property name="orientation">
      <enum>Qt::Vertical</enum>

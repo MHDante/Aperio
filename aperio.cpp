@@ -9,7 +9,6 @@
 #include <vtkSphereSource.h>
 
 // Custom
-#include "tiny_obj_loader.h"
 #include "CarveConnector.h"
 #include "MyInteractorStyle.h"
 #include "Utility.h"
@@ -72,6 +71,8 @@ using namespace std;
 
 #include <vtkBoxRepresentation.h>
 
+#include <vtkCubeSource.h>
+#include <vtkCylinderSource.h>
 //-------------------------------------------------------------------------------------------------------------
 aperio::aperio(QWidget *parent)
 	: QMainWindow(parent)
@@ -101,11 +102,13 @@ void aperio::slot_afterShowWindow()
 	update_orig_size();
 
 	// Set up instance variables
-	fps = 50.0;
+	fps = 45.0;
 	//std::string fname = "cube.obj";
 	//std::string fname = "organs brain 250K.obj";
 	//std::string fname = "hearttest.obj";
 	std::string fname = "newestheart.obj";
+	//std::string fname = "open.obj";
+	//std::string fname = "utah-teapot.obj";
 
 	// QT Variables
 	pause = false;
@@ -151,7 +154,7 @@ void aperio::slot_afterShowWindow()
 
 	QTimer* timer_delay = nullptr;				// Delayed timer (executes slower after a delay)
 	timer_delay = new QTimer(this);
-	timer_delay->setInterval(1000.0 / 7.5);
+	timer_delay->setInterval(1000.0 / 0.5);		// 7.5
 	timer_delay->start();
 
 	colorDialog = new QColorDialog(this);
@@ -381,37 +384,16 @@ void aperio::resizeEvent(QResizeEvent * event)
 void aperio::mouseMoveEvent(QMouseEvent *)
 {
 }
+
 ///---------------------------------------------------------------------------------------
 void aperio::readFile(std::string filename)
 {
+	Utility::start_clock('a');
 	//vtkObject::GlobalWarningDisplayOff();	// dangerous (keep on for most part)
 
 	// Reset values for new file
 	toon = 0;
-
 	renderer->RemoveAllViewProps();	// Remove from renderer, clear listwidget, clear vectors
-
-	/*
-	// Image Actor example
-	vtkSmartPointer<vtkPNGReader> pngReader = vtkSmartPointer<vtkPNGReader>::New();
-	pngReader->SetFileName("bg12.png");
-	pngReader->Update();
-
-	vtkSmartPointer<vtkImageMapper> imageMapper = vtkSmartPointer<vtkImageMapper>::New();
-	imageMapper->SetColorLevel(127.5);
-	imageMapper->SetColorWindow(255);
-	imageMapper->SetRenderToRectangle(true);
-	imageMapper->SetInputData(pngReader->GetOutput());
-	imageMapper->Update();	
-
-	vtkSmartPointer<vtkActor2D> imageActor = vtkSmartPointer<vtkActor2D>::New();
-	imageActor->SetHeight(1.0);
-	imageActor->SetWidth(1.0);
-	imageActor->GetProperty()->SetDisplayLocationToBackground();
-	imageActor->SetMapper(imageMapper);
-
-	renderer->AddActor2D(imageActor);
-	*/
 
 	ui.listWidget->clear();
 	myelems.clear();
@@ -428,43 +410,79 @@ void aperio::readFile(std::string filename)
 	cutterTexture->SetInputConnection(jpgReader->GetOutputPort());
 	cutterTexture->InterpolateOn();
 
+	vtkSmartPointer<vtkPNGReader> pngReader = vtkSmartPointer<vtkPNGReader>::New();
+	pngReader->SetFileName("bump.png");
+	pngReader->Update();
+
+	bumpTexture = vtkSmartPointer<vtkTexture>::New();
+	bumpTexture->SetInputData(pngReader->GetOutput());
+	bumpTexture->InterpolateOn();
+
 	if (path.isEmpty())				// Set path if it is empty
 		path = QDir::currentPath();
 
-	// Tiny OBJ reader
-	std::vector<tinyobj::shape_t> shapes;
-	std::string err = tinyobj::LoadObj(shapes, filename.c_str(), (path + "\\").toStdString().c_str());
+	// Read file using Open Asset Importer
+	Assimp::Importer importer;
+	importer.SetPropertyInteger(AI_CONFIG_FAVOUR_SPEED, 1);
+	importer.SetPropertyInteger(AI_CONFIG_PP_SLM_TRIANGLE_LIMIT, 600000);	// max vertices/tris before splitting mesh
+	importer.SetPropertyInteger(AI_CONFIG_PP_SLM_VERTEX_LIMIT, 600000);
+	//importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
+	//Assimp::DefaultLogger::create("", Assimp::DefaultLogger::VERBOSE, aiDefaultLogStream_STDOUT);	// Log time
+	
+	QProgressDialog progress("Loading file. Please be patient...", "Abort", 0, 0, this);
 
-	if (!err.empty()) {
-		std::cerr << err << std::endl;
-		system("pause");
-		exit(1);
-	}
-	vtkSmartPointer<vtkPolyDataCollection> objectMeshCollection = vtkSmartPointer<vtkPolyDataCollection>::New();
+	QRect newPos = progress.geometry();
+	newPos.adjust(250, 300, 0, 0);
+	progress.setGeometry(newPos);
 
-	// Convert OBJ data to vtkPolyData
-	for (size_t i = 0; i < shapes.size(); i++)
+	progress.setStyleSheet("background: rgba(0, 0, 0, 255); color: white;");
+	progress.showNormal();
+
+	QApplication::processEvents();
+
+	const aiScene* scene = importer.ReadFile(filename,
+		aiProcess_JoinIdenticalVertices  |
+		aiProcess_Triangulate  |
+		aiProcess_SplitLargeMeshes 
+		//aiProcess_OptimizeMeshes |
+		//aiProcess_FindDegenerates |
+		//aiProcess_SortByPType 
+		//aiProcess_FlipUVs
+		);
+
+	// If the import failed, report it
+	if (!scene)
 	{
-		vtkSmartPointer<vtkPolyData> polydata = Utility::objToVtkPolyData(shapes[i]);
-		objectMeshCollection->AddItem(polydata);
+		std::cout << "Error loading model: " << filename << "\n" << importer.GetErrorString() << "\n";
+		return;
 	}
+
 	// VTK : Remove lights (light computation done in shader)
 	renderer->AutomaticLightCreationOff();
 	renderer->RemoveAllLights();
 
-	//srand(time(nullptr));		//Random Seed
+	// Compute scene bounding box
+	aiVector3D min;
+	aiVector3D max;
+	Utility::get_bounding_box(scene, &min, &max);
+	renderer->ResetCamera(min.x, max.x, min.y, max.y, min.z, max.z);
 
 	// Create main shader
 	pgm = Utility::makeShader(renderer->GetRenderWindow(), "shader_water.vert", "shader.frag");
 
-	// Now we can traverse objectMeshCollection
-	objectMeshCollection->InitTraversal();
-	int numMeshes = objectMeshCollection->GetNumberOfItems();
+	// Strip filename only from path
+	QFileInfo fileInfo(filename.c_str());
+	std::string filenameOnly = fileInfo.fileName().toStdString();
 
+	int totalverts = 0;
+	int totaltris = 0;
+
+
+	//srand(time(nullptr));		//Random Seed
 	float r, g, b;
-	for (int z = 0; z < numMeshes; z++)
+	for (int z = 0; z < scene->mNumMeshes; z++)
 	{
-		if (numMeshes > 1) // assign a random colour if there's more than one object
+		if (scene->mNumMeshes > 1) // assign a random colour if there's more than one object
 		{
 			r = ((rand() % 177 + 80) / 270.0);
 			g = ((rand() % 177 + 80) / 270.0);
@@ -476,174 +494,132 @@ void aperio::readFile(std::string filename)
 			g = 1;
 			b = 1;
 		}
-		vtkPolyData *nextMesh = objectMeshCollection->GetNextItem();
-		std::string groupname = shapes.at(z).name;
+
+		aiString groupname;
+		// index z of mesh array is larger than number of meshes in AssimpNode (Create default name)
+		if (z >= scene->mRootNode->FindNode(filenameOnly.c_str())->mNumChildren)
+		{
+			QString extra = QString("SplitMesh_") + QString::number(z);
+			groupname.Set(extra.toStdString().c_str());
+		}			
+		else
+			groupname.Set(scene->mRootNode->FindNode(filenameOnly.c_str())->mChildren[z]->mName.C_Str());
 
 		// Remove darkfactor when customizable colours implemented and saveable (1.4f currently in fragment shader)
-		
+
 		// Default random colours for heart
 		if (QString(filename.c_str()).contains("newestheart.obj"))
 		{
-			if (QString::compare(QString(groupname.c_str()), QString("c_pericardium")) == 0)
+			if (QString::compare(QString(groupname.C_Str()), QString("c_pericardium")) == 0)
 			{
 				r = 0.448148;
 				g = 0.514215;
 				b = 0.811111;
+
+				//r = 255 / 255.0;
+				//g = 214 / 255.0;
+				//b = 211 / 255.0;
+				r = 225 / 255.0;
+				g = 192 / 255.0;
+				b = 192 / 255.0;
+
+				// 204, 134, 134
+
 			}
-			if (QString::compare(QString(groupname.c_str()), QString("c_arteriae_coronari")) == 0)
+			if (QString::compare(QString(groupname.C_Str()), QString("c_arteriae_coronari")) == 0)
 			{
-				r = 0.803704;
-				g = 0.307407;
-				b = 0.744444;
+				r = 222 / 255.0;
+				g = 119 / 255.0;
+				b = 88 / 255.0;
 			}
-			if (QString::compare(QString(groupname.c_str()), QString("c_venae_coronari")) == 0)
+			if (QString::compare(QString(groupname.C_Str()), QString("c_venae_coronari")) == 0)
 			{
-				r = 0.344444;
-				g = 0.637037;
-				b = 0.844444;
+				r = 151 / 255.0;
+				g = 180 / 255.0;
+				b = 227 / 255.0;
 			}
-			if (QString::compare(QString(groupname.c_str()), QString("c_venDex")) == 0)
+			if (QString::compare(QString(groupname.C_Str()), QString("c_venDex")) == 0)
 			{
 				r = 0.922222;
 				g = 0.337037;
 				b = 0.618519;
 			}
-			if (QString::compare(QString(groupname.c_str()), QString("c_vc_venSin")) == 0)
+			if (QString::compare(QString(groupname.C_Str()), QString("c_vc_venSin")) == 0)
 			{
-				r = 0.770370;
-				g = 0.807407;
-				b = 0.762963;
+				r = 166 / 255.0;
+				g = 212 / 255.0;
+				b = 255 / 255.0;
 			}
-			if (QString::compare(QString(groupname.c_str()), QString("c_atrDex")) == 0)
+			if (QString::compare(QString(groupname.C_Str()), QString("c_atrDex")) == 0)
 			{
-				r = 0.418519;
-				g = 0.662963;
-				b = 0.622222;
+				r = 255 / 255.0;
+				g = 255 / 255.0;
+				b = 255 / 255.0;
 			}
 		}
+		// Material file
+		aiColor3D color(0.6f, 0.6f, 0.6f);	// Dummy value (Assimp uses 0.6 for default diffuse)
+		scene->mMaterials[scene->mMeshes[z]->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 
-		if (tinyobj::info::matFileExists)
+		if (color.r == 0.6f && color.g == 0.6f && color.b == 0.6f)	 // no materials	found
 		{
-			if (z == 0)	// Only print this once
-				std::cout << "Material file found. Using colours from .mtl file.\n";
-
-			r = shapes.at(z).material.diffuse[0];
-			g = shapes.at(z).material.diffuse[1];
-			b = shapes.at(z).material.diffuse[2];
+			//r = 1;	// default to white for now
+			//g = 1;
+			//b = 1;
 		}
-
+		else
+		{
+			if (z == 0)	// Only print this once (found material file)
+				std::cout << "Material file found. Using colours from .mtl file.\n";
+			r = color.r;
+			g = color.g;
+			b = color.b;
+		}
 		//vtkSmartPointer<vtkOBBTree> objectOBBTree = vtkSmartPointer<vtkOBBTree>::New();
 		//objectOBBTree->SetDataSet(nextMesh);
 		//objectOBBTree->BuildLocator();
 		//CommonData::objectOBBTrees.push_back(objectOBBTree);
 
-		//vtkSmartPointer<vtkPolyData> dataset = nextMesh;
-		vtkSmartPointer<vtkPolyData> dataset = Utility::smoothNormals(Utility::computeNormals(nextMesh));
+		vtkSmartPointer<vtkPolyData> nextMesh = Utility::assimpOBJToVtkPolyData(scene->mMeshes[z]);
+		nextMesh = CarveConnector::cleanVtkPolyData(nextMesh, false);
+		nextMesh = Utility::computeNormals(nextMesh);
 
-		vtkColor3f c(r, g, b);
-		float opacity = 1.0;
-		Utility::addMesh(this, dataset, z, groupname, c, opacity);
-	
-		/*double bounds[6];		
-		meshes[z].actor->GetBounds(bounds);
+		//nextMesh->BuildCells();
+		//nextMesh->BuildLinks();
 
-		std::cout << bounds[0] << ","
-			<< bounds[1] << ","
-			<< bounds[2] << ","
-			<< bounds[3] << ","
-			<< bounds[4] << ","
-			<< bounds[5] << "\n";
-			*/
+		/*vtkSmartPointer<vtkMyFillHolesFilter> fillHolesFilter = vtkSmartPointer<vtkMyFillHolesFilter>::New();
+		fillHolesFilter->SetInputData(nextMesh);
+		fillHolesFilter->SetHoleSize(10);
+		fillHolesFilter->Update();
 
-		// add actor to renderer
+		nextMesh = fillHolesFilter->GetOutput();*/
+		
+		Utility::addMesh(this, nextMesh, z, groupname.C_Str(), vtkColor3f(r, g, b), 1);
 		renderer->AddActor(meshes[z].actor);
-		renderer->ResetCamera();
-		resetClippingPlane();
 
-		qv->GetRenderWindow()->Render();
+		//renderer->AddActor(Utility::sourceToActor(this, nextMesh, 1, 1, 1, 1));
+
+		//std::cout << setw(25) << groupname.C_Str() << setw(15) << "verts: " << nextMesh->GetNumberOfPoints() << setw(15) << "tris: " << nextMesh->GetNumberOfPolys() << "\n";
+		//totalverts += nextMesh->GetNumberOfPoints();
+		//totaltris += nextMesh->GetNumberOfPolys();
+
+		if (progress.wasCanceled())
+			break;
+
+		//renderer->ResetCamera();
+		//qv->GetRenderWindow()->Render();
 	}
+	std::cout << "Total verts: " << totalverts << " | Total tris: " << totaltris << "\n";
+
+	progress.hide();
+
 	// Reset clipping plane AFTER camera reset AND render (also after FlyTo call in interactor)
 	resetClippingPlane();
 
-
-	/*vtkSmartPointer<vtkParametricEllipsoid> ellipse = vtkSmartPointer<vtkParametricEllipsoid>::New();
-
-	vtkSmartPointer<vtkParametricFunctionSource> source = vtkSmartPointer<vtkParametricFunctionSource>::New();
-	source->SetParametricFunction(ellipse);
-	source->Update();*/
-
-	/*
-	#include <vtkPlaneWidget.h>
-#include <vtkBoxWidget.h>
-#include <vtkBoxWidget2.h>
-#include <vtkAngleWidget.h>
-#include <vtkAxesTransformWidget.h>
-#include <vtkBorderWidget.h>
-#include <vtkButtonWidget.h>
-#include <vtkCenteredSliderWidget.h>
-#include <vtkContourWidget.h>
-#include <vtkHandleWidget.h>
-#include <vtkHoverWidget.h>
-#include <vtkLineWidget2.h>
-#include <vtkParallelopipedWidget.h>
-#include <vtkResliceCursorWidget.h>
-#include <vtkResliceCursorWidget.h>
-#include <vtkSliderWidget.h>
-#include <vtkSphereWidget2.h>
-#include <vtkSplineWidget2.h>
-#include <vtkTensorProbeWidget.h>
-	*/
-	//vtkSmartPointer<vtkPlaneWidget> planeWidget = vtkSmartPointer<vtkPlaneWidget>::New();
-	//vtkSmartPointer<vtkBoxWidget> planeWidget = vtkSmartPointer<vtkBoxWidget>::New();
 	vtkSmartPointer<vtkBoxWidget> planeWidget = vtkSmartPointer<vtkBoxWidget>::New();
-	
 	planeWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
-	//planeWidget->On();
-	/*vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputData(planeWidget);
-	//mapper->set
-	
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(mapper);
-	actor->DragableOn();
 
-	renderer->AddActor(actor);*/
-
-
-	/*
-	class vtkAffineCallback : public vtkCommand
-	{
-	public:
-		static vtkAffineCallback *New()
-		{
-			return new vtkAffineCallback;
-		}
-		virtual void Execute(vtkObject *caller, unsigned long, void*);
-		vtkAffineCallback() :Actor(0), AffineRep(0)
-		{
-			this->Transform = vtkTransform::New();
-		}
-		~vtkAffineCallback()
-		{
-			this->Transform->Delete();
-		}
-		vtkActor *Actor;
-		vtkAffineRepresentation2D *AffineRep;
-		vtkTransform *Transform;
-	};
-
-	void vtkAffineCallback::Execute(vtkObject*, unsigned long vtkNotUsed(event), void*)
-	{
-		this->AffineRep->GetTransform(this->Transform);
-		this->Actor->SetUserTransform(this->Transform);
-	}
-
-	vtkSmartPointer<vtkAffineWidget> affine = vtkSmartPointer<vtkAffineWidget>::New();
-	affine
-	renderer->
-	*/
-
-	// Added meshes, now set selectedMesh to last one (Might have to update this for future selections)
+	// Added meshes, now set selectedMesh to sentinel - 1 past last (Might have to update this for future selections)
 	setSelectedMesh(meshes.end());	// Reset selectedMesh to nothing
 
 	// add mesh groupnames to listbox
@@ -655,6 +631,8 @@ void aperio::readFile(std::string filename)
 		ui.listWidget->addItem(item);
 		//ui.listWidget->itemAt(0, i)->setCheckState(Qt::Checked);
 	}
+	Utility::end_clock('a');
+
 }
 //--------------------------------------------------------------------------------------
 void aperio::slot_chkToroid(bool checked)
@@ -689,6 +667,7 @@ void aperio::slot_phiSlider(int value)
 	myelems[i].source->Update();
 	myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
 }
+
 //--------------------------------------------------------------------------------------
 void aperio::slot_btnSlice()
 {
@@ -700,17 +679,33 @@ void aperio::slot_btnSlice()
 	int eselectedindex = myelems.size() - 1;
 	MyElem& elem = myelems[eselectedindex];
 
+
 	CarveConnector connector;
 	vtkSmartPointer<vtkPolyData> thepolydata(vtkPolyData::SafeDownCast(selectedMesh->actor->GetMapper()->GetInput()));
-	thepolydata = CarveConnector::cleanVtkPolyData(thepolydata);
+	thepolydata = CarveConnector::cleanVtkPolyData(thepolydata, true);
 
-	vtkSmartPointer<vtkPolyData> mypoly(vtkPolyData::SafeDownCast(elem.actor->GetMapper()->GetInput()));
-	vtkSmartPointer<vtkPolyData> thepolydata2 = CarveConnector::cleanVtkPolyData(mypoly);
+	vtkSmartPointer<vtkPolyData> thepolydata2(vtkPolyData::SafeDownCast(elem.actor->GetMapper()->GetInput()));
+	thepolydata2 = CarveConnector::cleanVtkPolyData(thepolydata2, true);
 
-	// Make MeshSet from vtkPolyData
+	// Make MeshSet from vtkPolyData	
+
 	std::unique_ptr<carve::mesh::MeshSet<3> > first(CarveConnector::vtkPolyDataToMeshSet(thepolydata));
 	std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::vtkPolyDataToMeshSet(thepolydata2));
 	//std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::makeCube(55, carve::math::Matrix::IDENT()));
+
+	/*if (!first->isClosed())
+	{
+		std::cout << "The mesh you are trying to cut is NOT a manifold! (Either not closed, contains degenerate "
+			<< "points/lines/faces, duplicate points or edges with more than 2 adjacent faces - non-manifold). Please fix with an external modelling package.";
+
+		// Remove superquadric from Renderer
+		renderer->RemoveActor(myelems[eselectedindex].actor);
+
+		// Probably should remove from list as well (myelems)
+		myelems.erase(myelems.end() - 1);
+
+		return;
+	}*/
 
 	std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B, ui.chkTriangulate->isChecked()));
 	vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
@@ -740,6 +735,7 @@ void aperio::slot_btnSlice()
 	std::string name = ss.str();
 
 	float opacity = selectedMesh->opacity >= 1 ? 1 : selectedMesh->opacity * 0.5f;
+
 
 	// Create a mapper and actor
 	vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(this, dataset, color.GetRed(),
@@ -823,7 +819,7 @@ void aperio::slot_timeout_fps()
 	}
 
 	// Increment wave-time in seconds for wiggle
-	wavetime = wavetime + 0.0125;
+	wavetime = wavetime + 0.01275;
 	if (wavetime > 500)
 		wavetime = 0;
 
@@ -837,7 +833,10 @@ void aperio::slot_timeout_fps()
 		wiggle = false;
 
 	if (!pause)
+	{
 		qv->update();
+	}
+		
 }
 //-------------------------------------------------------------------------------------
 void aperio::slot_chkDepthPeel(bool checked)
@@ -989,6 +988,6 @@ void aperio::resetClippingPlane()
 	renderer->ResetCameraClippingRange();
 	double d[2];
 	renderer->GetActiveCamera()->GetClippingRange(d);
-	//renderer->GetActiveCamera()->SetClippingRange(0.05, 7500);
-	renderer->GetActiveCamera()->SetClippingRange(0.05, d[1] + 1000.0);
+	renderer->GetActiveCamera()->SetClippingRange(0.05, 7500);
+	//renderer->GetActiveCamera()->SetClippingRange(0.05, d[1] + 1000.0);
 }

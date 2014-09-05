@@ -29,6 +29,7 @@ class vtkMyDepthPeelingPass;
 
 // VTK Includes
 #include <QVTKWidget.h>
+#include <vtkMyFillHolesFilter.h>
 
 //--------------------- Custom Entity Classes ----------------------------
 class MyPoint
@@ -140,6 +141,7 @@ public:
 	// Shader programs
 	vtkSmartPointer<vtkShaderProgram2> pgm;
 	vtkSmartPointer<vtkTexture> cutterTexture;
+	vtkSmartPointer<vtkTexture> bumpTexture;
 
 	// QT Window variables (preview and original size of window)
 	QRect _orig_size;
@@ -171,7 +173,7 @@ public:
 	vector<CustomMesh>::iterator selectedMesh;
 
 	vtkSmartPointer<MySuperquadricSource> superquad;
-
+	
 	friend class MyInteractorStyle;
 
 protected:
@@ -357,6 +359,7 @@ private:
 	void slot_timeout_delay()
 	{
 		// Update Shaders Periodically (so we can make real-time changes to shaders and reload) [Debugging Purposes!]
+		// Disable if graphics card heats up
 		Utility::updateShader(pgm, "shader_water.vert", "shader.frag");
 	}
 	// ------------------------------------------------------------------------

@@ -26,6 +26,7 @@
 #include <QStatusBar>
 #include <QLabel>
 #include <QResizeEvent>
+#include <QProgressDialog>
 
 #include <QTimer>
 #include <QDebug>
@@ -107,3 +108,22 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 
 #include <vtkUniformVariables.h>
 #include <vtkDoubleArray.h>
+
+#include <vtkTextureMapToSphere.h>
+#include <vtkTextureMapToCylinder.h>
+#include <vtkTextureMapToPlane.h>
+#include <vtkProjectedTexture.h>
+
+#include <vtkTriangle.h>
+#include <vtkMyFillHolesFilter.h>
+#include <vtkSphereSource.h>
+
+// Assimp
+#include <assimp/Importer.hpp>      // C++ importer interface
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+#include <assimp/DefaultLogger.hpp>
+
+// VTK Debug leaks
+//#include <vtkDebugLeaks.h>
+

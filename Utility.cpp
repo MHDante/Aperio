@@ -64,6 +64,9 @@ vtkSmartPointer<vtkActor> Utility::sourceToActor(aperio *ap, vtkSmartPointer<vtk
 
 	actor->GetProperty()->SetOpacity(a);	// myopacity	// TODO: REMEMBER TO CHANGE THIS TO CORRECT FACTOR (in k call)
 
+	actor->GetProperty()->SetTexture(0, ap->cutterTexture);
+	actor->GetProperty()->SetTexture(1, ap->bumpTexture);
+
 	// Create main shader (does not build since no main function, just funcPropVS)
 	//vtkSmartPointer<vtkShaderProgram2> pgm = Utility::makeShader(ap->renderer->GetRenderWindow(), "shader_water.vert", "shader.frag");
 	//vtkSmartPointer<vtkOpenGLProperty> openGLproperty = static_cast<vtkOpenGLProperty*>(actor->GetProperty());
@@ -148,6 +151,8 @@ vtkSmartPointer<vtkShaderProgram2> Utility::makeShader(vtkRenderWindow *context,
 //-------------------------------------------------------------------------------------------------------------------
 void Utility::updateShader(vtkShaderProgram2* shaderProgram, std::string vert, std::string frag)
 {
+	if (shaderProgram == nullptr)
+		return;
 
 	if (vert != "")
 	{
@@ -167,42 +172,49 @@ void Utility::updateShader(vtkShaderProgram2* shaderProgram, std::string vert, s
 }
 
 //--------------------------------------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> Utility::objToVtkPolyData(tinyobj::shape_t &shape)
+vtkSmartPointer<vtkPolyData> Utility::assimpOBJToVtkPolyData(aiMesh *mesh)
 {
+	//Setup point coordinates
+	vtkSmartPointer<vtkPolyData> mypolydata = vtkSmartPointer<vtkPolyData>::New();
+
 	// Create points
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-	points->SetNumberOfPoints(shape.mesh.positions.size());
+	points->SetNumberOfPoints(mesh->mNumVertices);	// allocate memory
 
-	for (size_t v = 0; v < shape.mesh.positions.size() / 3; v++)
+	for (int j = 0; j < mesh->mNumVertices; j++)
 	{
-		points->SetPoint(v, shape.mesh.positions[3 * v + 0], shape.mesh.positions[3 * v + 1], shape.mesh.positions[3 * v + 2]);
+		points->SetPoint(j, mesh->mVertices[j].x, mesh->mVertices[j].y, mesh->mVertices[j].z);
 	}
-	// Create faces
+
+	// Create polygons (faces)
 	vtkSmartPointer<vtkCellArray> polygons = vtkSmartPointer<vtkCellArray>::New();
-
 	vtkSmartPointer<vtkPolygon> polygon = vtkSmartPointer<vtkPolygon>::New();
-	polygon->GetPointIds()->SetNumberOfIds(3);
 
-	for (size_t f = 0; f < shape.mesh.indices.size(); f += 3)
+	for (int j = 0; j < mesh->mNumFaces; j++)
 	{
-		polygon->GetPointIds()->SetId(0, shape.mesh.indices[f + 0]);
-		polygon->GetPointIds()->SetId(1, shape.mesh.indices[f + 1]);
-		polygon->GetPointIds()->SetId(2, shape.mesh.indices[f + 2]);
+		polygon->GetPointIds()->SetNumberOfIds(mesh->mFaces[j].mNumIndices);
+
+		for (int k = 0; k < mesh->mFaces[j].mNumIndices; k++)
+			polygon->GetPointIds()->SetId(k, mesh->mFaces[j].mIndices[k]);
 
 		polygons->InsertNextCell(polygon);
 	}
-	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
 
-	// Make polygon data
+	// Successful copy
 	if (points->GetNumberOfPoints() > 0)
 	{
-		polydata->SetPoints(points);
-		polydata->SetPolys(polygons);
+		mypolydata->SetPoints(points);
+		mypolydata->SetPolys(polygons);
 
 		// Create texture coordinates
 		//Utility::generateTexCoords(polydata);
+		//vtkSmartPointer<vtkTextureMapToSphere> map = vtkSmartPointer<vtkTextureMapToSphere>::New();
+		//map->SetAutomaticSphereGeneration(true);
+		//map->SetInputData(mypolydata);
+		//map->Update();
+		//mypolydata = map->GetPolyDataOutput();
 	}
-	return polydata;
+	return mypolydata;
 }
 //--------------------------------------------------------------------------------------------------------
 CustomMesh& Utility::addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity)
@@ -238,11 +250,52 @@ vtkSmartPointer<vtkPolyData> Utility::computeNormals(vtkSmartPointer<vtkPolyData
 	dataset->ComputePointNormalsOn();
 	dataset->ComputeCellNormalsOff();
 	dataset->SplittingOn();
+	//dataset->ConsistencyOn();		// Proper winding order?
 	dataset->SetFeatureAngle(60);
 	dataset->Update();
 
 	return dataset->GetOutput();
 }
+//-------------------------------------------------------------------------------------------------------------------------
+#define aisgl_min(x,y) (x<y?x:y)
+#define aisgl_max(x,y) (y>x?y:x)
+
+void Utility::get_bounding_box_for_node(const aiScene* scene, const aiNode* nd, aiVector3D* min, aiVector3D* max)
+{
+	aiMatrix4x4 prev;
+	unsigned int n = 0, t;
+
+	for (; n < nd->mNumMeshes; ++n) {
+		const aiMesh* mesh = scene->mMeshes[nd->mMeshes[n]];
+		for (t = 0; t < mesh->mNumVertices; ++t) {
+
+			aiVector3D tmp = mesh->mVertices[t];
+
+			min->x = aisgl_min(min->x, tmp.x);
+			min->y = aisgl_min(min->y, tmp.y);
+			min->z = aisgl_min(min->z, tmp.z);
+
+			max->x = aisgl_max(max->x, tmp.x);
+			max->y = aisgl_max(max->y, tmp.y);
+			max->z = aisgl_max(max->z, tmp.z);
+		}
+	}
+
+	for (n = 0; n < nd->mNumChildren; ++n) {
+		get_bounding_box_for_node(scene, nd->mChildren[n], min, max);
+	}
+}
+//----------------------------------------------------------------------------------------------
+void Utility::get_bounding_box(const aiScene* scene, aiVector3D* min, aiVector3D* max)
+{
+
+	min->x = min->y = min->z = 1e10f;
+	max->x = max->y = max->z = -1e10f;
+	get_bounding_box_for_node(scene, scene->mRootNode, min, max);
+}
+///-------------------------------------------------------------------------------------------------
+/// <summary> Compute smooth normals for a vtkPolyData source (usually after computeNormals)
+/// </summary>
 //-------------------------------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> Utility::smoothNormals(vtkSmartPointer<vtkPolyData> source)
 {
@@ -298,6 +351,7 @@ vtkSmartPointer<vtkPolyData> Utility::smoothNormals(vtkSmartPointer<vtkPolyData>
 			sum.GetY() / normal_buffer[i].size(),
 			sum.GetZ() / normal_buffer[i].size());
 
+
 		points_normal->SetTuple3(i, sum.GetX(), sum.GetY(), sum.GetZ());
 	}
 	dataset->GetPointData()->SetNormals(points_normal);
@@ -305,6 +359,6 @@ vtkSmartPointer<vtkPolyData> Utility::smoothNormals(vtkSmartPointer<vtkPolyData>
 	//cleanup
 	delete[] normal_buffer;
 
+
 	return dataset;
 }
-

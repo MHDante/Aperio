@@ -55,6 +55,6 @@ public:
 	/// </summary>
 	/// <param name="mesh">vtkPolyData to clean </param>
 	/// <returns>Resulting clean vtkPolydata </returns>
-	static vtkSmartPointer<vtkPolyData> cleanVtkPolyData(vtkSmartPointer<vtkPolyData> &thepolydata);
+	static vtkSmartPointer<vtkPolyData> cleanVtkPolyData(vtkSmartPointer<vtkPolyData> &thepolydata, bool triangulate);
 };
 #endif

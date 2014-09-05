@@ -12,8 +12,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "tiny_obj_loader.h"
-
 class aperio;	// Forward declarations
 class CustomMesh;
 
@@ -48,7 +46,7 @@ namespace Utility
 	/// <summary> Method to convert tinyobj format to vtkPolyData </summary>
 	/// <param name="source">Converts tinyobj to vtkPolydata </param>
 	/// <return name="source">Resulting vtkPolyData</param>
-	vtkSmartPointer<vtkPolyData> objToVtkPolyData(tinyobj::shape_t &shape);
+	vtkSmartPointer<vtkPolyData> assimpOBJToVtkPolyData(aiMesh *mesh);
 
 	/// <summary> VTK method to generate Texture coordinates and attach to vtkPolyData's point data </summary>
 	/// <param name="source">Polydata to generate texture coordinates for</param>
@@ -63,6 +61,8 @@ namespace Utility
 	/// <param name="vertex_and_frag">vertex and fragment shader filenames (nullstring is default, meaning none, so no reloads)</param>
 	void updateShader(vtkShaderProgram2* shaderProgram, std::string vert = "", std::string frag = "");
 
+	vtkSmartPointer<vtkPolyData> smoothNormals(vtkSmartPointer<vtkPolyData> source);
+
 	/// <summary> Add to meshes collection (returns the CustomMesh) </summary>
 	/// <param name="vertex_and_frag"></param>
 	CustomMesh& addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity);
@@ -72,9 +72,10 @@ namespace Utility
 	/// </summary>
 	vtkSmartPointer<vtkPolyData> computeNormals(vtkSmartPointer<vtkPolyData> source);
 
-	///-------------------------------------------------------------------------------------------------
-	/// <summary> Compute smooth normals for a vtkPolyData source (usually after computeNormals)
+	/// ----------------------------------------------------------------------------
+	/// <summary> Compute bounding boxes for an assimp scene (call get_bounding_box)
 	/// </summary>
-	vtkSmartPointer<vtkPolyData> smoothNormals(vtkSmartPointer<vtkPolyData> source);
+	void get_bounding_box_for_node(const aiScene* scene, const aiNode* nd, aiVector3D* min, aiVector3D* max);
+	void get_bounding_box(const aiScene* scene, aiVector3D* min, aiVector3D* max);
 }
 #endif
