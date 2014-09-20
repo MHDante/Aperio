@@ -149,7 +149,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::m
 	//csg.hooks.registerHook(new HoleResolver, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
 
 	std::cout << csg.hooks.hooks.size() << "\n";
-	carve::csg::CSG::CLASSIFY_TYPE type = carve::csg::CSG::CLASSIFY_EDGE;
+	carve::csg::CSG::CLASSIFY_TYPE type = carve::csg::CSG::CLASSIFY_NORMAL;
 	if (!triangulate)
 	{
 		type = carve::csg::CSG::CLASSIFY_NORMAL;

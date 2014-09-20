@@ -14,6 +14,7 @@
 
 #include <vtkOutlineSource.h>
 #include <vtkMyShaderPass.h>
+#include <vtkPickingManager.h>
 
 vtkStandardNewMacro(MyInteractorStyle);
  
@@ -24,13 +25,12 @@ MyInteractorStyle::MyInteractorStyle() : NumberOfClicks(0), ResetPixelDistance(5
 	this->PreviousPosition[1] = 0;
 
 	this->cellPicker = vtkSmartPointer<vtkCellPicker>::New();
-	this->cellPicker->SetTolerance(0.0005);
+	//this->cellPicker->SetTolerance(0.0005);	
 
 	dragging = false;
 	creation = false;
 
 	a = nullptr;
-	//this->PickingManagedOn();
 }
 //---------------------------------------------------------------------------------------------------------------
 void MyInteractorStyle::initialize(aperio *window)
@@ -222,10 +222,20 @@ void MyInteractorStyle::OnKeyPress()
 	{
 		a->shadingnum = (a->shadingnum + 1) % 3;
 	}
+
+	float thestep = 0.05;
+
 	//------------- Last superquad --------------------------------------------------------------------------
 	if (this->Interactor->GetKeyCode() == 'u' && a->myelems.size() > 0)	// Resize last superquad placed
 	{
 		int i = a->myelems.size() - 1;
+		MyElem &elem = a->myelems.at(i);
+
+		elem.scale.SetZ(elem.scale.GetZ() - thestep);
+		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
+		elem.transformFilter->Update();	// Must update transform filter for updates to show
+
+		/*int i = a->myelems.size() - 1;
 		vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
 		double elements1[16] = {
@@ -239,11 +249,18 @@ void MyInteractorStyle::OnKeyPress()
 
 		a->myelems.at(i).transformFilter->Update();
 		//a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
-		//a->myelems.at(i).actor->GetMapper()->Update();
+		//a->myelems.at(i).actor->GetMapper()->Update();*/
 	}
 	if (this->Interactor->GetKeyCode() == 'o' && a->myelems.size() > 0)	// Resize last superquad placed
 	{
 		int i = a->myelems.size() - 1;
+		MyElem &elem = a->myelems.at(i);
+
+		elem.scale.SetZ(elem.scale.GetZ() + thestep);
+		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
+		elem.transformFilter->Update();	// Must update transform filter for updates to show
+
+		/*int i = a->myelems.size() - 1;
 		vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
 		double elements1[16] = {
@@ -255,31 +272,33 @@ void MyInteractorStyle::OnKeyPress()
 		transform->PreMultiply();
 		transform->Concatenate(elements1);
 
-		a->myelems.at(i).transformFilter->Update();
+		a->myelems.at(i).transformFilter->Update();*/
 		//a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
 		//a->myelems.at(i).actor->GetMapper()->Update();
 	}
 	if (this->Interactor->GetKeyCode() == 'e' && a->myelems.size() > 0)		// Resize last superquad placed
 	{
 		int i = a->myelems.size() - 1;
-		vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
+		MyElem &elem = a->myelems.at(i);
 
-		double elements1[16] = {
-			1, 0, 0, 0,
-			0, 1.1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1
-		};
-		transform->PreMultiply();
-		transform->Concatenate(elements1);
+		elem.scale.SetY(elem.scale.GetY() + thestep);
+		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
+		elem.transformFilter->Update();	// Must update transform filter for updates to show
 
-		a->myelems.at(i).transformFilter->Update();
 		//a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
 		//a->myelems.at(i).actor->GetMapper()->Update();
 	}
 	if (this->Interactor->GetKeyCode() == 'q' && a->myelems.size() > 0)	// Resize last superquad placed
 	{
 		int i = a->myelems.size() - 1;
+		MyElem &elem = a->myelems.at(i);
+
+		elem.scale.SetY(elem.scale.GetY() - thestep);
+		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
+		elem.transformFilter->Update();	// Must update transform filter for updates to show
+
+
+		/*int i = a->myelems.size() - 1;
 		vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
 		double elements1[16] = {
@@ -291,7 +310,7 @@ void MyInteractorStyle::OnKeyPress()
 		transform->PreMultiply();
 		transform->Concatenate(elements1);
 
-		a->myelems.at(i).transformFilter->Update();
+		a->myelems.at(i).transformFilter->Update();*/
 		//a->myelems.at(i).actor->GetProperty()->SetDiffuseColor(0, 1, 0);
 		//a->myelems.at(i).actor->GetMapper()->Update();
 	}
@@ -311,7 +330,7 @@ void MyInteractorStyle::OnMouseMove()
 
 	cellPicker->Pick(x, y, 0,  // always zero.
 		this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-
+	
 	cellPicker->GetPickPosition(a->mouse);
 	cellPicker->GetPickNormal(a->mouseNorm);
 
@@ -487,73 +506,35 @@ void MyInteractorStyle::OnLeftButtonUp()
 		elem.p2.point = vtkVector3f(a->pos2[0], a->pos2[1], a->pos2[2]);
 		elem.p2.normal = vtkVector3f(a->norm2[0], a->norm2[1], a->norm2[2]);
 
+		elem.scale = vtkVector3f(dist(a->pos1, a->pos2), 0.1, 0.1);
+
 		vtkSmartPointer<MySuperquadricSource> superquad = vtkSmartPointer<MySuperquadricSource>::New();
 		superquad->SetToroidal(a->ui.chkToroid->isChecked());
 		superquad->SetThetaResolution(16);
 		superquad->SetPhiResolution(16);
+		superquad->SetSize(0.5);
+
+		//superquad->SetScale(elem.scale.GetX(), elem.scale.GetY(), elem.scale.GetZ());
 
 		//superquad->SetThickness(5);
 		superquad->SetPhiRoundness(a->ui.phiSlider->value() / a->roundnessScale);
 		superquad->SetThetaRoundness(a->ui.thetaSlider->value() / a->roundnessScale);
 		superquad->Update();
 
-		// Get forward/up/right vectors (to orient superquad)
-		vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
-			(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
-			(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f
-			);
-		forward.Normalize();
-
-		vtkVector3f right = vtkVector3f(
-			elem.p2.point.GetX() - elem.p1.point.GetX(),
-			elem.p2.point.GetY() - elem.p1.point.GetY(),
-			elem.p2.point.GetZ() - elem.p1.point.GetZ()
-			);
-		right.Normalize();
-
-		// up = cross product of right and forward
-		vtkVector3f up = forward.Cross(right);
-		up.Normalize();
-
-		// vtk does row-major matrix operations
-		vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-
-		double elements3[16] = {
-			1, 0, 0, (elem.p1.point.GetX() + elem.p2.point.GetX()) / 2.0f,
-			0, 1, 0, (elem.p1.point.GetY() + elem.p2.point.GetY()) / 2.0f,
-			0, 0, 1, (elem.p1.point.GetZ() + elem.p2.point.GetZ()) / 2.0f,
-			0, 0, 0, 1
-		};
-
-		//float rads = vtkMath::RadiansFromDegrees(45.0);
-		double elements2[16] = {
-			right.GetX(), up.GetX(), forward.GetX(), 0,
-			right.GetY(), up.GetY(), forward.GetY(), 0,
-			right.GetZ(), up.GetZ(), forward.GetZ(), 0,
-			0, 0, 0, 1
-		};
-
-		double elements1[16] = {
-			dist(a->pos1, a->pos2), 0, 0, 0,
-			0, .1, 0, 0,
-			0, 0, .1, 0,
-			0, 0, 0, 1
-		};
-		transform->SetMatrix(elements1);
-
-		transform->PostMultiply();
-		transform->Concatenate(elements2);
-		transform->Concatenate(elements3);
+		//a->transform = vtkSmartPointer<vtkMatrix4x4>::New();
+		//a->transform->DeepCopy(transform->GetMatrix());
+		//a->transform->Transpose();
 
 		vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-		transformFilter->SetTransform(transform);
+		transformFilter->SetTransform(a->makeCompositeTransform(elem));
 		transformFilter->SetInputData(superquad->GetOutput());
 		transformFilter->Update();
 
 		// TODO: superquad opacity
-		elem.actor = Utility::sourceToActor(a, transformFilter->GetOutput(), 1.0, 1.0, 1.0, 1.0);
+		elem.actor = Utility::sourceToActor(a, transformFilter->GetOutput(), 1.0, 1.0, 1.0, 0.25);
 		elem.actor->PickableOff();
 
+		elem.actor->SetUserMatrix(vtkSmartPointer<vtkMatrix4x4>::New());
 		elem.actor->SetTexture(a->cutterTexture);
 
 		elem.source = superquad;

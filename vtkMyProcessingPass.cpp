@@ -460,17 +460,9 @@ void vtkMyProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 	glScissor(0, 0, newWidth, newHeight);
 
 	// 2. Delegate render in FBO
-	glEnable(GL_DEPTH_TEST);
-
-	// Need this line!! (Enables alpha blending for FBO)
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	this->DelegatePass->Render(&s2);
 	this->NumberOfRenderedProps +=
 		this->DelegatePass->GetNumberOfRenderedProps();
-
-	glDisable(GL_BLEND);
 
 	newCamera->Delete();
 	r->SetActiveCamera(savedCamera);

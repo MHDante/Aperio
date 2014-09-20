@@ -31,6 +31,19 @@ uniform float darkness = 1.0;
 uniform float myexp = 1.0;
 uniform float time = 0.0;
 
+// Superquad data
+uniform vec3 pos1 = vec3(0, 0, 0);
+uniform vec3 pos2 = vec3(0, 0, 0);
+uniform vec3 norm1 = vec3(0, 0, 0);
+uniform vec3 norm2 = vec3(0, 0, 0);
+uniform vec3 scale = vec3(0, 0, 0);
+
+uniform float phi = 0.0;
+uniform float theta = 0.0;
+
+uniform mat4 transMat;
+uniform int elemssize;
+
 // Light parameters
 const vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1);
 const vec4 light_diffuse = vec4(0.6, 0.6, 0.6, 1);
@@ -117,7 +130,9 @@ void phongLighting(vec3 n)
 		final_color = vec4(		
 		1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
 		(Idiff.rgb + vec3(0.35,0.35,0.35)) * tex ) - 0.0 * Iamb.xyz
-		, 0.5) ;
+		//, 0.5) ;
+		, gl_Color.a) ;
+		//0.25 alpha in-program
 	}
 }
 
@@ -209,28 +224,112 @@ void main()
 	// convert mouse world coords to view coords (so same as v)
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
 	//vec4 mouseV = vec4(vec3(mouse), 1);
-
+	
 	float ee = myexp;
 	float nn = 0.5;
 
-	float d = pow(pow(abs(v.y - mouseV.y) / 1.0, 2.0 / ee) + pow(abs(v.x - mouseV.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(v.z - mouseV.z) / 1.0, 2.0 / nn) - 1.0;
+	//float d = pow(pow(abs(original_v.y - pos1.y) / 1.0, 2.0 / ee) + pow(abs(original_v.x - pos1.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(original_v.z - pos1.z) / 1.0, 2.0 / nn) - 1.0;
+	
+	
+	//vec3 pp = vec3( (xyz[0] - this->Center[0]) / s[0], 
+	//(xyz[1] - this->Center[1]) / s[1],
+	//(xyz[2] - this->Center[2]) / s[2]
+	//);
+	
+	float dist = distance(pos1, pos2);
+	vec3 poss = original_v - (pos1 + pos2) / 2.0;
+		
+	// Rotation matrix
+	vec3 right = normalize(pos2 - pos1);	
+	vec3 forward = normalize((norm1 + norm2) / 2.0);
+	vec3 up = normalize(cross(forward, right));
+	
+	mat3 rotMat = mat3(
+	right, up, forward
+	);
+	
+	/*mat4 translateMat = mat4(
+	vec4(1, 0, 0, ),
+	vec4(0, 1, 0, ),
+	vec4(0, 0, 1, ),
+	vec4(0, 0, 0, 1)
+	);
+	translateMat = transpose(translateMat);*/
+	 //poss = poss / scale;
+	//poss =  rotMat * ( poss) / scale;
+	poss =  inverse(rotMat) *( poss) / (scale * 0.5);
+	
+    float val = pow((pow(abs(poss.z), 2.0/theta) + pow(abs(poss.x), 2.0/theta)), theta/phi) + pow(abs(poss.y),2.0/phi) - 1.0;
+	 
+	  
+
+//	float d = pow(pow(abs(original_v.y - mouse.y) / 1.0, 2.0 / ee) + pow(abs(original_v.x - mouse.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(original_v.z - mouse.z) / 1.0, 2.0 / nn) - 1.0;
+	//float d = pow(pow(abs(v.y - mouseV.y) / 1.0, 2.0 / ee) + pow(abs(v.x - mouseV.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(v.z - mouseV.z) / 1.0, 2.0 / nn) - 1.0;
 	//float d = pow(pow(abs(original_v.y - mouseV.y) / 1.0, 2.0/ee) + pow(abs(original_v.x - mouseV.x) / 1.0, 2.0/ee), ee/nn) + pow(abs(original_v.z - mouseV.z) / 1.0, 2.0/nn) - 1.0;
+	
+	if (!gl_FrontFacing && iselem)
+	{
+		//final_color.a = 1;
+		//final_color = vec4(1, 0, 0, 1);
+		//final_color = gl_Color;
+	}
+	if (gl_FrontFacing && iselem)
+	//if (gl_FrontFacing)
+	{
+		//discard;
+		//final_color.a = 1;
+		//final_color = vec4(1, 1, 1, 0.1);
+	}
 	
 	if (selected)	// if selected
 	{
+	
+		/*if(val > MAX_FVAL){
+		//val = MAX_FVAL;
+		discard;
+		}
+		else if(val < -MAX_FVAL){
+		//val = -MAX_FVAL;
+			final_color = vec4(1, 1, 1, 1);
+		}*/
+		
+		/*if (val > 100000000)
+			val = 100000000;
+		if (val < -100000000)
+			val = -100000000;*/
+			
+		if (val < 0 && elemssize > 0)
+			discard;
+			//final_color = vec4(final_color.rgb * 1.75, final_color.a);
+			
+		else
+			;//final_color = vec4(1, 1, 1, 1);
+		/*float fraction = fract(time);
+		float multiplier = 0;
+		float result = 0;
+		
+		if (fraction < 0.5)
+			multiplier = (fraction / 0.5);
+		else
+			multiplier = (1.0 - fraction) / 0.5;
+		
+		result = multiplier * 0.25 + 0.85;
+		final_color = vec4(final_color.rgb * result, final_color.a);*/
+		
 		float minDist = brushSize;
 		
 		if (peerInside)
 		{
+			float d = 1000;
 			if (d < minDist)
 			{			
-				discard;
-				//final_color = final_color * vec4(1.75, 1.25, 0.25, 0.35);
+				//discard;
+				//final_color = final_color * vec4(0.5, 0.5, 0.5, 1);
 			}
 			else if (d < 1.75 * minDist)
 			{
-				float dd = d / (1.5 * minDist);
-				final_color = vec4(1, 0.7, 0.4,  dd - 0.55);
+				//float dd = d / (1.5 * minDist);
+				//final_color = vec4(1, 0.7, 0.4,  dd - 0.55);
 			}
 		}
 	}

@@ -250,7 +250,6 @@ vtkSmartPointer<vtkPolyData> Utility::computeNormals(vtkSmartPointer<vtkPolyData
 	dataset->ComputePointNormalsOn();
 	dataset->ComputeCellNormalsOff();
 	dataset->SplittingOn();
-	//dataset->ConsistencyOn();		// Proper winding order?
 	dataset->SetFeatureAngle(60);
 	dataset->Update();
 

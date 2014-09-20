@@ -18,6 +18,8 @@ public:
 	CarveConnector();
 	~CarveConnector();
 
+	//static carve::csg::CSG csg;
+
 	// Public Methods
 
 	//-------------------------------------------------------------------------------------------------------------

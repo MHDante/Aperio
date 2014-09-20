@@ -92,14 +92,43 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 	uniforms->SetUniformi("source", 1, &source);
 	uniforms->SetUniformi("sourceBump", 1, &sourceBump);
 
-	uniforms->SetUniformf("pos1", 3, a->pos1);
-	uniforms->SetUniformf("pos2", 3, a->pos2);
+	int elemssize = a->myelems.size();
+	uniforms->SetUniformi("elemssize", 1, &elemssize);
+
+	if (a->myelems.size() > 0)
+	{
+		MyElem & elem = a->myelems.at(a->myelems.size() - 1);
+
+		uniforms->SetUniformf("pos1", 3, elem.p1.point.GetData());
+		uniforms->SetUniformf("pos2", 3, elem.p2.point.GetData());
+
+		uniforms->SetUniformf("norm1", 3, elem.p1.normal.GetData());
+		uniforms->SetUniformf("norm2", 3, elem.p2.normal.GetData());
+
+		uniforms->SetUniformf("scale", 3, elem.scale.GetData());
+	}
+	float phi = a->getUI().phiSlider->value() / a->roundnessScale;
+	float theta = a->getUI().thetaSlider->value() / a->roundnessScale;
+
+	uniforms->SetUniformf("phi", 1, &phi);
+	uniforms->SetUniformf("theta", 1, &theta);
+
 	uniforms->SetUniformit("difftrans", 1, &a->difftrans);
 
 	uniforms->SetUniformi("shininess", 1, &a->shininess);
 	uniforms->SetUniformf("darkness", 1, &a->darkness);
 
 	uniforms->SetUniformf("time", 1, &a->wavetime);
+
+	// Transform matrix
+	float transMat[16];
+	int z = 0;
+	if (a->transform)
+		for (int i = 0; i < 4; i++)
+			for (int j = 0; j < 4; j++)			
+					transMat[z++] = a->transform->GetElement(i, j);
+
+	uniforms->SetUniformMatrix("transMat", 4, 4, transMat);
 
 	while (i < c)
 	{
@@ -114,12 +143,14 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 			// Find actor inside CustomMesh vector (using lambda to compare CustomMesh's actor pointer with vtkActor's pointer)
 			auto it = a->getMeshByActorRaw(vtkActor::SafeDownCast(p));
 
+			bool iselem = false;
+
 			if (it != a->meshes.end())
 			{
 				// Found the CustomMesh object mapped to this actor (actor is a subclass of prop)
 				uniforms->SetUniformit("selected", 1, &it->selected);
 
-				bool iselem = false;
+				iselem = false;
 				uniforms->SetUniformit("iselem", 1, &iselem);
 			}
 			else
@@ -130,7 +161,7 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				if (it2 != a->myelems.end())
 				{
 					// Actor belongs to our Elements array (myelems)
-					bool iselem = true;
+					iselem = true;
 					uniforms->SetUniformit("iselem", 1, &iselem);
 				}
 				else
@@ -143,6 +174,8 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 						bool outline = true;
 						uniforms->SetUniformit("outline", 1, &outline);
 						glEnable(GL_LINE_SMOOTH);
+
+						//glDisable(GL_DEPTH_TEST);
 					}
 				}
 			}
@@ -157,6 +190,12 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 
 			a->pgm->SetUniformVariables(uniforms);
 		
+			// Need this line!! (Enables alpha blending & depth testing)
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			
+			glEnable(GL_DEPTH_TEST);
+
 			//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->pgm); // Dangerous, constantly allocs
 			a->pgm->Use();
 
@@ -168,17 +207,62 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				//glProgramUniform1f(progID, loc, 1.0);
 			}
 
+			class vtkMyOpenGLProperty : public vtkOpenGLProperty
+			{
+			public:
+				void show_front()
+				{
+					this->BackfaceCulling = true;
+					this->FrontfaceCulling = false;
+				}
+				void show_back()
+				{
+					this->BackfaceCulling = false;
+					this->FrontfaceCulling = true;
+				}
+				void show_all()
+				{
+					this->BackfaceCulling = false;
+					this->FrontfaceCulling = false;
+				}
+			};
+
 			if (passType == ShaderPassType::PASS_TRANSLUCENT)
 			{
+				//rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
+				//this->NumberOfRenderedProps += rendered;
+
+				if (iselem)
+				{
+					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.3);
+				}
+				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_back();
 				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
+
+				if (iselem)
+				{
+					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.1);
+				}
+				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_front();
+				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
+				
 				this->NumberOfRenderedProps += rendered;
 			}
 			else
 			{
+				//rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
+				//this->NumberOfRenderedProps += rendered;
+
+				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_all();
 				rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
-				this->NumberOfRenderedProps += rendered + 1;
+
+				this->NumberOfRenderedProps += rendered;
 			}
 			a->pgm->Restore();
+
+			// Need this line!! (alpha blending & depth testing)
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_BLEND);
 		}
 		++i;
 	}

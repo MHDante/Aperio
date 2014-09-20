@@ -67,23 +67,33 @@ using namespace std;
 #include <vtkSliderWidget.h>
 #include <vtkSphereWidget2.h>
 #include <vtkSplineWidget2.h>
+#include <vtkSplineWidget.h>
 #include <vtkTensorProbeWidget.h>
+#include <vtkSliderWidget.h>
 
 #include <vtkBoxRepresentation.h>
 
+
 #include <vtkCubeSource.h>
+
 #include <vtkCylinderSource.h>
+#include <vtkSliderRepresentation3D.h>
+#include <vtkPickingManager.h>
+#include <vtkSplineRepresentation.h>
+
 //-------------------------------------------------------------------------------------------------------------
 aperio::aperio(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
 
-	// Constructor (initialize variables)
+	// Constructor (initialize variables before window shown)
 	glew_available = false;
 
 	QTimer::singleShot(0, this, SLOT(slot_afterShowWindow()));
 }
+
+
 ///---------------------------------------------------------------------------------------
 aperio::~aperio()
 {
@@ -99,6 +109,7 @@ void aperio::update_orig_size()
 ///---------------------------------------------------------------------------------------
 void aperio::slot_afterShowWindow()
 {
+
 	update_orig_size();
 
 	// Set up instance variables
@@ -217,13 +228,15 @@ void aperio::slot_afterShowWindow()
 
 	// Put all passes into a collection then into a sequence
 	passes = vtkSmartPointer<vtkRenderPassCollection>::New();
+
+	//passes->AddItem(vtkSmartPointer<vtkDefaultPass>::New());
 	//passes->AddItem(vtkSmartPointer<vtkClearZPass>::New());
 	//passes->AddItem(vtkSmartPointer<vtkLightsPass>::New());
 	passes->AddItem(opaqueP);
 	passes->AddItem(transP);
 	//passes->AddItem(vtkSmartPointer<vtkOpaquePass>::New());
 	//passes->AddItem(vtkSmartPointer<vtkTranslucentPass>::New());
-	passes->AddItem(vtkSmartPointer<vtkOverlayPass>::New());
+	//passes->AddItem(vtkSmartPointer<vtkOverlayPass>::New());
 	//passes->AddItem(peelP);
 
 	seq->SetPasses(passes);
@@ -239,6 +252,7 @@ void aperio::slot_afterShowWindow()
 	vtkSmartPointer<vtkMyAdvancedPass> advP = vtkSmartPointer<vtkMyAdvancedPass>::New();
 	advP->SetDelegatePass(cameraP);
 
+	
 	// Requires Depth from camera pass
 	vtkSmartPointer<vtkMyProcessingPass> ssaoP = vtkSmartPointer<vtkMyProcessingPass>::New();
 	ssaoP->setShaderFile("shader_ssao.vert", false);
@@ -266,10 +280,13 @@ void aperio::slot_afterShowWindow()
 	interactorstyle = vtkSmartPointer<MyInteractorStyle>::New();
 	interactorstyle->SetAutoAdjustCameraClippingRange(false);
 	interactorstyle->initialize(this);
-
+	
 	renderWindowInteractor->SetInteractorStyle(interactorstyle);
 	renderWindowInteractor->Initialize();
-
+	
+	renderWindowInteractor->GetPickingManager()->EnabledOn();
+	renderWindowInteractor->GetPickingManager()->AddPicker(interactorstyle->cellPicker);
+	
 	qv->GetRenderWindow()->SetInteractor(renderWindowInteractor);
 
 	QApplication::processEvents();
@@ -581,8 +598,21 @@ void aperio::readFile(std::string filename)
 		//CommonData::objectOBBTrees.push_back(objectOBBTree);
 
 		vtkSmartPointer<vtkPolyData> nextMesh = Utility::assimpOBJToVtkPolyData(scene->mMeshes[z]);
+
+		vtkSmartPointer<vtkFeatureEdges> feature = vtkSmartPointer<vtkFeatureEdges>::New();
+		feature->SetInputData(nextMesh);
+		feature->BoundaryEdgesOn();
+		feature->FeatureEdgesOff();
+		feature->NonManifoldEdgesOff();
+		feature->ManifoldEdgesOff();
+		feature->Update();
+		std::cout << setw(25) << groupname.C_Str() << setw(15) << "Boundaries: " << feature->GetOutput()->GetNumberOfPoints() << "\n";
+
+
 		nextMesh = CarveConnector::cleanVtkPolyData(nextMesh, false);
 		nextMesh = Utility::computeNormals(nextMesh);
+
+			
 
 		//nextMesh->BuildCells();
 		//nextMesh->BuildLinks();
@@ -616,8 +646,79 @@ void aperio::readFile(std::string filename)
 	// Reset clipping plane AFTER camera reset AND render (also after FlyTo call in interactor)
 	resetClippingPlane();
 
-	vtkSmartPointer<vtkBoxWidget> planeWidget = vtkSmartPointer<vtkBoxWidget>::New();
-	planeWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
+	// Add a widget
+	splineWidget = vtkSmartPointer<vtkSplineWidget2>::New();
+	splineWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
+
+	class vtkMySplineRepresentation : public vtkSplineRepresentation
+	{
+	public:
+		void setTolerance()
+		{
+			this->HandlePicker->SetTolerance(0.0025);
+			this->LinePicker->SetTolerance(0.0025);
+		}
+	};
+	vtkSmartPointer<vtkSplineRepresentation> splineRep = vtkSmartPointer<vtkSplineRepresentation>::New();
+	
+	double points[3] = { 2, 2, 2 };
+	splineRep->SetHandlePosition(0, points);
+	double points2[3] = { -2, 2, 2 };
+	splineRep->SetHandlePosition(1, points2);
+
+	static_cast<vtkMySplineRepresentation *>(splineRep.GetPointer())->setTolerance();
+
+	//splineRep->setTolerance();
+	
+	splineWidget->SetRepresentation(splineRep);
+	
+	//splineWidget->On();
+	
+
+	//boxWidget->CreateDefaultRepresentation();
+
+	//vtkSmartPointer<vtkBoxRepresentation> boxRepresentation = vtkSmartPointer<vtkBoxRepresentation>::New();
+	//boxWidget->SetRepresentation(boxRepresentation);
+
+	
+	
+
+	//vtkWidgetRepresentation *boxRep = boxWidget->GetRepresentation();
+
+	//double bounds[] = { 0, 5, -0.5, 0.5, -0.5, 0.5 };
+	//boxRep->PlaceWidget(bounds);
+
+
+
+	// planeWidget is amazing	
+	//vtkSmartPointer<vtkAxesTransformWidget> axesWidget = vtkSmartPointer<vtkAxesTransformWidget>::New();
+	//axesWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
+	//axesWidget->On();
+	
+	/*vtkSmartPointer<vtkSliderRepresentation3D> sliderRep = vtkSmartPointer<vtkSliderRepresentation3D>::New();
+	sliderRep->SetMinimumValue(3.0);
+	sliderRep->SetMaximumValue(50.0);
+	sliderRep->SetValue(12);
+	sliderRep->SetTitleText("Sphere Resolution");
+	sliderRep->GetPoint1Coordinate()->SetCoordinateSystemToWorld();
+	sliderRep->GetPoint1Coordinate()->SetValue(-4, 6,1);
+	sliderRep->GetPoint2Coordinate()->SetCoordinateSystemToWorld();
+	sliderRep->GetPoint2Coordinate()->SetValue(4, 6, 1);
+	sliderRep->SetSliderLength(0.075);
+	sliderRep->SetSliderWidth(0.05);
+	sliderRep->SetEndCapLength(0.05);
+
+	vtkSmartPointer<vtkSliderWidget> sliderWidget =vtkSmartPointer<vtkSliderWidget>::New();
+	sliderWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
+	sliderWidget->SetRepresentation(sliderRep);
+	sliderWidget->SetAnimationModeToAnimate();
+	sliderWidget->EnabledOn();
+	sliderWidget->On();*/
+
+	/*vtkSmartPointer<vtkAngleWidget> angleWidget = vtkSmartPointer<vtkAngleWidget>::New();
+	angleWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
+	angleWidget->CreateDefaultRepresentation();
+	angleWidget->On();*/
 
 	// Added meshes, now set selectedMesh to sentinel - 1 past last (Might have to update this for future selections)
 	setSelectedMesh(meshes.end());	// Reset selectedMesh to nothing
@@ -706,12 +807,19 @@ void aperio::slot_btnSlice()
 
 		return;
 	}*/
+	bool totriangulate = ui.chkTriangulate->isChecked();
 
-	std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B, ui.chkTriangulate->isChecked()));
+	if (!first->isClosed())
+	{
+		std::cout << "Not a closed mesh! (not solid) so no edge classification . Using normal classification.\n";
+		totriangulate = false;
+	}
+
+	std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B, totriangulate));
 	vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
 
 	// Create second piece (the cut piece)
-	std::unique_ptr<carve::mesh::MeshSet<3> > d(CarveConnector::perform(first, second, carve::csg::CSG::INTERSECTION, ui.chkTriangulate->isChecked()));
+	std::unique_ptr<carve::mesh::MeshSet<3> > d(CarveConnector::perform(first, second, carve::csg::CSG::INTERSECTION, totriangulate));
 	vtkSmartPointer<vtkPolyData> d_poly(CarveConnector::meshSetToVTKPolyData(d));
 
 	// Create normals for resulting polydatas
@@ -810,10 +918,63 @@ void aperio::slot_listitemclicked(int i)
 	std::string itemString = ui.listWidget->item(i)->text().toStdString();	// get new selectedMesh string from list
 	setSelectedMesh(getMeshByName(itemString));
 }
+//--------------------------------------------------------------------------------------
+vtkSmartPointer<vtkTransform> aperio::makeCompositeTransform(MyElem &elem)
+{
+	// Get forward/up/right vectors (to orient superquad)
+	vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
+		(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
+		(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f
+		);
+	forward.Normalize();
+
+	vtkVector3f right = vtkVector3f(
+		elem.p2.point.GetX() - elem.p1.point.GetX(),
+		elem.p2.point.GetY() - elem.p1.point.GetY(),
+		elem.p2.point.GetZ() - elem.p1.point.GetZ()
+		);
+	right.Normalize();
+
+	// up = cross product of right and forward
+	vtkVector3f up = forward.Cross(right);
+	up.Normalize();
+
+	// vtk does row-major matrix operations
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+
+	double elements3[16] = {
+		1, 0, 0, (elem.p1.point.GetX() + elem.p2.point.GetX()) / 2.0f,
+		0, 1, 0, (elem.p1.point.GetY() + elem.p2.point.GetY()) / 2.0f,
+		0, 0, 1, (elem.p1.point.GetZ() + elem.p2.point.GetZ()) / 2.0f,
+		0, 0, 0, 1
+	};
+
+	//float rads = vtkMath::RadiansFromDegrees(45.0);
+	double elements2[16] = {
+		right.GetX(), up.GetX(), forward.GetX(), 0,
+		right.GetY(), up.GetY(), forward.GetY(), 0,
+		right.GetZ(), up.GetZ(), forward.GetZ(), 0,
+		0, 0, 0, 1
+	};
+
+	double elements1[16] = {
+		elem.scale.GetX(), 0, 0, 0,
+		0, elem.scale.GetY(), 0, 0,
+		0, 0, elem.scale.GetZ(), 0,
+		0, 0, 0, 1
+	};
+	transform->SetMatrix(elements1);
+
+	transform->PostMultiply();
+	transform->Concatenate(elements2);
+	transform->Concatenate(elements3);
+
+	return transform;
+}
 //-------------------------------------------------------------------------------------------
 void aperio::slot_timeout_fps()
 {
-	if (GetAsyncKeyState(VK_ESCAPE))
+	if (GetAsyncKeyState(VK_ESCAPE) && this->isActiveWindow())
 	{
 		this->close();
 	}

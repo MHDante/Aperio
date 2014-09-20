@@ -345,7 +345,7 @@ background: #82766A;
      <number>256</number>
     </property>
     <property name="value">
-     <number>32</number>
+     <number>47</number>
     </property>
     <property name="orientation">
      <enum>Qt::Vertical</enum>
@@ -469,7 +469,7 @@ background: #82766A;
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -771,11 +771,14 @@ background: #82766A;
       <property name="toolTip">
        <string>Explode</string>
       </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
       <property name="maximum">
        <number>100</number>
       </property>
       <property name="value">
-       <number>0</number>
+       <number>2</number>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -802,11 +805,14 @@ background: #82766A;
       <property name="toolTip">
        <string>Explode</string>
       </property>
+      <property name="minimum">
+       <number>3</number>
+      </property>
       <property name="maximum">
        <number>100</number>
       </property>
       <property name="value">
-       <number>0</number>
+       <number>3</number>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>

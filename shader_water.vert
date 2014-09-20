@@ -71,5 +71,43 @@ void main()
 	if (selected == true && wiggle == true)
 		water();
 
+	vec4 newpos = gl_Vertex;
+	float rad = 7;
+	
+	/*if (gl_Vertex.x < rad * 3.14159265)
+	{
+		newpos.x = -gl_Vertex.y * sin(gl_Vertex.x / rad);
+		newpos.z = gl_Vertex.z;
+		newpos.y = gl_Vertex.y * cos(gl_Vertex.x / rad);
+		newpos.w = gl_Vertex.w;
+	}
+	else
+	{
+		newpos.x = -(gl_Vertex.x - rad * 3.14159265);
+		newpos.z = gl_Vertex.z;
+		newpos.y = -gl_Vertex.y;
+		newpos.w = gl_Vertex.w;	
+	}*/
+
+if (newpos.x < 0.5)
+{
+/*Let
+R be the radius at which length is preserved by the deformation.
+Points where x < Rπ are mapped to the curved region via (x',y')=
+(−y sin(x/R), y cos(x/R))*/
+	/*newpos.x = -gl_Vertex.y * sin(gl_Vertex.x / rad * -7);	
+	newpos.y = 0.0*gl_Vertex.y * cos(gl_Vertex.x / rad);*/
+}	
+else
+{
+	
+
+// (−(x−Rπ),−y)
+	//newpos.x = -(gl_Vertex.x - rad * 0.5);
+	//newpos.y = -gl_Vertex.y;
+	//newpos.y = gl_Vertex.y * cos
+}
+	
 	gl_Position = final_position ;
+	//gl_Position = gl_ModelViewProjectionMatrix * newpos;
 }

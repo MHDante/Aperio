@@ -115,8 +115,8 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 #include <vtkProjectedTexture.h>
 
 #include <vtkTriangle.h>
-#include <vtkMyFillHolesFilter.h>
 #include <vtkSphereSource.h>
+#include <vtkFeatureEdges.h>
 
 // Assimp
 #include <assimp/Importer.hpp>      // C++ importer interface

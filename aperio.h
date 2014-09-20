@@ -30,6 +30,7 @@ class vtkMyDepthPeelingPass;
 // VTK Includes
 #include <QVTKWidget.h>
 #include <vtkMyFillHolesFilter.h>
+#include "vtkSplineWidget2.h"
 
 //--------------------- Custom Entity Classes ----------------------------
 class MyPoint
@@ -52,6 +53,9 @@ public:
 
 	MyPoint p1;
 	MyPoint p2;
+
+	vtkVector3f scale;
+
 	vtkSmartPointer<vtkActor> actor;								// Superquadric actor
 	vtkSmartPointer<MySuperquadricSource> source;					// the superquadric source
 	vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter;	// the transform filter
@@ -130,6 +134,8 @@ public:
 	float wavetime;
 
 	// Public variables
+	vtkSmartPointer<vtkSplineWidget2> splineWidget;
+
 	vtkSmartPointer<vtkMyShaderPass> opaqueP;
 	vtkSmartPointer<vtkMyShaderPass> transP;
 	vtkSmartPointer<vtkMyDepthPeelingPass> peelP;
@@ -173,7 +179,8 @@ public:
 	vector<CustomMesh>::iterator selectedMesh;
 
 	vtkSmartPointer<MySuperquadricSource> superquad;
-	
+	vtkSmartPointer<vtkMatrix4x4> transform;
+
 	friend class MyInteractorStyle;
 
 protected:
@@ -444,7 +451,7 @@ private:
 		float actualopacity = i / 100.0f;
 		float opacity;
 
-		opacity = actualopacity *0.5f; //0.4f
+		opacity = actualopacity * 0.5f; //0.4f
 		if (i >= 100)
 			opacity = 1;
 
@@ -487,6 +494,10 @@ private:
 
 	// Public Methods ----------------------------------------------------------------------------------------------
 public:
+
+	/// <summary> Make composite transform matrix (translate, rotate, scale) from elem's points, normals and scale
+	/// </summary>
+	vtkSmartPointer<vtkTransform> makeCompositeTransform(MyElem &elem);
 
 	/// <summary> Set SelectedMesh to an instance of vector<CustomMesh>::iterator (update list, variable & selected shader var)
 	/// </summary>
@@ -613,6 +624,11 @@ public:
 	/// <summary> Updates slider opacity value; called when list item clicked
 	/// </summary>
 	void updateOpacitySliderAndList();
+
+	Ui::aperioClass& getUI()
+	{
+		return ui;
+	}
 };
 
 #endif // APERIO_H

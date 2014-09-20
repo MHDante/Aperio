@@ -365,7 +365,7 @@ public:
         shininessSlider->setEnabled(true);
         shininessSlider->setGeometry(QRect(250, 50, 22, 91));
         shininessSlider->setMaximum(256);
-        shininessSlider->setValue(32);
+        shininessSlider->setValue(47);
         shininessSlider->setOrientation(Qt::Vertical);
         shininessSlider->setInvertedAppearance(false);
         btnLight = new QPushButton(centralWidget);
@@ -471,8 +471,9 @@ public:
         phiSlider = new QSlider(tab_2);
         phiSlider->setObjectName(QStringLiteral("phiSlider"));
         phiSlider->setGeometry(QRect(160, 20, 111, 22));
+        phiSlider->setMinimum(1);
         phiSlider->setMaximum(100);
-        phiSlider->setValue(0);
+        phiSlider->setValue(2);
         phiSlider->setOrientation(Qt::Horizontal);
         phiSlider->setInvertedAppearance(false);
         phiSlider->setInvertedControls(false);
@@ -480,8 +481,9 @@ public:
         thetaSlider = new QSlider(tab_2);
         thetaSlider->setObjectName(QStringLiteral("thetaSlider"));
         thetaSlider->setGeometry(QRect(160, 50, 111, 22));
+        thetaSlider->setMinimum(3);
         thetaSlider->setMaximum(100);
-        thetaSlider->setValue(0);
+        thetaSlider->setValue(3);
         thetaSlider->setOrientation(Qt::Horizontal);
         thetaSlider->setTickPosition(QSlider::NoTicks);
         label_7 = new QLabel(tab_2);
@@ -629,7 +631,7 @@ public:
 
         retranslateUi(aperioClass);
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(aperioClass);
