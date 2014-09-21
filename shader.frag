@@ -68,7 +68,7 @@ vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color)
 }
 
 //---------------- Phong lighting (Directional) ----------------------//
-void phongLighting(vec3 n)
+void phongLighting(vec3 n, int shininess)
 {
 	//calculate Ambient Term:    
 	vec4 theamb = gl_FrontMaterial.ambient;
@@ -130,8 +130,8 @@ void phongLighting(vec3 n)
 		final_color = vec4(		
 		1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
 		(Idiff.rgb + vec3(0.35,0.35,0.35)) * tex ) - 0.0 * Iamb.xyz
-		//, 0.5) ;
 		, gl_Color.a) ;
+		//, gl_Color.a) ;
 		//0.25 alpha in-program
 	}
 }
@@ -214,8 +214,14 @@ void main()
 	if (!gl_FrontFacing)
 		newN = -newN;
 		
+	int newShininess;
+	newShininess = shininess;
+	
+	if (iselem)
+		newShininess = 128;
+	
 	if (shadingnum == 0)
-		phongLighting(newN);
+		phongLighting(newN, newShininess);
 	else if (shadingnum == 1)
 		subScatterFS(newN);
 	else

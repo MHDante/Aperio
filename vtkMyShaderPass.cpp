@@ -232,6 +232,8 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				//rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
 				//this->NumberOfRenderedProps += rendered;
 
+				glDepthMask(GL_FALSE);	// Disable/enable writing to depth buffer for translucent objects
+
 				if (iselem)
 				{
 					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.3);
@@ -246,6 +248,8 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_front();
 				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
 				
+				glDepthMask(GL_TRUE);	// Disable/enable writing to depth buffer for translucent objects
+
 				this->NumberOfRenderedProps += rendered;
 			}
 			else
