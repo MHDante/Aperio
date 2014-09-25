@@ -231,7 +231,7 @@ void MyInteractorStyle::OnKeyPress()
 		int i = a->myelems.size() - 1;
 		MyElem &elem = a->myelems.at(i);
 
-		elem.scale.SetZ(elem.scale.GetZ() - thestep);
+		elem.scale.SetY(elem.scale.GetY() - thestep);
 		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
 		elem.transformFilter->Update();	// Must update transform filter for updates to show
 
@@ -256,7 +256,7 @@ void MyInteractorStyle::OnKeyPress()
 		int i = a->myelems.size() - 1;
 		MyElem &elem = a->myelems.at(i);
 
-		elem.scale.SetZ(elem.scale.GetZ() + thestep);
+		elem.scale.SetY(elem.scale.GetY() + thestep);
 		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
 		elem.transformFilter->Update();	// Must update transform filter for updates to show
 
@@ -281,7 +281,7 @@ void MyInteractorStyle::OnKeyPress()
 		int i = a->myelems.size() - 1;
 		MyElem &elem = a->myelems.at(i);
 
-		elem.scale.SetY(elem.scale.GetY() + thestep);
+		elem.scale.SetZ(elem.scale.GetZ() + thestep);
 		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
 		elem.transformFilter->Update();	// Must update transform filter for updates to show
 
@@ -293,7 +293,7 @@ void MyInteractorStyle::OnKeyPress()
 		int i = a->myelems.size() - 1;
 		MyElem &elem = a->myelems.at(i);
 
-		elem.scale.SetY(elem.scale.GetY() - thestep);
+		elem.scale.SetZ(elem.scale.GetZ() - thestep);
 		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
 		elem.transformFilter->Update();	// Must update transform filter for updates to show
 

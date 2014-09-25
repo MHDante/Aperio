@@ -125,13 +125,13 @@ void phongLighting(vec3 n, int shininess)
 	
 	if (iselem)
 	{
-		vec3 tex = texture2D(source, gl_TexCoord[0].st * 5).rgb;
+		vec3 tex = texture2D(source, gl_TexCoord[0].st * 5).rgb * 3;
 		
 		final_color = vec4(		
 		1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
 		(Idiff.rgb + vec3(0.35,0.35,0.35)) * tex ) - 0.0 * Iamb.xyz
+		//, 1) ;
 		, gl_Color.a) ;
-		//, gl_Color.a) ;
 		//0.25 alpha in-program
 	}
 }
@@ -247,12 +247,16 @@ void main()
 		
 	// Rotation matrix
 	vec3 right = normalize(pos2 - pos1);	
-	vec3 forward = normalize((norm1 + norm2) / 2.0);
-	vec3 up = normalize(cross(forward, right));
-	
+	//vec3 forward = normalize((norm1 + norm2) / 2.0);
+	//vec3 up = normalize(cross(forward, right));
+
+	vec3 up = normalize((norm1 + norm2) / 2.0);
+	vec3 forward = normalize(cross(right, up));
+
 	mat3 rotMat = mat3(
 	right, up, forward
 	);
+	// right, up, forward (original)
 	
 	/*mat4 translateMat = mat4(
 	vec4(1, 0, 0, ),
@@ -275,6 +279,7 @@ void main()
 	
 	if (!gl_FrontFacing && iselem)
 	{
+	//discard;
 		//final_color.a = 1;
 		//final_color = vec4(1, 0, 0, 1);
 		//final_color = gl_Color;
@@ -283,7 +288,7 @@ void main()
 	//if (gl_FrontFacing)
 	{
 		//discard;
-		//final_color.a = 1;
+		//inal_color.a = 1;
 		//final_color = vec4(1, 1, 1, 0.1);
 	}
 	
@@ -346,6 +351,12 @@ void main()
 	
 	// Encode normals to second texture (sourceNormal)
 	vec3 encodedN = newN * 0.5 + 0.5;
+	
+	/*if (!gl_FrontFacing && iselem)
+		gl_FragData[1] = vec4(encodedN, 1);
+	else if (gl_FrontFacing && iselem)
+		;
+	else*/
 	gl_FragData[1] = vec4(encodedN, 1);
 
 	// Encode noise? for third texture (sourceNoise) TBA

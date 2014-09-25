@@ -86,7 +86,7 @@ struct CustomMesh
 	bool generated;
 	// Generated piece properties:
 	vtkVector3f snormal;	// Superquadric normal
-	vtkVector3f sup;		// Superquadric up vector
+	vtkVector3f sforward;		// Superquadric up vector
 	vtkVector3f hingePivot; // Superquadric initial position is hinge
 
 	float hingeAngle;

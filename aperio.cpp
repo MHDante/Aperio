@@ -420,7 +420,7 @@ void aperio::readFile(std::string filename)
 
 	//read in cutter texture
 	vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New();
-	jpgReader->SetFileName("cutter.jpg");
+	jpgReader->SetFileName("cutter8_gg.jpg");
 	jpgReader->Update();
 
 	cutterTexture = vtkSmartPointer<vtkTexture>::New();
@@ -880,18 +880,18 @@ void aperio::slot_btnSlice()
 	// Note: snormal is shared by nested superquadrics because nested squadrics must explode in same direction
 	//		 but sup (up vector) is different for nested squadrics b/c they are hinged individually around the
 	//		 up vector.
-	vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
+	vtkVector3f up = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
 		(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
 		(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f);
-	forward.Normalize();
+	up.Normalize();
 
 	vtkVector3f right = vtkVector3f(elem.p2.point.GetX() - elem.p1.point.GetX(),
 		elem.p2.point.GetY() - elem.p1.point.GetY(),
 		elem.p2.point.GetZ() - elem.p1.point.GetZ());
 	right.Normalize();
 
-	mesh.sup = forward.Cross(right);
-	mesh.sup.Normalize();
+	mesh.sforward = right.Cross(up);
+	mesh.sforward.Normalize();
 
 	// Also set the hinge pivot point
 	mesh.hingePivot = vtkVector3f(elem.p1.point.GetX(), elem.p1.point.GetY(), elem.p1.point.GetZ());
@@ -922,11 +922,11 @@ void aperio::slot_listitemclicked(int i)
 vtkSmartPointer<vtkTransform> aperio::makeCompositeTransform(MyElem &elem)
 {
 	// Get forward/up/right vectors (to orient superquad)
-	vtkVector3f forward = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
+	vtkVector3f up = vtkVector3f((elem.p1.normal.GetX() + elem.p2.normal.GetX()) / 2.0f,
 		(elem.p1.normal.GetY() + elem.p2.normal.GetY()) / 2.0f,
 		(elem.p1.normal.GetZ() + elem.p2.normal.GetZ()) / 2.0f
 		);
-	forward.Normalize();
+	up.Normalize();	// forward
 
 	vtkVector3f right = vtkVector3f(
 		elem.p2.point.GetX() - elem.p1.point.GetX(),
@@ -936,8 +936,8 @@ vtkSmartPointer<vtkTransform> aperio::makeCompositeTransform(MyElem &elem)
 	right.Normalize();
 
 	// up = cross product of right and forward
-	vtkVector3f up = forward.Cross(right);
-	up.Normalize();
+	vtkVector3f forward = right.Cross(up);	//	up
+	forward.Normalize();
 
 	// vtk does row-major matrix operations
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
@@ -1076,8 +1076,8 @@ void aperio::slot_hingeSlider(int value)
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	transform->PostMultiply();
 	transform->Translate(-selectedMesh->hingePivot.GetX(), -selectedMesh->hingePivot.GetY(), -selectedMesh->hingePivot.GetZ());
-	transform->RotateWXYZ(-angle, selectedMesh->sup.GetX(), selectedMesh->sup.GetY(),
-		selectedMesh->sup.GetZ());
+	transform->RotateWXYZ(angle, selectedMesh->sforward.GetX(), selectedMesh->sforward.GetY(),
+		selectedMesh->sforward.GetZ());
 	transform->Translate(selectedMesh->hingePivot.GetX(), selectedMesh->hingePivot.GetY(), selectedMesh->hingePivot.GetZ());
 
 	selectedMesh->actor->SetUserTransform(transform);

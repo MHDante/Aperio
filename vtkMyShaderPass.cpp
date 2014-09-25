@@ -236,14 +236,14 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 
 				if (iselem)
 				{
-					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.3);
+					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.35);
 				}
 				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_back();
 				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
 
 				if (iselem)
 				{
-					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.1);
+					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.01);
 				}
 				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_front();
 				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
