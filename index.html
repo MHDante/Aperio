@@ -67,6 +67,8 @@ relationships between parts of the 3D system. </p>
 </li>
 <li>Qt 5.3.1 (GUI), <a href="http://qt-project.org/">qt-project.org</a> <br>
 </li>
+<li>Open Asset Import Library (Mesh Loading), <a href="http://assimp.sourceforge.net/">assimp.sourceforge.net</a> <br>
+</li>
 <li>Carve CSG (Latest) (Boolean operations), <a href="http://carve-csg.com/">carve-csg.com</a> <br>
 </li>
 <li>Graphics card with GLSL shader support (OpenGL 2.1 or higher)</li>
@@ -81,11 +83,13 @@ relationships between parts of the 3D system. </p>
 <ul>
 <li>QT 5.3.1 - <a href="http://qt-project.org">qt-project.org</a> <br>
 </li>
-<li>Carve (Nightly) - <a href="https://docs.google.com/file/d/0B-BzwPAV7QvwdXM5c0FjRmhkcjg">docs.google.com/file/d/0B-BzwPAV7QvwdXM5c0FjRmhkcjg</a><br>
+<li>Carve (Nightly) - <a href="https://drive.google.com/file/d/0B-BzwPAV7QvwdXM5c0FjRmhkcjg">drive.google.com/file/d/0B-BzwPAV7QvwdXM5c0FjRmhkcjg</a><br>
 </li>
-<li>VTK 6.1.0 - <a href="https://docs.google.com/file/d/0B-BzwPAV7QvwMGlPcU5tUEhDb3c">docs.google.com/file/d/0B-BzwPAV7QvwMGlPcU5tUEhDb3c</a><br>
+<li>Open Asset Import Library - <a href="https://drive.google.com/file/d/0B-BzwPAV7QvwTnp0OVdhOHA2YUk">drive.google.com/file/d/0B-BzwPAV7QvwTnp0OVdhOHA2YUk</a><br>
 </li>
-<li>Optional OBJ data - <a href="https://docs.google.com/file/d/0B-BzwPAV7QvwR3BwUHQxYlBYZWM">docs.google.com/file/d/0B-BzwPAV7QvwR3BwUHQxYlBYZWM</a><br>
+<li>VTK 6.1.0 - <a href="https://drive.google.com/file/d/0B-BzwPAV7QvwMGlPcU5tUEhDb3c">drive.google.com/file/d/0B-BzwPAV7QvwMGlPcU5tUEhDb3c</a><br>
+</li>
+<li>Optional OBJ data - <a href="https://drive.google.com/file/d/0B-BzwPAV7QvwR3BwUHQxYlBYZWM">drive.google.com/file/d/0B-BzwPAV7QvwR3BwUHQxYlBYZWM</a><br>
 </li>
 </ul><h2>
 <a name="steps" class="anchor" href="#steps"><span class="octicon octicon-link"></span></a>Steps</h2>
@@ -98,19 +102,21 @@ relationships between parts of the 3D system. </p>
 
 <p><code>2.</code> Copy carve from <code>carve.zip</code> to <code>C:\Program Files (x86)\carve\</code></p>
 
-<p><code>3.</code> Copy VTK folder from <code>VTK.zip</code> to <code>C:\Program Files (x86)\VTK\</code></p>
+<p><code>3.</code> Copy Assimp from <code>Assimp.zip</code> to <code>C:\Program Files (x86)\Assimp\</code></p>
 
-<p><code>4.</code> The OBJ files are optional and can be placed anywhere.</p>
+<p><code>4.</code> Copy VTK folder from <code>VTK.zip</code> to <code>C:\Program Files (x86)\VTK\</code></p>
 
-<p><code>5.</code> Press <code>WindowsKey + R</code> to open Run command, and type <code>sysdm.cpl</code> to open system environment variables 
+<p><code>5.</code> The OBJ files are optional and can be placed anywhere.</p>
+
+<p><code>6.</code> Press <code>WindowsKey + R</code> to open Run command, and type <code>sysdm.cpl</code> to open system environment variables 
 Go to Advanced &gt; Environment variables and make a new User Variable, <code>PATH</code> or if it already exists, 
 prepend the following path to it : 
-<code>C:\Program Files (x86)\VTK\bin\RelWithDebInfo;C:\Qt\Qt5.3.1\5.3\msvc2013_opengl\bin;</code>
+<code>C:\Program Files (x86)\VTK\bin\RelWithDebInfo;C:\Qt\Qt5.3.1\5.3\msvc2013_opengl\bin;C:\Program Files (x86)\Assimp\bin;</code>
 (no spaces between semicolons)</p>
 
 <p>You might also need to add an environment variable, QTDIR with the value, <code>C:\Qt\Qt5.3.1\5.3\msvc2013_opengl</code></p>
 
-<p><code>6.</code> You can now run the visual studio solution! (Set configuration from <code>Debug</code> to <code>RelWithDebInfo</code>)</p>
+<p><code>7.</code> You can now run the visual studio solution! (Set configuration from <code>Debug</code> to <code>RelWithDebInfo</code>)</p>
 
 <h2>
 <a name="troubleshooting" class="anchor" href="#troubleshooting"><span class="octicon octicon-link"></span></a>Troubleshooting</h2>
