@@ -258,7 +258,15 @@ void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
 				//this->NumberOfRenderedProps += rendered;
 
 				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_all();
-				rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
+				//rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
+
+				glBegin(GL_POLYGON);
+				glColor3f(1, 1, 1);
+				glNormal3f(0, 0, 1);
+				glVertex3f(0, 0, 0);
+				glVertex3f(5, 0, 0);
+				glVertex3f(5, 5, 0);
+				glEnd();
 
 				this->NumberOfRenderedProps += rendered;
 			}

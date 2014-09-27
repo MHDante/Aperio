@@ -19,5 +19,6 @@ It can be used by medical professionals on anatomical data or even be extended f
 * Written using C++11 (Requires Visual Studio 2013 or higher) <br />
 * Visualization Toolkit 6.1.0 (algorithms and rendering), [www.vtk.org](http://www.vtk.org/) <br />
 * Qt 5.3.1 (GUI), [qt-project.org](http://qt-project.org/) <br />
+* Open Asset Import Library (Mesh Loading), [assimp.sourceforge.net](http://assimp.sourceforge.net/) <br />
 * Carve CSG (Latest) (Boolean operations), [carve-csg.com](http://carve-csg.com/) <br />
-* Graphics card with GLSL shader support (OpenGL 2.1 or higher)
+* Graphics card with GLSL Shaders/FBOs support (OpenGL 3.0 or higher)
