@@ -2,7 +2,7 @@
 	Vertex
 	Main Shader : Phong-Minneart Reflection model and main interaction	
 *******************************************************************/
-#version 440 compatibility
+#version 450 compatibility
 
 out vec3 n;
 out vec3 v;

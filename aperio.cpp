@@ -12,10 +12,10 @@
 #include "CarveConnector.h"
 #include "MyInteractorStyle.h"
 #include "Utility.h"
+#include "vtkMyBasePass.h"
+#include "vtkMyPrePass.h"
 #include "vtkMyShaderPass.h"
-#include "vtkMyProcessingPass.h"
-#include "vtkMyDepthPeelingPass.h"
-#include "vtkMyAdvancedPass.h"
+#include "vtkMyImageProcessingPass.h"
 
 // More VTK
 #include <vtkLightsPass.h>
@@ -128,7 +128,6 @@ void aperio::slot_afterShowWindow()
 	// Uniforms
 	wiggle = true;
 	shadingnum = 0;		// Toon/normal, etc.
-	peerInside = false;
 	brushDivide = 15.0;
 
 	brushSize = 1.5;
@@ -159,6 +158,7 @@ void aperio::slot_afterShowWindow()
 
 	QTimer* timer_fps = nullptr;		// FPS timer (executed using FPS speed)
 	timer_fps  = new QTimer(this);
+	//timer_fps->setInterval(0);
 	timer_fps->setInterval(1000.0 / fps);
 	timer_fps->setTimerType(Qt::TimerType::PreciseTimer);
 	timer_fps->start();
@@ -211,50 +211,31 @@ void aperio::slot_afterShowWindow()
 	ui.mainWidget->layout()->setMargin(2);
 	ui.mainWidget->layout()->addWidget(qv);
 
-	// Prepare all the rendering passes for vtkMyShaderPass
+	// Prepare all the rendering passes 
+	preP = vtkSmartPointer<vtkMyPrePass>::New();
+	preP->initialize(this);
+	preP->setShaderFile("shader0.vert", false);
+	preP->setShaderFile("shader0.frag", true);
+	
+	vtkSmartPointer<vtkCameraPass> precameraP = vtkSmartPointer<vtkCameraPass>::New();
+	precameraP->SetDelegatePass(preP);	// transforms prepass into camera coordinates
+
+	mainP = vtkSmartPointer<vtkMyShaderPass>::New();
+	mainP->initialize(this);
+	mainP->setShaderFile("shader_water.vert", false);
+	mainP->setShaderFile("shader.frag", true);
+	mainP->SetDelegatePass(precameraP);	// We need the camera-transformed image in the FBO
+
 	vtkSmartPointer<vtkCameraPass> cameraP = vtkSmartPointer<vtkCameraPass>::New();
-	vtkSmartPointer<vtkSequencePass> seq = vtkSmartPointer<vtkSequencePass>::New();
-
-	opaqueP = vtkSmartPointer<vtkMyShaderPass>::New();
-	opaqueP->initialize(this, ShaderPassType::PASS_OPAQUE);
-
-	transP = vtkSmartPointer<vtkMyShaderPass>::New();
-	transP->initialize(this, ShaderPassType::PASS_TRANSLUCENT);
-
-	peelP = vtkSmartPointer<vtkMyDepthPeelingPass>::New();
-	peelP->SetMaximumNumberOfPeels(2);
-	peelP->SetOcclusionRatio(0.1);
-	peelP->SetTranslucentPass(transP);	//Peeling pass needs translucent pass
-
-	// Put all passes into a collection then into a sequence
-	passes = vtkSmartPointer<vtkRenderPassCollection>::New();
-
-	//passes->AddItem(vtkSmartPointer<vtkDefaultPass>::New());
-	//passes->AddItem(vtkSmartPointer<vtkClearZPass>::New());
-	//passes->AddItem(vtkSmartPointer<vtkLightsPass>::New());
-	passes->AddItem(opaqueP);
-	passes->AddItem(transP);
-	//passes->AddItem(vtkSmartPointer<vtkOpaquePass>::New());
-	//passes->AddItem(vtkSmartPointer<vtkTranslucentPass>::New());
-	//passes->AddItem(vtkSmartPointer<vtkOverlayPass>::New());
-	//passes->AddItem(peelP);
-
-	seq->SetPasses(passes);
-	cameraP->SetDelegatePass(seq);
+	cameraP->SetDelegatePass(mainP);
 
 	// Requires Depth from camera pass
 	//vtkSmartPointer<vtkMyProcessingPass> dofP = vtkSmartPointer<vtkMyProcessingPass>::New();
 	//dofP->setShaderFile("shader_dof.frag", true);
 	//dofP->SetDelegatePass(cameraP);
 
-	// Requires camera pass (actual geometry, depth stores into frame buffer objects)
-	
-	vtkSmartPointer<vtkMyAdvancedPass> advP = vtkSmartPointer<vtkMyAdvancedPass>::New();
-	advP->SetDelegatePass(cameraP);
-
-	
 	// Requires Depth from camera pass
-	vtkSmartPointer<vtkMyProcessingPass> ssaoP = vtkSmartPointer<vtkMyProcessingPass>::New();
+	vtkSmartPointer<vtkMyImageProcessingPass> ssaoP = vtkSmartPointer<vtkMyImageProcessingPass>::New();
 	ssaoP->setShaderFile("shader_ssao.vert", false);
 	ssaoP->setShaderFile("shader_ssao.frag", true);
 	ssaoP->SetDelegatePass(cameraP);
@@ -263,12 +244,12 @@ void aperio::slot_afterShowWindow()
 	//dotP->setShaderFile("shader_dot.frag", true);
 	//dotP->SetDelegatePass(ssaoP);
 
-	vtkSmartPointer<vtkMyProcessingPass> fxaaP = vtkSmartPointer<vtkMyProcessingPass>::New();
+	vtkSmartPointer<vtkMyImageProcessingPass> fxaaP = vtkSmartPointer<vtkMyImageProcessingPass>::New();
 	fxaaP->setShaderFile("shader_fxaa.vert", false);
 	fxaaP->setShaderFile("shader_fxaa.frag", true);
 	fxaaP->SetDelegatePass(ssaoP);
 
-	vtkSmartPointer<vtkMyProcessingPass> bloomP = vtkSmartPointer<vtkMyProcessingPass>::New();
+	vtkSmartPointer<vtkMyImageProcessingPass> bloomP = vtkSmartPointer<vtkMyImageProcessingPass>::New();
 	bloomP->setShaderFile("shader_bloom.frag", true);
 	bloomP->SetDelegatePass(fxaaP);
 
@@ -338,6 +319,7 @@ void aperio::slot_afterShowWindow()
 
 	// Options
 	connect(ui.chkDepthPeel, &QCheckBox::toggled, this, &aperio::slot_chkDepthPeel);
+	connect(ui.chkCap, &QCheckBox::toggled, this, &aperio::slot_chkCap);
 
 	// Buttons
 	connect(ui.btnSlice, &QPushButton::clicked, this, &aperio::slot_btnSlice);
@@ -423,18 +405,6 @@ void aperio::readFile(std::string filename)
 	jpgReader->SetFileName("cutter8_gg.jpg");
 	jpgReader->Update();
 
-	cutterTexture = vtkSmartPointer<vtkTexture>::New();
-	cutterTexture->SetInputConnection(jpgReader->GetOutputPort());
-	cutterTexture->InterpolateOn();
-
-	vtkSmartPointer<vtkPNGReader> pngReader = vtkSmartPointer<vtkPNGReader>::New();
-	pngReader->SetFileName("bump.png");
-	pngReader->Update();
-
-	bumpTexture = vtkSmartPointer<vtkTexture>::New();
-	bumpTexture->SetInputData(pngReader->GetOutput());
-	bumpTexture->InterpolateOn();
-
 	if (path.isEmpty())				// Set path if it is empty
 		path = QDir::currentPath();
 
@@ -484,16 +454,12 @@ void aperio::readFile(std::string filename)
 	Utility::get_bounding_box(scene, &min, &max);
 	renderer->ResetCamera(min.x, max.x, min.y, max.y, min.z, max.z);
 
-	// Create main shader
-	pgm = Utility::makeShader(renderer->GetRenderWindow(), "shader_water.vert", "shader.frag");
-
 	// Strip filename only from path
 	QFileInfo fileInfo(filename.c_str());
 	std::string filenameOnly = fileInfo.fileName().toStdString();
 
 	int totalverts = 0;
 	int totaltris = 0;
-
 
 	//srand(time(nullptr));		//Random Seed
 	float r, g, b;
@@ -647,7 +613,7 @@ void aperio::readFile(std::string filename)
 	resetClippingPlane();
 
 	// Add a widget
-	splineWidget = vtkSmartPointer<vtkSplineWidget2>::New();
+	/*splineWidget = vtkSmartPointer<vtkSplineWidget2>::New();
 	splineWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
 
 	class vtkMySplineRepresentation : public vtkSplineRepresentation
@@ -679,7 +645,7 @@ void aperio::readFile(std::string filename)
 
 	//vtkSmartPointer<vtkBoxRepresentation> boxRepresentation = vtkSmartPointer<vtkBoxRepresentation>::New();
 	//boxWidget->SetRepresentation(boxRepresentation);
-
+	*/
 	
 	
 
@@ -807,19 +773,18 @@ void aperio::slot_btnSlice()
 
 		return;
 	}*/
-	bool totriangulate = ui.chkTriangulate->isChecked();
 
-	if (!first->isClosed())
-	{
-		std::cout << "Not a closed mesh! (not solid) so no edge classification . Using normal classification.\n";
-		totriangulate = false;
-	}
+	//if (!first->isClosed())
+	//{
+		//std::cout << "Not a closed mesh! (not solid) so no edge classification . Using normal classification.\n";
+		//totriangulate = false;
+	//}
 
-	std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B, totriangulate));
+	std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B));
 	vtkSmartPointer<vtkPolyData> c_poly(CarveConnector::meshSetToVTKPolyData(c));
 
 	// Create second piece (the cut piece)
-	std::unique_ptr<carve::mesh::MeshSet<3> > d(CarveConnector::perform(first, second, carve::csg::CSG::INTERSECTION, totriangulate));
+	std::unique_ptr<carve::mesh::MeshSet<3> > d(CarveConnector::perform(first, second, carve::csg::CSG::INTERSECTION));
 	vtkSmartPointer<vtkPolyData> d_poly(CarveConnector::meshSetToVTKPolyData(d));
 
 	// Create normals for resulting polydatas
@@ -1002,10 +967,11 @@ void aperio::slot_timeout_fps()
 //-------------------------------------------------------------------------------------
 void aperio::slot_chkDepthPeel(bool checked)
 {
-	if (checked)
-		passes->ReplaceItem(passes->GetNumberOfItems() - 1, peelP);
-	else
-		passes->ReplaceItem(passes->GetNumberOfItems() - 1, transP);
+}
+//-------------------------------------------------------------------------------------
+void aperio::slot_chkCap(bool checked)
+{
+	cap = !cap;
 }
 //-------------------------------------------------------------------------------------
 void aperio::updateOpacitySliderAndList()
@@ -1149,6 +1115,6 @@ void aperio::resetClippingPlane()
 	renderer->ResetCameraClippingRange();
 	double d[2];
 	renderer->GetActiveCamera()->GetClippingRange(d);
-	renderer->GetActiveCamera()->SetClippingRange(0.05, 7500);
+	renderer->GetActiveCamera()->SetClippingRange(0.025, 7500);
 	//renderer->GetActiveCamera()->SetClippingRange(0.05, d[1] + 1000.0);
 }

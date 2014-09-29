@@ -3,21 +3,25 @@ Fragment
 Main Shader : Phong-Minneart Reflection model and main interaction
 *******************************************************************/
 
-#version 440 compatibility
+#version 450 compatibility
+
+uniform vec2 frameBufSize = vec2(800, 600);
 
 smooth in vec3 n;
 smooth in vec3 v;
 smooth in vec3 original_v;
 
 // Shader uniforms
-uniform sampler2D source;
-uniform sampler2D sourceBump;
+uniform sampler2D depthSelectedF;
+uniform sampler2D depthSelected;
+uniform sampler2D depthSQ;
+uniform bool cap = true;
 
 uniform bool outline = false;
 uniform bool iselem = false;
 
 uniform bool selected = false;
-uniform bool peerInside = false;
+uniform bool previewer = false;
 uniform bool difftrans = true;
 
 uniform vec3 mouse = vec3(0, 0, 0);
@@ -41,7 +45,6 @@ uniform vec3 scale = vec3(0, 0, 0);
 uniform float phi = 0.0;
 uniform float theta = 0.0;
 
-uniform mat4 transMat;
 uniform int elemssize;
 
 // Light parameters
@@ -119,21 +122,47 @@ void phongLighting(vec3 n, int shininess)
 	myspecular = clamp(myspecular, 0, 1);
 
 	//--- Final color	
-	vec3 tex = texture2D(source, gl_TexCoord[0].st * 20).rgb;		
+	vec3 tex = texture2D(depthSelectedF, gl_TexCoord[0].st * 1).rgb;	
 	
 	final_color = vec4(myspecular +  int(difftrans) * diffuseTranslucency + 1.0*Idiff.xyz + 0.0*tex + Iamb.xyz, gl_Color.a);
 	
 	if (iselem)
 	{
-		vec3 tex = texture2D(source, gl_TexCoord[0].st * 5).rgb * 3;
+		vec3 tex = texture2D(depthSelectedF, gl_TexCoord[0].st).rgb ;
+		
+		tex = vec3(1, 1, 1);
 		
 		final_color = vec4(		
 		1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
 		(Idiff.rgb + vec3(0.35,0.35,0.35)) * tex ) - 0.0 * Iamb.xyz
-		//, 1) ;
-		, gl_Color.a) ;
-		//0.25 alpha in-program
+		//, 1.0) ;
+		,0.25);		
 	}
+	
+	if (cap && iselem && !gl_FrontFacing)
+	{
+		vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
+
+		float d_selectedF = texture2D(depthSelectedF, texpos).r;
+		float d_selected = texture2D(depthSelected, texpos).r;
+		float d_SQ = texture2D(depthSQ, texpos).r;
+	
+		//if (d_SQ > d_selectedF && d_SQ < d_selected)
+		if (d_SQ > d_selectedF && d_SQ < d_selected)
+		{
+			final_color = vec4(		
+			1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
+		(Idiff.rgb - vec3(0.1,0.1,0.1))) - 0.0 * 	Iamb.xyz
+			,1.0);
+			
+			// Capping Mask for SSAO shader
+			gl_FragData[2] = vec4(1, 1, 1, 1);
+		}	
+		
+		//if (d_SQ > d_selected)
+			//final_color = vec4(1, 1, 1, 1);
+	}
+	
 }
 
 // ---------------- Toon Shader ----------------------//
@@ -147,63 +176,6 @@ void toon(vec3 n)
 	float intensity = max(dot(n, normalize(L)), 0.0);
 	vec3 diffuse = gl_Color.rgb * floor(intensity * levels) * scaleFactor;
 	final_color = gl_Color / 20.0f + vec4(diffuse, gl_Color.a);
-}
-
-// ---------------- Subsurface Scatter Shader (Approximate) ----------------------//
-float halfLambert(in vec3 vect1, in vec3 vect2)
-{
-	float product = dot(vect1, vect2);
-	return product * 0.5 + 0.5;
-}
-float blinnPhongSpecular(in vec3 normalVec, in vec3 lightVec, in float specPower)
-{
-	vec3 halfAngle = normalize(normalVec + lightVec);
-	return pow(clamp(0.0, 1.0, dot(normalVec, halfAngle)), specPower);
-}
-// Main fake sub-surface scatter lighting function
-void subScatterFS(vec3 n)
-{
-	// Variables for lighting properties
-	float MaterialThickness = 0.6f;
-	vec3 ExtinctionCoefficient = vec3(0.8f, 0.2f, 0.12f); // Will show as X Y and Z ports in QC, but actually represent RGB values.
-	vec4 LightColor = vec4(.2, .2, .2, 1);
-	vec4 BaseColor = gl_Color * 7.0f;//vec4(0.5f, 0.5f, 0.5f, 1);
-	vec4 SpecColor = vec4(-0.4, -0.4, -0.4, 1);
-	float SpecPower = 0.0f;
-	float RimScalar = 10.0f;
-	//uniform sampler2D Texture;
-
-	// Varying variables to be sent to Fragment Shader
-	vec3 eyeVec = -v;
-	vec3 lightPos = light_position;
-	vec3 lightVec = lightPos - v.xyz;
-
-	float attenuation = 0.8f;//10.0 * (1.0 / distance(lightPos,v));
-	vec3 eVec = normalize(eyeVec);
-	vec3 lVec = normalize(lightVec);
-	vec3 wNorm = normalize(n);
-
-	vec4 dotLN = vec4(halfLambert(lVec, wNorm) * attenuation);
-	//dotLN *= texture2D(Texture, gl_TexCoord[0].xy);
-	dotLN *= BaseColor;
-
-	vec3 indirectLightComponent = vec3(MaterialThickness * max(0.0, dot(-wNorm, lVec)));
-	indirectLightComponent += MaterialThickness * halfLambert(-eVec, lVec);
-	indirectLightComponent *= attenuation;
-	indirectLightComponent.r *= ExtinctionCoefficient.r;
-	indirectLightComponent.g *= ExtinctionCoefficient.g;
-	indirectLightComponent.b *= ExtinctionCoefficient.b;
-
-	vec3 rim = vec3(1.0 - max(0.0, dot(wNorm, eVec)));
-	rim *= rim;
-	rim *= max(0.0, dot(wNorm, lVec)) * SpecColor.rgb;
-
-	final_color = dotLN + vec4(indirectLightComponent, 1.0);
-	final_color.rgb += (rim * RimScalar * attenuation * final_color.a);
-	final_color.rgb += vec3(blinnPhongSpecular(wNorm, lVec, SpecPower) * attenuation * SpecColor * final_color.a * 0.05);
-	final_color.rgb *= LightColor.rgb;
-
-	final_color.a = gl_Color.a;
 }
 
 // ************-------- Main function --------***************//
@@ -222,25 +194,12 @@ void main()
 	
 	if (shadingnum == 0)
 		phongLighting(newN, newShininess);
-	else if (shadingnum == 1)
-		subScatterFS(newN);
 	else
 		toon(newN);
 
 	// convert mouse world coords to view coords (so same as v)
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
 	//vec4 mouseV = vec4(vec3(mouse), 1);
-	
-	float ee = myexp;
-	float nn = 0.5;
-
-	//float d = pow(pow(abs(original_v.y - pos1.y) / 1.0, 2.0 / ee) + pow(abs(original_v.x - pos1.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(original_v.z - pos1.z) / 1.0, 2.0 / nn) - 1.0;
-	
-	
-	//vec3 pp = vec3( (xyz[0] - this->Center[0]) / s[0], 
-	//(xyz[1] - this->Center[1]) / s[1],
-	//(xyz[2] - this->Center[2]) / s[2]
-	//);
 	
 	float dist = distance(pos1, pos2);
 	vec3 poss = original_v - (pos1 + pos2) / 2.0;
@@ -257,79 +216,22 @@ void main()
 	right, up, forward
 	);
 	// right, up, forward (original)
-	
-	/*mat4 translateMat = mat4(
-	vec4(1, 0, 0, ),
-	vec4(0, 1, 0, ),
-	vec4(0, 0, 1, ),
-	vec4(0, 0, 0, 1)
-	);
-	translateMat = transpose(translateMat);*/
-	 //poss = poss / scale;
-	//poss =  rotMat * ( poss) / scale;
+
 	poss =  inverse(rotMat) *( poss) / (scale * 0.5);
 	
     float val = pow((pow(abs(poss.z), 2.0/theta) + pow(abs(poss.x), 2.0/theta)), theta/phi) + pow(abs(poss.y),2.0/phi) - 1.0;
-	 
-	  
-
-//	float d = pow(pow(abs(original_v.y - mouse.y) / 1.0, 2.0 / ee) + pow(abs(original_v.x - mouse.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(original_v.z - mouse.z) / 1.0, 2.0 / nn) - 1.0;
-	//float d = pow(pow(abs(v.y - mouseV.y) / 1.0, 2.0 / ee) + pow(abs(v.x - mouseV.x) / 1.0, 2.0 / ee), ee / nn) + pow(abs(v.z - mouseV.z) / 1.0, 2.0 / nn) - 1.0;
-	//float d = pow(pow(abs(original_v.y - mouseV.y) / 1.0, 2.0/ee) + pow(abs(original_v.x - mouseV.x) / 1.0, 2.0/ee), ee/nn) + pow(abs(original_v.z - mouseV.z) / 1.0, 2.0/nn) - 1.0;
-	
-	if (!gl_FrontFacing && iselem)
-	{
-	//discard;
-		//final_color.a = 1;
-		//final_color = vec4(1, 0, 0, 1);
-		//final_color = gl_Color;
-	}
-	if (gl_FrontFacing && iselem)
-	//if (gl_FrontFacing)
-	{
-		//discard;
-		//inal_color.a = 1;
-		//final_color = vec4(1, 1, 1, 0.1);
-	}
 	
 	if (selected)	// if selected
 	{
-	
-		/*if(val > MAX_FVAL){
-		//val = MAX_FVAL;
-		discard;
-		}
-		else if(val < -MAX_FVAL){
-		//val = -MAX_FVAL;
-			final_color = vec4(1, 1, 1, 1);
-		}*/
-		
-		/*if (val > 100000000)
-			val = 100000000;
-		if (val < -100000000)
-			val = -100000000;*/
-			
 		if (val < 0 && elemssize > 0)
-			discard;
-			//final_color = vec4(final_color.rgb * 1.75, final_color.a);
-			
-		else
-			;//final_color = vec4(1, 1, 1, 1);
-		/*float fraction = fract(time);
-		float multiplier = 0;
-		float result = 0;
-		
-		if (fraction < 0.5)
-			multiplier = (fraction / 0.5);
-		else
-			multiplier = (1.0 - fraction) / 0.5;
-		
-		result = multiplier * 0.25 + 0.85;
-		final_color = vec4(final_color.rgb * result, final_color.a);*/
-		
-		float minDist = brushSize;
-		
-		if (peerInside)
+		{
+			if (previewer)
+				discard;
+			else
+				final_color = final_color * 1.5;
+		}
+		/*float minDist = brushSize;		
+		if (previewer)
 		{
 			float d = 1000;
 			if (d < minDist)
@@ -342,24 +244,17 @@ void main()
 				//float dd = d / (1.5 * minDist);
 				//final_color = vec4(1, 0.7, 0.4,  dd - 0.55);
 			}
-		}
+		}*/
 	}
 	gl_FragData[0] = final_color;
-	
+		
 	if (outline == true)
 		gl_FragData[0] = vec4(1.0, 0.5, 0, gl_Color.a);
 	
 	// Encode normals to second texture (sourceNormal)
 	vec3 encodedN = newN * 0.5 + 0.5;
-	
-	/*if (!gl_FrontFacing && iselem)
-		gl_FragData[1] = vec4(encodedN, 1);
-	else if (gl_FrontFacing && iselem)
-		;
-	else*/
 	gl_FragData[1] = vec4(encodedN, 1);
-
-	// Encode noise? for third texture (sourceNoise) TBA
-	gl_FragData[2] = vec4(0.5, 1, 1, 1);
+	
+	// [2] is Capping Mask (Sent in Phong Shader)
 }
 

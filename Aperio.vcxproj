@@ -140,10 +140,8 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyInteractorStyle.cpp" />
-    <ClCompile Include="vtkMyAdvancedPass.cpp" />
-    <ClCompile Include="vtkMyDepthPeelingPass.cpp" />
-    <ClCompile Include="vtkMyFillHolesFilter.cpp" />
-    <ClCompile Include="vtkMyProcessingPass.cpp" />
+    <ClCompile Include="vtkMyBasePass.cpp" />
+    <ClCompile Include="vtkMyImageProcessingPass.cpp" />
     <ClCompile Include="MySuperquadricSource.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -151,6 +149,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Utility.cpp" />
+    <ClCompile Include="vtkMyPrePass.cpp" />
     <ClCompile Include="vtkMyShaderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -159,10 +158,9 @@
     <ClInclude Include="MyInteractorStyle.h" />
     <ClInclude Include="MySuperquadricSource.h" />
     <ClInclude Include="Utility.h" />
-    <ClInclude Include="vtkMyAdvancedPass.h" />
-    <ClInclude Include="vtkMyDepthPeelingPass.h" />
-    <ClInclude Include="vtkMyFillHolesFilter.h" />
-    <ClInclude Include="vtkMyProcessingPass.h" />
+    <ClInclude Include="vtkMyBasePass.h" />
+    <ClInclude Include="vtkMyImageProcessingPass.h" />
+    <ClInclude Include="vtkMyPrePass.h" />
     <ClInclude Include="vtkMyShaderPass.h" />
     <CustomBuild Include="aperio.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing aperio.h...</Message>

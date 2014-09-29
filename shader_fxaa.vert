@@ -36,7 +36,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //----------------------------------------------------------------------------------
-#version 440 compatibility
+#version 450 compatibility
 
 noperspective out vec2 vTexCoord;
 

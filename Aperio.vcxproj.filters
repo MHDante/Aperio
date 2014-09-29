@@ -76,16 +76,13 @@
     <ClCompile Include="vtkMyShaderPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vtkMyProcessingPass.cpp">
+    <ClCompile Include="vtkMyImageProcessingPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vtkMyDepthPeelingPass.cpp">
+    <ClCompile Include="vtkMyPrePass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vtkMyAdvancedPass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vtkMyFillHolesFilter.cpp">
+    <ClCompile Include="vtkMyBasePass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -111,16 +108,13 @@
     <ClInclude Include="vtkMyShaderPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vtkMyProcessingPass.h">
+    <ClInclude Include="vtkMyImageProcessingPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vtkMyDepthPeelingPass.h">
+    <ClInclude Include="vtkMyPrePass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="vtkMyAdvancedPass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vtkMyFillHolesFilter.h">
+    <ClInclude Include="vtkMyBasePass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -3,7 +3,7 @@
 	Water Shader : Rippling water shader
 *******************************************************************/
 
-#version 440 compatibility
+#version 450 compatibility
 
 uniform float time = 0.0;
 uniform bool selected = false;

@@ -56,7 +56,7 @@ public:
     QLabel *label_7;
     QLabel *label_8;
     QWidget *tab;
-    QCheckBox *chkTriangulate;
+    QCheckBox *chkCap;
     QCheckBox *chkDepthPeel;
     QCheckBox *chkWiggle;
     QLabel *label;
@@ -495,10 +495,10 @@ public:
         tabWidget->addTab(tab_2, QString());
         tab = new QWidget();
         tab->setObjectName(QStringLiteral("tab"));
-        chkTriangulate = new QCheckBox(tab);
-        chkTriangulate->setObjectName(QStringLiteral("chkTriangulate"));
-        chkTriangulate->setGeometry(QRect(10, 20, 261, 20));
-        chkTriangulate->setChecked(true);
+        chkCap = new QCheckBox(tab);
+        chkCap->setObjectName(QStringLiteral("chkCap"));
+        chkCap->setGeometry(QRect(10, 20, 261, 20));
+        chkCap->setChecked(true);
         chkDepthPeel = new QCheckBox(tab);
         chkDepthPeel->setObjectName(QStringLiteral("chkDepthPeel"));
         chkDepthPeel->setEnabled(true);
@@ -596,7 +596,7 @@ public:
         btnGlass->setEnabled(true);
         btnGlass->setGeometry(QRect(820, 12, 41, 41));
         QIcon icon5;
-        icon5.addFile(QStringLiteral(":/aperio/glass.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon5.addFile(QStringLiteral(":/aperio/glass2.png"), QSize(), QIcon::Normal, QIcon::Off);
         btnGlass->setIcon(icon5);
         btnGlass->setIconSize(QSize(30, 30));
         btnSlice = new QPushButton(centralWidget);
@@ -631,7 +631,7 @@ public:
 
         retranslateUi(aperioClass);
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(aperioClass);
@@ -678,7 +678,7 @@ public:
         label_7->setText(QApplication::translate("aperioClass", "Phi Roundness", 0));
         label_8->setText(QApplication::translate("aperioClass", "Theta Roundness", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("aperioClass", "Superquad", 0));
-        chkTriangulate->setText(QApplication::translate("aperioClass", "Triangulate hollow surface after slice", 0));
+        chkCap->setText(QApplication::translate("aperioClass", "Cap Hole in Previewer", 0));
         chkDepthPeel->setText(QApplication::translate("aperioClass", "Depth Peeling for Translucency", 0));
         chkWiggle->setText(QApplication::translate("aperioClass", "Wiggle Selected Mesh", 0));
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("aperioClass", "Options", 0));
@@ -727,7 +727,7 @@ public:
 #endif // QT_NO_TOOLTIP
         btnHide->setText(QApplication::translate("aperioClass", "Show/Hide", 0));
 #ifndef QT_NO_TOOLTIP
-        btnGlass->setToolTip(QApplication::translate("aperioClass", "Toggle Magnifying Glass (T)", 0));
+        btnGlass->setToolTip(QApplication::translate("aperioClass", "Toggle Previewer (T)", 0));
 #endif // QT_NO_TOOLTIP
         btnGlass->setText(QString());
 #ifndef QT_NO_TOOLTIP

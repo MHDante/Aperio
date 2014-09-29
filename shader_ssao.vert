@@ -3,7 +3,7 @@ Vertex
 SSAO Post-process Shader : Screen Space Ambient Occlusion Shader 
 *******************************************************************/
 
-#version 440 compatibility
+#version 450 compatibility
 
 smooth out vec2 vUv;
 

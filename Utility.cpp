@@ -12,6 +12,8 @@
 #include "aperio.h"
 #include "MyInteractorStyle.h"
 
+#include <vtkTextureUnitManager.h>
+
 // Utility Variables -------------------------------------------------------------------------
 namespace Utility
 {
@@ -63,9 +65,6 @@ vtkSmartPointer<vtkActor> Utility::sourceToActor(aperio *ap, vtkSmartPointer<vtk
 	actor->GetProperty()->SetSpecularPower(128);
 
 	actor->GetProperty()->SetOpacity(a);	// myopacity	// TODO: REMEMBER TO CHANGE THIS TO CORRECT FACTOR (in k call)
-
-	actor->GetProperty()->SetTexture(0, ap->cutterTexture);
-	actor->GetProperty()->SetTexture(1, ap->bumpTexture);
 
 	// Create main shader (does not build since no main function, just funcPropVS)
 	//vtkSmartPointer<vtkShaderProgram2> pgm = Utility::makeShader(ap->renderer->GetRenderWindow(), "shader_water.vert", "shader.frag");

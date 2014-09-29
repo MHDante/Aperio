@@ -20,6 +20,8 @@ class vtkMyDepthPeelingPass;
 
 // Custom
 #include "Utility.h"
+#include "vtkMyShaderPass.h"
+#include "vtkMyPrePass.h"
 #include "CarveConnector.h"
 #include "MySuperquadricSource.h"
 
@@ -29,7 +31,6 @@ class vtkMyDepthPeelingPass;
 
 // VTK Includes
 #include <QVTKWidget.h>
-#include <vtkMyFillHolesFilter.h>
 #include "vtkSplineWidget2.h"
 
 //--------------------- Custom Entity Classes ----------------------------
@@ -115,7 +116,8 @@ public:
 	float mouseSize;				// Recompute from bounds
 	float brushDivide;				// division factor for mouseSize
 	float brushSize;
-	bool peerInside;
+	bool previewer = true;
+	bool cap = true;
 	int toon;
 	float myexp;					// Superquadric roundness param
 	float myn;
@@ -136,18 +138,13 @@ public:
 	// Public variables
 	vtkSmartPointer<vtkSplineWidget2> splineWidget;
 
-	vtkSmartPointer<vtkMyShaderPass> opaqueP;
-	vtkSmartPointer<vtkMyShaderPass> transP;
-	vtkSmartPointer<vtkMyDepthPeelingPass> peelP;
-
-	vtkSmartPointer<vtkRenderPassCollection> passes;
+	vtkSmartPointer<vtkMyPrePass> preP;
+	vtkSmartPointer<vtkMyShaderPass> mainP;
 
 	float roundnessScale = 50.0;	// Superquadric roundness (divider)
 
 	// Shader programs
-	vtkSmartPointer<vtkShaderProgram2> pgm;
-	vtkSmartPointer<vtkTexture> cutterTexture;
-	vtkSmartPointer<vtkTexture> bumpTexture;
+	//vtkSmartPointer<vtkShaderProgram2> pgm;
 
 	// QT Window variables (preview and original size of window)
 	QRect _orig_size;
@@ -210,10 +207,10 @@ private:
 	/// </summary>
 	void slot_btnGlass()
 	{
-		peerInside = !peerInside;
+		previewer = !previewer;
 
 		QPixmap pixmap;
-		if (peerInside)
+		if (previewer)
 			pixmap = QPixmap(":/aperio/glass2.png");
 		else
 			pixmap = QPixmap(":/aperio/glass.png");
@@ -248,6 +245,11 @@ private:
 	/// <summary> Slot called depth peeling checkbox is togggled
 	/// </summary>
 	void slot_chkDepthPeel(bool checked);
+
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called cap checkbox is togggled
+	/// </summary>
+	void slot_chkCap(bool checked);
 
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when list item clicked (i is the index of the clicked item)
@@ -367,7 +369,9 @@ private:
 	{
 		// Update Shaders Periodically (so we can make real-time changes to shaders and reload) [Debugging Purposes!]
 		// Disable if graphics card heats up
-		Utility::updateShader(pgm, "shader_water.vert", "shader.frag");
+		//Utility::updateShader(pgm, "shader_water.vert", "shader.frag");
+		Utility::updateShader(preP->Program1, "shader0.vert", "shader0.frag");
+		Utility::updateShader(mainP->Program1, "shader_water.vert", "shader.frag");
 	}
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when File->Open clicked

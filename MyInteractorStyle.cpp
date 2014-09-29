@@ -220,7 +220,7 @@ void MyInteractorStyle::OnKeyPress()
 	}
 	if (this->Interactor->GetKeyCode() == '0')		// Change shading model
 	{
-		a->shadingnum = (a->shadingnum + 1) % 3;
+		a->shadingnum = (a->shadingnum + 1) % 2;
 	}
 
 	float thestep = 0.05;
@@ -231,7 +231,9 @@ void MyInteractorStyle::OnKeyPress()
 		int i = a->myelems.size() - 1;
 		MyElem &elem = a->myelems.at(i);
 
-		elem.scale.SetY(elem.scale.GetY() - thestep);
+		if (elem.scale.GetY() - thestep >= 0)
+			elem.scale.SetY(elem.scale.GetY() - thestep);
+
 		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
 		elem.transformFilter->Update();	// Must update transform filter for updates to show
 
@@ -293,7 +295,9 @@ void MyInteractorStyle::OnKeyPress()
 		int i = a->myelems.size() - 1;
 		MyElem &elem = a->myelems.at(i);
 
-		elem.scale.SetZ(elem.scale.GetZ() - thestep);
+		if (elem.scale.GetZ() - thestep >= 0)
+			elem.scale.SetZ(elem.scale.GetZ() - thestep);
+
 		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
 		elem.transformFilter->Update();	// Must update transform filter for updates to show
 
@@ -535,7 +539,6 @@ void MyInteractorStyle::OnLeftButtonUp()
 		elem.actor->PickableOff();
 
 		elem.actor->SetUserMatrix(vtkSmartPointer<vtkMatrix4x4>::New());
-		elem.actor->SetTexture(a->cutterTexture);
 
 		elem.source = superquad;
 		elem.transformFilter = transformFilter;
@@ -796,8 +799,9 @@ void MyInteractorStyle::Spin()
 vtkSmartPointer<vtkActor> MyInteractorStyle::GetOutlineActor()
 {
 	vtkSmartPointer<vtkInformation> information = vtkSmartPointer<vtkInformation>::New();
-	information->Set(vtkMyShaderPass::OUTLINEKEY(), 0);	// dummy value
+	information->Set(vtkMyBasePass::OUTLINEKEY(), 0);	// dummy value
 	OutlineActor->SetPropertyKeys(information);
 	
 	return OutlineActor;
 }
+

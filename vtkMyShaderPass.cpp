@@ -30,12 +30,13 @@
 
 // VTK
 #include <vtkShader2Collection.h>
+#include <vtkFrameBufferObject.h>
+#include <vtkTextureObject.h>
+#include <vtkTextureUnitManager.h>
 
 vtkStandardNewMacro(vtkMyShaderPass);
 
-// Set up Property Keys (globally accessible from this class)
-vtkInformationKeyMacro(vtkMyShaderPass, OUTLINEKEY, Integer);
-
+vtkCxxSetObjectMacro(vtkMyShaderPass, DelegatePass, vtkRenderPass);
 
 // Set up property key accessors using macro
 //vtkInformationKeyMacro(vtkMyShaderPass,UNIFORMS, ObjectBase);
@@ -43,7 +44,20 @@ vtkInformationKeyMacro(vtkMyShaderPass, OUTLINEKEY, Integer);
 // ----------------------------------------------------------------------------
 vtkMyShaderPass::vtkMyShaderPass()
 {
-	this->uniforms = vtkSmartPointer<vtkUniformVariables>::New();
+	// Front faces
+	vtkMyTextureObject depthSelectedF;
+	depthSelectedF.name = "depthSelectedF";
+
+	// Back faces
+	vtkMyTextureObject depthSelected;
+	depthSelected.name = "depthSelected";
+
+	vtkMyTextureObject depthSQ;
+	depthSQ.name = "depthSQ";
+
+	textures.push_back(depthSelectedF);
+	textures.push_back(depthSelected);
+	textures.push_back(depthSQ);
 }
 // ----------------------------------------------------------------------------
 vtkMyShaderPass::~vtkMyShaderPass()
@@ -62,226 +76,252 @@ void vtkMyShaderPass::Render(const vtkRenderState *s)
 {
 	assert("pre: s_exists" && s != 0);
 
-	this->RenderGeometry(s);
-}
-// ----------------------------------------------------------------------------
-// Description:
-// Opaque/Translucent pass with key checking.
-// \pre s_exists: s!=0
-void vtkMyShaderPass::RenderGeometry(const vtkRenderState *s)
-{
-	assert("pre: s_exists" && s != 0);
-
 	this->NumberOfRenderedProps = 0;
 
-	int c = s->GetPropArrayCount();
-	int i = 0;
-
-	// Set global uniform variables
-	float mousepos[3] = {a->mouse[0], a->mouse[1], a->mouse[2]};
-	int source = 0;		// potential source texture
-	int sourceBump = 1;		// potential source texture
-
-	uniforms->SetUniformit("wiggle", 1, &a->wiggle);
-	uniforms->SetUniformf("mouse", 3, mousepos);
-	uniforms->SetUniformf("mouseSize", 1, &a->mouseSize);
-	uniforms->SetUniformf("brushSize", 1, &a->brushSize);
-	uniforms->SetUniformit("peerInside", 1, &a->peerInside);
-	uniforms->SetUniformf("myexp", 1, &a->myexp);
-	uniforms->SetUniformi("shadingnum", 1, &a->shadingnum);
-	uniforms->SetUniformi("source", 1, &source);
-	uniforms->SetUniformi("sourceBump", 1, &sourceBump);
-
-	int elemssize = a->myelems.size();
-	uniforms->SetUniformi("elemssize", 1, &elemssize);
-
-	if (a->myelems.size() > 0)
+	if (this->DelegatePass != nullptr)
 	{
-		MyElem & elem = a->myelems.at(a->myelems.size() - 1);
+		vtkRenderer *r = s->GetRenderer();
 
-		uniforms->SetUniformf("pos1", 3, elem.p1.point.GetData());
-		uniforms->SetUniformf("pos2", 3, elem.p2.point.GetData());
+		// Test for Hardware support. If not supported, just render the delegate.
+		bool supported = vtkFrameBufferObject::IsSupported(r->GetRenderWindow());
 
-		uniforms->SetUniformf("norm1", 3, elem.p1.normal.GetData());
-		uniforms->SetUniformf("norm2", 3, elem.p2.normal.GetData());
-
-		uniforms->SetUniformf("scale", 3, elem.scale.GetData());
-	}
-	float phi = a->getUI().phiSlider->value() / a->roundnessScale;
-	float theta = a->getUI().thetaSlider->value() / a->roundnessScale;
-
-	uniforms->SetUniformf("phi", 1, &phi);
-	uniforms->SetUniformf("theta", 1, &theta);
-
-	uniforms->SetUniformit("difftrans", 1, &a->difftrans);
-
-	uniforms->SetUniformi("shininess", 1, &a->shininess);
-	uniforms->SetUniformf("darkness", 1, &a->darkness);
-
-	uniforms->SetUniformf("time", 1, &a->wavetime);
-
-	// Transform matrix
-	float transMat[16];
-	int z = 0;
-	if (a->transform)
-		for (int i = 0; i < 4; i++)
-			for (int j = 0; j < 4; j++)			
-					transMat[z++] = a->transform->GetElement(i, j);
-
-	uniforms->SetUniformMatrix("transMat", 4, 4, transMat);
-
-	while (i < c)
-	{
-		// Manually set uniforms for each actor
-		bool outline = false;
-		uniforms->SetUniformit("outline", 1, &outline);
-
-		vtkProp *p = s->GetPropArray()[i];
-
-		if (p->HasKeys(s->GetRequiredKeys()))
+		if (!supported)
 		{
-			// Find actor inside CustomMesh vector (using lambda to compare CustomMesh's actor pointer with vtkActor's pointer)
-			auto it = a->getMeshByActorRaw(vtkActor::SafeDownCast(p));
-
-			bool iselem = false;
-
-			if (it != a->meshes.end())
-			{
-				// Found the CustomMesh object mapped to this actor (actor is a subclass of prop)
-				uniforms->SetUniformit("selected", 1, &it->selected);
-
-				iselem = false;
-				uniforms->SetUniformit("iselem", 1, &iselem);
-			}
-			else
-			{
-				// Do another find here to see if mesh is part of widget elements
-				auto it2 = a->getElemByActorRaw(vtkActor::SafeDownCast(p));
-
-				if (it2 != a->myelems.end())
-				{
-					// Actor belongs to our Elements array (myelems)
-					iselem = true;
-					uniforms->SetUniformit("iselem", 1, &iselem);
-				}
-				else
-				{
-					// Else,
-					// Not found the CustomMesh object, must be extra objects (The outliner, UI widgets, etc)
-					
-					if (p->GetPropertyKeys() && p->GetPropertyKeys()->Has(vtkMyShaderPass::OUTLINEKEY()))
-					{
-						bool outline = true;
-						uniforms->SetUniformit("outline", 1, &outline);
-						glEnable(GL_LINE_SMOOTH);
-
-						//glDisable(GL_DEPTH_TEST);
-					}
-				}
-			}
-			int rendered;
-
-			// Creating subclass of vtkShaderProgram2 to access protected Program Id variable			
-			class MyShaderProgram2 : public vtkShaderProgram2
-			{
-			public:
-				GLint getID() { return this->Id; }
-			};					
-
-			a->pgm->SetUniformVariables(uniforms);
-		
-			// Need this line!! (Enables alpha blending & depth testing)
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			
-			glEnable(GL_DEPTH_TEST);
-
-			//vtkOpenGLRenderer::SafeDownCast(s->GetRenderer())->SetShaderProgram(a->pgm); // Dangerous, constantly allocs
-			a->pgm->Use();
-
-			// Custom GL Code
-			GLint progID = static_cast<MyShaderProgram2*>(a->pgm.Get())->getID();
-			if (a->glew_available)
-			{
-				//GLuint loc = glGetUniformLocation(progID, "test");
-				//glProgramUniform1f(progID, loc, 1.0);
-			}
-
-			class vtkMyOpenGLProperty : public vtkOpenGLProperty
-			{
-			public:
-				void show_front()
-				{
-					this->BackfaceCulling = true;
-					this->FrontfaceCulling = false;
-				}
-				void show_back()
-				{
-					this->BackfaceCulling = false;
-					this->FrontfaceCulling = true;
-				}
-				void show_all()
-				{
-					this->BackfaceCulling = false;
-					this->FrontfaceCulling = false;
-				}
-			};
-
-			if (passType == ShaderPassType::PASS_TRANSLUCENT)
-			{
-				//rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
-				//this->NumberOfRenderedProps += rendered;
-
-				glDepthMask(GL_FALSE);	// Disable/enable writing to depth buffer for translucent objects
-
-				if (iselem)
-				{
-					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.35);
-				}
-				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_back();
-				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
-
-				if (iselem)
-				{
-					vtkActor::SafeDownCast(p)->GetProperty()->SetOpacity(0.01);
-				}
-				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_front();
-				rendered = p->RenderFilteredTranslucentPolygonalGeometry(s->GetRenderer(), s->GetRequiredKeys());
-				
-				glDepthMask(GL_TRUE);	// Disable/enable writing to depth buffer for translucent objects
-
-				this->NumberOfRenderedProps += rendered;
-			}
-			else
-			{
-				//rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
-				//this->NumberOfRenderedProps += rendered;
-
-				static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_all();
-				//rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
-
-				glBegin(GL_POLYGON);
-				glColor3f(1, 1, 1);
-				glNormal3f(0, 0, 1);
-				glVertex3f(0, 0, 0);
-				glVertex3f(5, 0, 0);
-				glVertex3f(5, 5, 0);
-				glEnd();
-
-				this->NumberOfRenderedProps += rendered;
-			}
-			a->pgm->Restore();
-
-			// Need this line!! (alpha blending & depth testing)
-			glDisable(GL_DEPTH_TEST);
-			glDisable(GL_BLEND);
+			vtkErrorMacro("FBOs are not supported by the context. Cannot post-process.");
 		}
-		++i;
+		if (supported)
+		{
+			supported = vtkTextureObject::IsSupported(r->GetRenderWindow());
+			if (!supported)
+			{
+				vtkErrorMacro("Texture Objects are not supported by the context. Cannot post-process.");
+			}
+		}
+
+		if (supported)
+		{
+			supported = vtkShaderProgram2::IsSupported(static_cast<vtkOpenGLRenderWindow *>(r->GetRenderWindow()));
+			if (!supported)
+			{
+				vtkErrorMacro("GLSL is not supported by the context. Cannot post-process.");
+			}
+		}
+
+		if (!supported)
+		{
+			this->DelegatePass->Render(s);
+			this->NumberOfRenderedProps +=
+				this->DelegatePass->GetNumberOfRenderedProps();
+			return;
+		}
+
+		GLint savedDrawBuffer;
+		glGetIntegerv(GL_DRAW_BUFFER, &savedDrawBuffer);
+
+		// 1. Create a new render state with an FBO.
+
+		int width = 0;
+		int height = 0;
+		int size[2];
+		s->GetWindowSize(size);
+		width = size[0];
+		height = size[1];
+
+		const int extraPixels = 1; // one on each side
+
+		int w = width + 2 * extraPixels;
+		int h = height + 2 * extraPixels;
+
+		for (auto &t : textures)
+		{
+			if (t.texture == nullptr)
+			{
+				t.texture = vtkSmartPointer<vtkTextureObject>::New();
+				t.texture->SetContext(r->GetRenderWindow());
+			}
+		}
+
+		if (this->DepthTexture == nullptr)
+		{
+			this->DepthTexture = vtkSmartPointer<vtkTextureObject>::New();
+			this->DepthTexture->SetContext(r->GetRenderWindow());
+		}
+		if (this->FrameBufferObject == nullptr)
+		{
+			this->FrameBufferObject = vtkSmartPointer<vtkFrameBufferObject>::New();
+			this->FrameBufferObject->SetContext(r->GetRenderWindow());
+		}
+
+		// Render to FrameBufferObject (Set up texture attachments too)
+		this->MyRenderDelegate(s, width, height, w, h);
+
+		// Unbind the framebuffer so we can draw to screen
+		this->FrameBufferObject->UnBind();
+
+		//glDrawBuffer(savedDrawBuffer);	// Not needed in Shader Pass (No FBO attachment changes yet)
+
+		vtkTextureUnitManager *tu = static_cast<vtkOpenGLRenderWindow *>(r->GetRenderWindow())->GetTextureUnitManager();
+
+		auto texEnvParams = []()
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		};
+
+		// Bind textures
+		for (auto &t : textures)
+		{
+			t.id = tu->Allocate();
+
+			vtkgl::ActiveTexture(vtkgl::TEXTURE0 + t.id);
+			t.texture->Bind();
+			texEnvParams();
+		}
+		vtkgl::ActiveTexture(vtkgl::TEXTURE0);	// No active texture (no funny colour artifacts)
+
+		// Set uniforms
+		float fsize[2] = { w, h };
+		uniforms->SetUniformf("frameBufSize", 2, fsize);
+
+		for (auto &t : textures)
+			uniforms->SetUniformi(t.name.c_str(), 1, &t.id);
+	
+		uniforms->SetUniformi("depthSelectedF", 1, &textures[0].id);
+		
+
+		this->RenderGeometry(s, false);	// Render opaque geometry first
+		this->RenderGeometry(s, true);	// Render translucent geometry 
+
+		// Cleanup
+		textures[0].texture->UnBind();
+		vtkgl::ActiveTexture(vtkgl::TEXTURE0);
+
+		// Free textures
+		for (auto &t : textures)
+			tu->Free(t.id);
+	}
+	else
+	{
+		//vtkWarningMacro(<< " no delegate.");
+		this->RenderGeometry(s, false);	// Render opaque geometry first
+		this->RenderGeometry(s, true);	// Render translucent geometry 
 	}
 }
-//----------------------------------------------------------------------------------------------
-void vtkMyShaderPass::initialize(aperio * window, ShaderPassType::T passType)
+
+//------------------------------------------------------------------------------------------------
+// Description:
+// Render delegate with a image of different dimensions than the
+// original one.
+// \pre s_exists: s!=0
+// \pre fbo_exists: fbo!=0
+// \pre fbo_has_context: fbo->GetContext()!=0
+// \pre target_exists: target!=0
+// \pre target_has_context: target->GetContext()!=0
+void vtkMyShaderPass::MyRenderDelegate(const vtkRenderState *s,
+	int width,
+	int height,
+	int newWidth,
+	int newHeight)
 {
-	this->a = window;
-	this->passType = passType;
+	assert("pre: s_exists" && s != 0);
+	assert("pre: fbo_exists" && FrameBufferObject != 0);
+	assert("pre: fbo_has_context" && FrameBufferObject->GetContext() != 0);
+	assert("pre: target_depth_exists" && DepthTexture != 0);
+	assert("pre: target_depth_has_context" && DepthTexture->GetContext() != 0);
+
+	vtkRenderer *r = s->GetRenderer();
+	vtkRenderState s2(r);
+	s2.SetPropArrayAndCount(s->GetPropArray(), s->GetPropArrayCount());
+
+	// Adapt camera to new window size
+	vtkCamera *savedCamera = r->GetActiveCamera();
+	savedCamera->Register(this);
+	vtkCamera *newCamera = vtkCamera::New();
+	newCamera->DeepCopy(savedCamera);
+
+	r->SetActiveCamera(newCamera);
+
+	if (newCamera->GetParallelProjection())
+	{
+		newCamera->SetParallelScale(
+			newCamera->GetParallelScale()*newHeight / static_cast<double>(height));
+	}
+	else
+	{
+		double large;
+		double small;
+		if (newCamera->GetUseHorizontalViewAngle())
+		{
+			large = newWidth;
+			small = width;
+		}
+		else
+		{
+			large = newHeight;
+			small = height;
+
+		}
+		double angle = vtkMath::RadiansFromDegrees(newCamera->GetViewAngle());
+
+		angle = atan(tan(angle)*large / static_cast<double>(small));
+
+		newCamera->SetViewAngle(vtkMath::DegreesFromRadians(angle));
+	}
+
+	s2.SetFrameBuffer(FrameBufferObject);
+
+	// Create 2D textures
+	for (auto &t : textures)
+	{
+		if (t.texture->GetWidth() != static_cast<unsigned int>(newWidth) ||
+			t.texture->GetHeight() != static_cast<unsigned int>(newHeight))
+		{
+			t.texture->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
+		}
+	}
+
+	if (DepthTexture->GetWidth() != static_cast<unsigned int>(newWidth) ||
+		DepthTexture->GetHeight() != static_cast<unsigned int>(newHeight))
+	{
+		DepthTexture->SetRequireDepthBufferFloat(true);
+		DepthTexture->SetRequireTextureFloat(true);
+
+		DepthTexture->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
+	}
+
+	// Set color attachments
+	FrameBufferObject->SetNumberOfRenderTargets(textures.size());
+	FrameBufferObject->SetDepthBuffer(DepthTexture);
+
+	int num_textures = textures.size();
+	for (int i = 0; i < num_textures; i++)
+		FrameBufferObject->SetColorBuffer(i, textures[i].texture);		
+
+	// Render into n attachments (indices)
+	unsigned int *indices = new unsigned int[num_textures];	// Make {0, 1, 2, etc }
+	for (int i = 0; i < num_textures; i++)
+		indices[i] = i;
+
+	FrameBufferObject->SetActiveBuffers(textures.size(), indices);
+	delete indices;
+
+	// because the same FBO can be used in another pass but with several color
+	// buffers, force this pass to use 1, to avoid side effects from the
+	// render of the previous frame.
+	//fbo->SetActiveBuffer(0);
+
+	FrameBufferObject->SetDepthBufferNeeded(true);
+	FrameBufferObject->StartNonOrtho(newWidth, newHeight, false);
+	glViewport(0, 0, newWidth, newHeight);
+	glScissor(0, 0, newWidth, newHeight);
+
+	// 2. Delegate render in FBO
+	this->DelegatePass->Render(&s2);
+	this->NumberOfRenderedProps += this->DelegatePass->GetNumberOfRenderedProps();
+
+	newCamera->Delete();
+	r->SetActiveCamera(savedCamera);
+	savedCamera->UnRegister(this);
 }

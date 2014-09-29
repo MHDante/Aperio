@@ -15,7 +15,7 @@ PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
 
-#include "vtkMyProcessingPass.h"
+#include "vtkMyImageProcessingPass.h"
 
 #include <vtkObjectFactory.h>
 #include <assert.h>
@@ -31,51 +31,32 @@ PURPOSE.  See the above copyright notice for more information.
 #include <vtkOpenGLRenderWindow.h>
 #include <vtkTextureUnitManager.h>
 
-vtkStandardNewMacro(vtkMyProcessingPass);
+vtkStandardNewMacro(vtkMyImageProcessingPass);
+
+vtkCxxSetObjectMacro(vtkMyImageProcessingPass, DelegatePass, vtkRenderPass);
 
 // ----------------------------------------------------------------------------
-vtkMyProcessingPass::vtkMyProcessingPass()
+vtkMyImageProcessingPass::vtkMyImageProcessingPass()
 {
-	this->FrameBufferObject = 0;
-	this->Pass1 = 0;
+	vtkMyTextureObject ColourTexture;
+	ColourTexture.name = "source";
 
-	// CUSTOM - Depth texture
-	this->Pass1Depth = 0;
-	this->Pass1Normal = 0;
-	this->Pass1Noise = 0;
+	vtkMyTextureObject NormalTexture;
+	NormalTexture.name = "sourceNormal";
 
-	this->Program1 = 0;
+	vtkMyTextureObject capTexture;
+	capTexture.name = "sourceCap";
+
+	textures.push_back(ColourTexture);
+	textures.push_back(NormalTexture);
+	textures.push_back(capTexture);
 }
 // ----------------------------------------------------------------------------
-vtkMyProcessingPass::~vtkMyProcessingPass()
+vtkMyImageProcessingPass::~vtkMyImageProcessingPass()
 {
-	if (this->FrameBufferObject != 0)
-	{
-		vtkErrorMacro(<< "FrameBufferObject should have been deleted in ReleaseGraphicsResources().");
-	}
-	if (this->Pass1 != 0)
-	{
-		vtkErrorMacro(<< "Pass1 should have been deleted in ReleaseGraphicsResources().");
-	}
-	if (this->Pass1Depth != 0)
-	{
-		vtkErrorMacro(<< "Pass1Depth should have been deleted in ReleaseGraphicsResources().");
-	}
-	if (this->Pass1Normal != 0)
-	{
-		vtkErrorMacro(<< "Pass1Normal should have been deleted in ReleaseGraphicsResources().");
-	}
-	if (this->Pass1Noise != 0)
-	{
-		vtkErrorMacro(<< "Pass1Noise should have been deleted in ReleaseGraphicsResources().");
-	}
-	if (this->Program1 != 0)
-	{
-		this->Program1->Delete();
-	}
 }
 // ----------------------------------------------------------------------------
-void vtkMyProcessingPass::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMyImageProcessingPass::PrintSelf(ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os, indent);
 }
@@ -83,13 +64,13 @@ void vtkMyProcessingPass::PrintSelf(ostream& os, vtkIndent indent)
 // Description:
 // Perform rendering according to a render state \p s.
 // \pre s_exists: s!=0
-void vtkMyProcessingPass::Render(const vtkRenderState *s)
+void vtkMyImageProcessingPass::Render(const vtkRenderState *s)
 {
 	assert("pre: s_exists" && s != 0);
 
 	this->NumberOfRenderedProps = 0;
 
-	if (this->DelegatePass != 0)
+	if (this->DelegatePass != nullptr)
 	{
 		vtkRenderer *r = s->GetRenderer();
 
@@ -143,68 +124,59 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		int w = width + 2 * extraPixels;
 		int h = height + 2 * extraPixels;
 
-		if (this->Pass1 == 0)
+		for (auto &t : textures)
 		{
-			this->Pass1 = vtkTextureObject::New();
-			this->Pass1->SetContext(r->GetRenderWindow());
+			if (t.texture == nullptr)
+			{
+				t.texture = vtkSmartPointer<vtkTextureObject>::New();
+				t.texture->SetContext(r->GetRenderWindow());
+			}
 		}
 
-		// CUSTOM - Depth texture object
-		if (this->Pass1Depth == 0)
+		// Depth Texture (Default)
+		if (this->DepthTexture == nullptr)
 		{
-			this->Pass1Depth = vtkTextureObject::New();
-			this->Pass1Depth->SetContext(r->GetRenderWindow());
-		}
-		if (this->Pass1Normal == 0)
-		{
-			this->Pass1Normal = vtkTextureObject::New();
-			this->Pass1Normal->SetContext(r->GetRenderWindow());
-		}
-		if (this->Pass1Noise == 0)
-		{
-			this->Pass1Noise = vtkTextureObject::New();
-			this->Pass1Noise->SetContext(r->GetRenderWindow());
+			this->DepthTexture = vtkSmartPointer<vtkTextureObject>::New();
+			this->DepthTexture->SetContext(r->GetRenderWindow());
 		}
 
-		if (this->FrameBufferObject == 0)
+		if (this->FrameBufferObject == nullptr)
 		{
-			this->FrameBufferObject = vtkFrameBufferObject::New();
+			this->FrameBufferObject = vtkSmartPointer<vtkFrameBufferObject>::New();
 			this->FrameBufferObject->SetContext(r->GetRenderWindow());
 		}
 
-		this->MyRenderDelegate(s, width, height, w, h, this->FrameBufferObject, this->Pass1, this->Pass1Depth, this->Pass1Normal, this->Pass1Noise);
+		// Render to FrameBufferObject (Set up texture attachments too)
+		this->MyRenderDelegate(s, width, height, w, h);
 
 		// Unbind the framebuffer so we can draw to screen
 		this->FrameBufferObject->UnBind();
 
 		glDrawBuffer(savedDrawBuffer);
 
-
-		if (this->Program1 == 0)
+		if (this->Program1 == nullptr)
 		{
-			this->Program1 = vtkShaderProgram2::New();
+			this->Program1 = vtkSmartPointer<vtkShaderProgram2>::New();
 			this->Program1->SetContext(static_cast<vtkOpenGLRenderWindow *>(this->FrameBufferObject->GetContext()));
 
 			if (bufferV.str().size() > 0)
 			{
-				vtkShader2 *shader = vtkShader2::New();
+				vtkSmartPointer<vtkShader2> shader = vtkSmartPointer<vtkShader2>::New();
 				shader->SetType(VTK_SHADER_TYPE_VERTEX);
 				shader->SetSourceCode(bufferV.str().c_str());
 				shader->SetContext(this->Program1->GetContext());
 
 				this->Program1->GetShaders()->AddItem(shader);
-				shader->Delete();
 			}
 
 			if (bufferF.str().size() > 0)
 			{
-				vtkShader2 *shader2 = vtkShader2::New();
+				vtkSmartPointer<vtkShader2> shader2 = vtkSmartPointer<vtkShader2>::New();
 				shader2->SetType(VTK_SHADER_TYPE_FRAGMENT);
 				shader2->SetSourceCode(bufferF.str().c_str());
 				shader2->SetContext(this->Program1->GetContext());
 
 				this->Program1->GetShaders()->AddItem(shader2);
-				shader2->Delete();
 			}
 		}
 		this->Program1->Build();
@@ -219,53 +191,48 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		}
 
 		vtkTextureUnitManager *tu = static_cast<vtkOpenGLRenderWindow *>(r->GetRenderWindow())->GetTextureUnitManager();
+		
+		auto texEnvParams = []()
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		};
 
-		// id0 is source
-		int id0 = tu->Allocate();
-		int id1 = tu->Allocate();
-		int id2 = tu->Allocate();
-		int id3 = tu->Allocate();
+		for (auto &t : textures)
+		{
+			t.id = tu->Allocate();
+
+			vtkgl::ActiveTexture(vtkgl::TEXTURE0 + t.id);
+			t.texture->Bind();			
+			texEnvParams();
+		}
+		
+		int id0 = tu->Allocate();	// For depth
 
 		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id0);
-		this->Pass1->Bind();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		this->DepthTexture->Bind();
+		texEnvParams();
 
-
-		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id1);
-		this->Pass1Depth->Bind();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id2);
-		this->Pass1Normal->Bind();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id3);
-		this->Pass1Noise->Bind();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		vtkgl::ActiveTexture(vtkgl::TEXTURE0);
 
 		vtkUniformVariables *var = this->Program1->GetUniformVariables();
 
 		float fsize[2] = { w, h };
-
-		var->SetUniformi("source", 1, &id0);
-		var->SetUniformi("sourceDepth", 1, &id1);
-		var->SetUniformi("sourceNormal", 1, &id2);
-		var->SetUniformi("sourceNoise", 1, &id3);
 		var->SetUniformf("frameBufSize", 2, fsize);
 
-		// --- Get projection matrix
+		for (auto &t : textures)
+			var->SetUniformi(t.name.c_str(), 1, &t.id);
+
+		var->SetUniformi("sourceDepth", 1, &id0);
+
+		/*float d[2];
+		d[0] = r->GetActiveCamera()->GetClippingRange()[0];
+		d[1] = r->GetActiveCamera()->GetClippingRange()[1];
+		var->SetUniformf("clipping", 2, d);*/
+
+		// --- Get projection matrix (for accurate eye positions in SSAO)
 		double aspect[2];
 		int  lowerLeft[2];
 		int usize, vsize;
@@ -302,7 +269,7 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		{
 			vtkErrorMacro(<< this->Program1->GetLastValidateLog());
 		}
-
+		
 		// Prepare blitting
 		glDisable(GL_ALPHA_TEST);
 		glDisable(GL_BLEND);
@@ -310,27 +277,18 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 		glDisable(GL_LIGHTING);
 		glDisable(GL_SCISSOR_TEST);
 
-		// Trigger a draw on Gy1 (could be called on Gx1).
-		this->Pass1->CopyToFrameBuffer(extraPixels, extraPixels, w - 1 - extraPixels, h - 1 - extraPixels, 0, 0, width, height);
+		// Trigger a draw on a TextureObject (Draws Quad - could be called on any texture object)
+		textures[0].texture->CopyToFrameBuffer(extraPixels, extraPixels, w - 1 - extraPixels, h - 1 - extraPixels, 0, 0, width, height);
 
-		this->Pass1Normal->CopyToFrameBuffer(extraPixels, extraPixels, w - 1 - extraPixels, h - 1 - extraPixels, 0, 0, width, height);
+		// Cleanup
+		textures[0].texture->UnBind();
+		vtkgl::ActiveTexture(vtkgl::TEXTURE0);
 
-		this->Pass1Noise->UnBind();
-		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id3);
-
-		this->Pass1Normal->UnBind();
-		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id2);
-
-		this->Pass1Depth->UnBind();
-		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id1);
-
-		this->Pass1->UnBind();
-		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id0);
-
+		for (auto &t : textures)
+			tu->Free(t.id);
+		
 		tu->Free(id0);
-		tu->Free(id1);
-		tu->Free(id2);
-		tu->Free(id3);
+
 		this->Program1->Restore();
 	}
 	else
@@ -348,27 +306,17 @@ void vtkMyProcessingPass::Render(const vtkRenderState *s)
 // \pre fbo_has_context: fbo->GetContext()!=0
 // \pre target_exists: target!=0
 // \pre target_has_context: target->GetContext()!=0
-void vtkMyProcessingPass::MyRenderDelegate(const vtkRenderState *s,
+void vtkMyImageProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 	int width,
 	int height,
 	int newWidth,
-	int newHeight,
-	vtkFrameBufferObject *fbo,
-	vtkTextureObject *target,
-	vtkTextureObject *targetDepth,
-	vtkTextureObject *targetNormal,
-	vtkTextureObject * targetNoise)
+	int newHeight)
 {
 	assert("pre: s_exists" && s != 0);
-	assert("pre: fbo_exists" && fbo != 0);
-	assert("pre: fbo_has_context" && fbo->GetContext() != 0);
-	assert("pre: target_exists" && target != 0);
-	assert("pre: target_has_context" && target->GetContext() != 0);
-	assert("pre: target_depth_exists" && targetDepth != 0);
-	assert("pre: target_depth_has_context" && targetDepth->GetContext() != 0);
-
-	assert("pre: target_normal_exists" && targetNormal != 0);
-	assert("pre: target_normal_has_context" && targetNormal->GetContext() != 0);
+	assert("pre: fbo_exists" && FrameBufferObject != 0);
+	assert("pre: fbo_has_context" && FrameBufferObject->GetContext() != 0);
+	assert("pre: target_depth_exists" && DepthTexture != 0);
+	assert("pre: target_depth_has_context" && DepthTexture->GetContext() != 0);
 
 	vtkRenderer *r = s->GetRenderer();
 	vtkRenderState s2(r);
@@ -409,53 +357,51 @@ void vtkMyProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 		newCamera->SetViewAngle(vtkMath::DegreesFromRadians(angle));
 	}
 
-	s2.SetFrameBuffer(fbo);
+	s2.SetFrameBuffer(FrameBufferObject);
 
-	if (target->GetWidth() != static_cast<unsigned int>(newWidth) ||
-		target->GetHeight() != static_cast<unsigned int>(newHeight))
+	for (auto &t : textures)
 	{
-		target->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
+		if (t.texture->GetWidth() != static_cast<unsigned int>(newWidth) ||
+			t.texture->GetHeight() != static_cast<unsigned int>(newHeight))
+		{
+			t.texture->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
+		}
 	}
 
-	// CUSTOM - Depth texture
-
-	if (targetDepth->GetWidth() != static_cast<unsigned int>(newWidth) ||
-		targetDepth->GetHeight() != static_cast<unsigned int>(newHeight))
+	// Depth Texture
+	if (DepthTexture->GetWidth() != static_cast<unsigned int>(newWidth) ||
+		DepthTexture->GetHeight() != static_cast<unsigned int>(newHeight))
 	{
-		targetDepth->SetRequireDepthBufferFloat(true);
-		targetDepth->SetRequireTextureFloat(true);
+		DepthTexture->SetRequireDepthBufferFloat(true);
+		DepthTexture->SetRequireTextureFloat(true);
 
-		//targetDepth->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
-		targetDepth->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
+		DepthTexture->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
 	}
 
-	if (targetNormal->GetWidth() != static_cast<unsigned int>(newWidth) ||
-		targetNormal->GetHeight() != static_cast<unsigned int>(newHeight))
-	{
-		targetNormal->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
-	}
-	if (targetNoise->GetWidth() != static_cast<unsigned int>(newWidth) ||
-		targetNoise->GetHeight() != static_cast<unsigned int>(newHeight))
-	{
-		targetNoise->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
-	}
 
-	fbo->SetNumberOfRenderTargets(3);
-	fbo->SetColorBuffer(0, target);
-	fbo->SetColorBuffer(1, targetNormal);
-	fbo->SetColorBuffer(2, targetNoise);
-	fbo->SetDepthBuffer(targetDepth);
+	// Set color attachments
+	FrameBufferObject->SetNumberOfRenderTargets(textures.size());
+	FrameBufferObject->SetDepthBuffer(DepthTexture);
 
-	unsigned int indices[3] = { 0, 1, 2};
-	fbo->SetActiveBuffers(3, indices);
+	int num_textures = textures.size();
+	for (int i = 0; i < num_textures; i++)
+		FrameBufferObject->SetColorBuffer(i, textures[i].texture);
+
+	// Render into n attachments (indices)
+	unsigned int *indices = new unsigned int[num_textures];	// Make {0, 1, 2, etc }
+	for (int i = 0; i < num_textures; i++)
+		indices[i] = i;
+
+	FrameBufferObject->SetActiveBuffers(textures.size(), indices);
+	delete indices;
 
 	// because the same FBO can be used in another pass but with several color
 	// buffers, force this pass to use 1, to avoid side effects from the
 	// render of the previous frame.
 	//fbo->SetActiveBuffer(0);
 
-	fbo->SetDepthBufferNeeded(true);
-	fbo->StartNonOrtho(newWidth, newHeight, false);
+	FrameBufferObject->SetDepthBufferNeeded(true);
+	FrameBufferObject->StartNonOrtho(newWidth, newHeight, false);
 	glViewport(0, 0, newWidth, newHeight);
 	glScissor(0, 0, newWidth, newHeight);
 
@@ -473,51 +419,9 @@ void vtkMyProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 // Release graphics resources and ask components to release their own
 // resources.
 // \pre w_exists: w!=0
-void vtkMyProcessingPass::ReleaseGraphicsResources(vtkWindow *w)
+void vtkMyImageProcessingPass::ReleaseGraphicsResources(vtkWindow *w)
 {
 	assert("pre: w_exists" && w != 0);
 
 	this->Superclass::ReleaseGraphicsResources(w);
-
-	if (this->Program1 != 0)
-	{
-		this->Program1->ReleaseGraphicsResources();
-	}
-
-	if (this->FrameBufferObject != 0)
-	{
-		this->FrameBufferObject->Delete();
-		this->FrameBufferObject = 0;
-	}
-
-	if (this->Pass1 != 0)
-	{
-		this->Pass1->Delete();
-		this->Pass1 = 0;
-	}
-	if (this->Pass1Depth != 0)
-	{
-		this->Pass1Depth->Delete();
-		this->Pass1Depth = 0;
-	}
-	if (this->Pass1Normal != 0)
-	{
-		this->Pass1Normal->Delete();
-		this->Pass1Normal = 0;
-	}
-	if (this->Pass1Noise != 0)
-	{
-		this->Pass1Noise->Delete();
-		this->Pass1Noise = 0;
-	}
-}
-//--------------------------------------------------------------------------------------------------
-void vtkMyProcessingPass::setShaderFile(std::string filename, bool frag)
-{
-	std::ifstream file1(filename);
-
-	if (frag)
-		bufferF << file1.rdbuf();
-	else
-		bufferV << file1.rdbuf();
 }

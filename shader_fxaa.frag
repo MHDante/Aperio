@@ -38,7 +38,7 @@
 //----------------------------------------------------------------------------------
 //#version 100
 
-#version 440 compatibility
+#version 450 compatibility
 #extension GL_ARB_gpu_shader5 : enable	// For FXAA_FAST_PIXEL_OFFSET
 
 #define FXAA_PC 1

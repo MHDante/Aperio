@@ -135,7 +135,7 @@ public:
 	}
 };
 //-------------------------------------------------------------------------------------------------
-unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b, carve::csg::CSG::OP op, bool triangulate)
+unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::mesh::MeshSet<3> > &a, unique_ptr<carve::mesh::MeshSet<3> > &b, carve::csg::CSG::OP op)
 {
 	carve::csg::CSG csg;
 
@@ -148,13 +148,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(unique_ptr<carve::m
 	//csg.hooks.registerHook(new carve::csg::CarveHoleResolver, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
 	//csg.hooks.registerHook(new HoleResolver, carve::csg::CSG::Hooks::PROCESS_OUTPUT_FACE_BIT);
 
-	std::cout << csg.hooks.hooks.size() << "\n";
 	carve::csg::CSG::CLASSIFY_TYPE type = carve::csg::CSG::CLASSIFY_NORMAL;
-	if (!triangulate)
-	{
-		type = carve::csg::CSG::CLASSIFY_NORMAL;
-	}	
-
 	unique_ptr<carve::mesh::MeshSet<3> > c(csg.compute(a.get(), b.get(), op, NULL, type));
 
 	return c;

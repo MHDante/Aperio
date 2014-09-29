@@ -469,7 +469,7 @@ background: #82766A;
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -852,7 +852,7 @@ background: #82766A;
      <attribute name="title">
       <string>Options</string>
      </attribute>
-     <widget class="QCheckBox" name="chkTriangulate">
+     <widget class="QCheckBox" name="chkCap">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -862,7 +862,7 @@ background: #82766A;
        </rect>
       </property>
       <property name="text">
-       <string>Triangulate hollow surface after slice</string>
+       <string>Cap Hole in Previewer</string>
       </property>
       <property name="checked">
        <bool>true</bool>
@@ -1234,14 +1234,14 @@ background: #82766A;
      </rect>
     </property>
     <property name="toolTip">
-     <string>Toggle Magnifying Glass (T)</string>
+     <string>Toggle Previewer (T)</string>
     </property>
     <property name="text">
      <string/>
     </property>
     <property name="icon">
      <iconset resource="aperio.qrc">
-      <normaloff>:/aperio/glass.png</normaloff>:/aperio/glass.png</iconset>
+      <normaloff>:/aperio/glass2.png</normaloff>:/aperio/glass2.png</iconset>
     </property>
     <property name="iconSize">
      <size>
