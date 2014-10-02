@@ -5,10 +5,16 @@
 * http://blog.evoserv.at/index.php/2012/12/hemispherical-screen-space-ambient-occlusion-ssao-for-deferred-renderers-using-openglglsl/
 ******************************************************************/
 
-#version 450 compatibility
+#version 440 compatibility
 
-smooth in vec2 vUv;
+// Input from vs
+smooth in vec4 vTexCoord;
+vec2 vUv = vTexCoord.st;
 
+// Output 
+layout(location = 0) out vec4 oColor;
+
+//---- Uniforms
 uniform sampler2D source;
 uniform sampler2D sourceNormal;
 uniform sampler2D sourceDepth;
@@ -69,9 +75,9 @@ vec3 calculateNormal(const in vec2 coord)
 {
 	vec4 normal = texture(sourceNormal, coord);
 	
-	//if (normal.a <= 0)
-		//return vec3(0, 0, 1);
-	//else
+	if (normal.a <= 0)
+		return vec3(0, 0, 1);
+	else
 		return normal.xyz * 2.0 - 1.0;
 }
 
@@ -110,15 +116,14 @@ void main()
 	const vec4 onlyAOColor = vec4( 1.0, 0.7, 0.5, 1);		
 
 	if (onlyAO)
-		gl_FragColor = onlyAOColor * vec4(ao, ao, ao, 1);
+		oColor = onlyAOColor * vec4(ao, ao, ao, 1);
 	else
 	{
-		gl_FragColor = texture(source, vUv) * vec4(ao, ao, ao, 1);			
+		oColor = texture(source, vUv) * vec4(ao, ao, ao, 1);			
 		
 		// No AO on Capping Mask texture
 		if (texture2D(sourceCap, vUv).r >= 1) 
-		gl_FragColor = texture(source, vUv);
-	}
-	
-	//gl_FragColor = texture(sourceCap, vUv);
+			oColor = texture(source, vUv);
+	}	
+	//oColor = texture(sourceCap, vUv);
 }

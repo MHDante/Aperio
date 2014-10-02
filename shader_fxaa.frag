@@ -36,9 +36,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //----------------------------------------------------------------------------------
-//#version 100
-
-#version 450 compatibility
+#version 440 compatibility
 #extension GL_ARB_gpu_shader5 : enable	// For FXAA_FAST_PIXEL_OFFSET
 
 #define FXAA_PC 1
@@ -1040,15 +1038,21 @@ FxaaFloat4 FxaaPixelShader(
 
 precision highp float;
 
+// Input from vs
+noperspective in vec4 vTexCoord;
+
+// Output
+layout(location = 0) out vec4 oColor;
+
+// Uniform variables
 uniform sampler2D source;
 uniform vec2 frameBufSize;
 
 const vec2 RCPFrame = vec2(1.0 / frameBufSize.x, 1.0 / frameBufSize.y);
-noperspective in vec2 vTexCoord;
 
 void main(void)
 {
-    gl_FragColor = FxaaPixelShader(vTexCoord,
+    oColor = FxaaPixelShader(vTexCoord.st,
 		FxaaFloat4(0.0f, 0.0f, 0.0f, 0.0f),		// FxaaFloat4 fxaaConsolePosPos,
         source,							// FxaaTex tex,
         source,							// FxaaTex fxaaConsole360TexExpBiasNegOne,
@@ -1065,5 +1069,5 @@ void main(void)
         0.0f,									// FxaaFloat fxaaConsoleEdgeThresholdMin,
         FxaaFloat4(0.0f, 0.0f, 0.0f, 0.0f)		// FxaaFloat fxaaConsole360ConstDir,
     );	
-	//gl_FragColor = texture2D(source, vTexCoord.st);
+	//oColor = texture2D(source, vTexCoord.st);
 }

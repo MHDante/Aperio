@@ -3,18 +3,29 @@ Fragment
 Main Shader : Phong-Minneart Reflection model and main interaction
 *******************************************************************/
 
-#version 450 compatibility
+#version 440 compatibility
 
+// Input from vs
+in vec3 n;
+in vec3 v;
+in vec3 original_v;
+
+in vec4 vTexCoord;
+
+// Outputs
+layout(location = 0) out vec4 oColor;
+layout(location = 1) out vec4 oNormal;
+layout(location = 2) out vec4 oCapMask;
+
+//--- Uniforms
 uniform vec2 frameBufSize = vec2(800, 600);
 
-smooth in vec3 n;
-smooth in vec3 v;
-smooth in vec3 original_v;
-
-// Shader uniforms
+//--- Shader variables
 uniform sampler2D depthSelectedF;
 uniform sampler2D depthSelected;
 uniform sampler2D depthSQ;
+uniform sampler2D depthSelectedFN;
+
 uniform bool cap = true;
 
 uniform bool outline = false;
@@ -24,6 +35,8 @@ uniform bool selected = false;
 uniform bool previewer = true;
 uniform bool difftrans = true;
 
+uniform vec3 selectedColor = vec3(0.5, 0.5, 0.5);
+
 uniform vec3 mouse = vec3(0, 0, 0);
 uniform float mouseSize = 1.0;
 uniform float brushSize = 1.5;
@@ -32,10 +45,9 @@ uniform int shadingnum = 0;
 uniform int shininess = 128;
 uniform float darkness = 1.0;
 
-uniform float myexp = 1.0;
 uniform float time = 0.0;
 
-// Superquad data
+//--- Superquad data
 uniform vec3 pos1 = vec3(0, 0, 0);
 uniform vec3 pos2 = vec3(0, 0, 0);
 uniform vec3 norm1 = vec3(0, 0, 0);
@@ -49,33 +61,33 @@ uniform bool toroid = false;
 
 uniform int elemssize;
 
-// Light parameters
+//--- Constant Light parameters
 const vec4 light_ambient = vec4(0.2, 0.2, 0.2, 1);
 const vec4 light_diffuse = vec4(0.6, 0.6, 0.6, 1);
 const vec4 light_specular = vec4(1.0, 1.0, 1.0, 1);
 const vec3 light_position = normalize(vec3(-0.080999853,6.4752009809,2.6762204566));
-
-// Global variables
-vec4 final_color = vec4(1, 1, 1, 1);
 
 vec3 E = normalize(-v); // in Eye coords, so EyePos is (0,0,0) surf2Eye  	
 vec3 L = light_position;
 vec3 R = normalize(-reflect(L, n));  // Reflection of surf2Light and normal
 vec3 h = normalize(E + L);
 
+// Global variables and Constants
+vec4 final_color = vec4(1, 1, 1, 1);
+
 const float PI = 3.141592653;
 
-//---Minnaert limb darkening diffuse term
+//---------------- Minnaert limb darkening diffuse term --------------
 vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color) 
 {
 	float ndotl = max(0.0, dot(L, n));
 	return  light_color * pow(ndotl, k);
 }
 
-//---------------- Phong lighting (Directional) ----------------------//
+//---------------- Phong lighting (Directional) ----------------------
 void phongLighting(vec3 n, int shininess)
 {
-	//calculate Ambient Term:    
+	//--- calculate Ambient Term:    
 	vec4 theamb = gl_FrontMaterial.ambient;
 	theamb.b /= 1.4;
 	vec4 Iamb = (theamb * light_ambient * 1.25);
@@ -101,6 +113,13 @@ void phongLighting(vec3 n, int shininess)
 	Idiff += vec4(minnaert(L2, n, roughness, light_color2), 0);
 	
 	Idiff = clamp(Idiff, 0.0, 1.0);
+
+	// Special Idiff2 for Superquad's backface
+	vec4 Idiff2 = vec4(0, 0, 0, 0);		
+	Idiff2 += vec4(minnaert(L, n, roughness, light_color), 0);
+	Idiff2 = vec4(Idiff2.rgb * selectedColor.rgb, 1.0);	
+	Idiff2 += vec4(minnaert(L2, n, roughness, light_color2), 0);	
+	Idiff2 = clamp(Idiff2, 0.0, 1.0);
 	
 	//--- Physically based shader for specular lighting (energy conservation - normalization)
 
@@ -123,16 +142,13 @@ void phongLighting(vec3 n, int shininess)
 	vec3 myspecular = (PI / 4.0f) * specular_term * cosine_term * fresnel_term * visibility_term * light_specular.rgb;
 	myspecular = clamp(myspecular, 0, 1);
 
-	//--- Final color	
-	vec3 tex = texture2D(depthSelectedF, gl_TexCoord[0].st * 1).rgb;	
+	//---- Final color	
+	final_color = vec4(myspecular +  int(difftrans) * diffuseTranslucency + 1.0*Idiff.xyz + Iamb.xyz, gl_Color.a);
 	
-	final_color = vec4(myspecular +  int(difftrans) * diffuseTranslucency + 1.0*Idiff.xyz + 0.0*tex + Iamb.xyz, gl_Color.a);
-	
+	//--- Superquad color
 	if (iselem)
 	{
-		vec3 tex = texture2D(depthSelectedF, gl_TexCoord[0].st).rgb ;
-		
-		tex = vec3(1, 1, 1);
+		vec3 tex = vec3(1, 1, 1);
 		
 		// different opacities for front and back faces
 		float op = 0;
@@ -145,9 +161,9 @@ void phongLighting(vec3 n, int shininess)
 		1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
 		(Idiff.rgb + vec3(0.35,0.35,0.35)) * tex ) - 0.0 * Iamb.xyz
 		, op) ;
-		//, 0.2);		
 	}
 	
+	//--- Capping algorithm
 	if (cap && iselem && !gl_FrontFacing)
 	{
 		vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
@@ -160,26 +176,29 @@ void phongLighting(vec3 n, int shininess)
 		// also backface must be present AND
 		// superquad's back is closer than back of selec
 		
-		if (d_selectedF.a <= 0 && d_selected.a > 0
-		&& d_SQ.r <= d_selected.r)
+		/*if (d_selectedF.a <= 0 //&& d_selected.a > 0
+		&& d_SQ.r <= d_selected.r)*/
+		//d_selectedF.a >= 1 //&& d_selected.a > 0
+		//d_SQ.r <= d_selected.r &&
+		//d_SQ.r <= d_selected.r &&
+		//&& d_selectedF.a > 0
+		if (d_SQ.r > d_selectedF.r)		
 		{
-		final_color = vec4(		
-			1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
-		(Idiff.rgb + vec3(0.1, 0, 0) - 0*vec3(0.1,0.1,0.1))) - 0.0 * 	Iamb.xyz
+			final_color = vec4(		
+			1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * ((Idiff2.rgb + vec3(0.15, 0, 0) )) - 0.0 * Iamb.xyz
 			,1.0);
-			
+
 			// Capping Mask for SSAO shader
-			gl_FragData[2] = vec4(1, 1, 1, 1);
+			oCapMask = vec4(1, 1, 1, 1);
 		}
 	}
 	
+	//--- Test display of textures read from Pre-pass
 	vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
-	//final_color = texture2D(depthSQ, texpos);
-	
-	
+	//final_color = texture2D(depthSelectedFN, texpos);
 }
 
-// ---------------- Toon Shader ----------------------//
+//---------------- Toon Shader -----------------------------------
 void toon(vec3 n)
 {
 	const int levels = 5;
@@ -191,8 +210,7 @@ void toon(vec3 n)
 	vec3 diffuse = gl_Color.rgb * floor(intensity * levels) * scaleFactor;
 	final_color = gl_Color / 20.0f + vec4(diffuse, gl_Color.a);
 }
-
-// ----- Superquad code
+//---------------- Draw Superquad (Discard) ------------------------
 void superquad()
 {
 	float dist = distance(pos1, pos2);
@@ -241,7 +259,7 @@ void superquad()
 	}
 }
 
-// ************-------- Main function --------***************//
+//******************* Main **************************************
 void main()
 {
 	vec3 newN = n;
@@ -262,33 +280,14 @@ void main()
 
 	// convert mouse world coords to view coords (so same as v)
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
-	//vec4 mouseV = vec4(vec3(mouse), 1);
 	
 	superquad();
-		/*float minDist = brushSize;		
-		if (previewer)
-		{
-			float d = 1000;
-			if (d < minDist)
-			{			
-				//discard;
-				//final_color = final_color * vec4(0.5, 0.5, 0.5, 1);
-			}
-			else if (d < 1.75 * minDist)
-			{
-				//float dd = d / (1.5 * minDist);
-				//final_color = vec4(1, 0.7, 0.4,  dd - 0.55);
-			}
-		}*/		
-	gl_FragData[0] = final_color;
-		
+
+	oColor = final_color;		
 	if (outline == true)
-		gl_FragData[0] = vec4(1.0, 0.5, 0, gl_Color.a);
+		oColor = vec4(1.0, 0.5, 0, gl_Color.a);
 	
 	// Encode normals to second texture (sourceNormal)
 	vec3 encodedN = newN * 0.5 + 0.5;
-	gl_FragData[1] = vec4(encodedN, 1);
-	
-	// [2] is Capping Mask (Sent in Phong Shader)
+	oNormal = vec4(encodedN, 1);
 }
-

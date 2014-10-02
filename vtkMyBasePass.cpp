@@ -203,6 +203,8 @@ void vtkMyBasePass::setGlobalUniforms()
 	uniforms->SetUniformi("source", 1, &source);
 	uniforms->SetUniformi("sourceBump", 1, &sourceBump);
 
+	uniforms->SetUniformf("selectedColor", 3, a->selectedColor);	// Access any time previous color
+
 	int elemssize = a->myelems.size();
 	uniforms->SetUniformi("elemssize", 1, &elemssize);
 

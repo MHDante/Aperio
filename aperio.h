@@ -122,6 +122,8 @@ public:
 	bool cap = true;
 	int shadingnum;					// current shader (toon, phong, etc)
 
+	float selectedColor[3];
+
 	float pos1[3];					// position of superquad (pt1 and pt2)
 	float pos2[3];
 

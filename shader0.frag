@@ -1,14 +1,22 @@
 /*******************************************************************
 Fragment
-Pre-pass Shader : Run on fragment data
+Pre-pass Shader : Pass fragment data to main shader
 *******************************************************************/
 
-#version 450 compatibility
+#version 440 compatibility
 
+// Input from vs
 smooth in vec3 n;
 smooth in vec3 v;
 smooth in vec3 original_v;
 
+// Output fragments
+layout(location = 0) out vec4 o_depthSelectedF;
+layout(location = 1) out vec4 o_depthSelected;
+layout(location = 2) out vec4 o_depthSQ;
+layout(location = 3) out vec4 o_depthSelectedFN;
+
+// Uniforms
 uniform bool selected = false;
 uniform bool iselem = false;
 
@@ -26,6 +34,7 @@ uniform bool toroid = false;
 
 uniform int elemssize;
 
+//------------ Linearize Depth ------------------------
 float LinearizeDepth(float depth)
 {
   float n = 1; // camera z near
@@ -34,6 +43,7 @@ float LinearizeDepth(float depth)
   return (2.0 * n) / (f + n - z * (f - n));	
 }
 
+//------------ Draw Superquad (discard) -----------------
 void superquad()
 {
 	float dist = distance(pos1, pos2);
@@ -79,40 +89,39 @@ void superquad()
 	}
 }
 
-// ************-------- Main function --------***************//
+// ****************  Main function *************************
 void main()
 {
 	vec3 newN = n;
 	
 	if (!gl_FrontFacing)
 		newN = -newN;
-	
-	superquad();
 
-	//gl_FragData[0] = vec4(1, 1, 1, 1);
-	//gl_FragData[1] = vec4(1, 1, 1, 1);
-	//gl_FragData[2] = vec4(1, 1, 1, 1);
-
-	//float o = gl_FragCoord.z;
-	float o = LinearizeDepth(gl_FragCoord.z);
+	superquad();	
 	
+	//float d = gl_FragCoord.z;
+	float d = LinearizeDepth(gl_FragCoord.z);
+
 	if (selected)
 	{
+		o_depthSelectedF = vec4(1, 1, 1, 1);
+
 		if (gl_FrontFacing)
-			gl_FragData[0] = vec4(o, o, o, 1);
+		{
+			o_depthSelectedF = vec4(d, d, d, 1);
+		}
 		else
-			gl_FragData[1] = vec4(o, o, o, 1);
-		//gl_FragData[1] = vec4(newN, 1);
+			o_depthSelected = vec4(d, d, d, 1);
 	}
 	
 	if (iselem)
 	{
-		//Backfacing camera
-		//if (dot(newN, vec3(0, 0, 1)) <= 0)				
 		if (gl_FrontFacing)
 			discard;
 		else
-			gl_FragData[2] = vec4(o, o, o, 1);
+			o_depthSQ = vec4(d, d, d, 1);
 	}	
+	
+	o_depthSelectedFN = vec4(1, 1, 0, 1);
 }
 

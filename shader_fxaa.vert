@@ -36,13 +36,13 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 //----------------------------------------------------------------------------------
-#version 450 compatibility
+#version 440 compatibility
 
-noperspective out vec2 vTexCoord;
+noperspective out vec4 vTexCoord;
 
 void main(void)
 {
-	vTexCoord = gl_MultiTexCoord0.st;
+	vTexCoord = gl_MultiTexCoord0;
 		
 	gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.x, gl_Vertex.y, 0.0, 1.0);
 }

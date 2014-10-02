@@ -55,9 +55,14 @@ vtkMyShaderPass::vtkMyShaderPass()
 	vtkMyTextureObject depthSQ;
 	depthSQ.name = "depthSQ";
 
+	vtkMyTextureObject depthSelectedFN;
+	depthSelectedFN.name = "depthSelectedFN";
+
+	// Order matters (Index of COLOR_ATTACHMENT)
 	textures.push_back(depthSelectedF);
 	textures.push_back(depthSelected);
 	textures.push_back(depthSQ);
+	textures.push_back(depthSelectedFN);
 }
 // ----------------------------------------------------------------------------
 vtkMyShaderPass::~vtkMyShaderPass()
@@ -164,7 +169,6 @@ void vtkMyShaderPass::Render(const vtkRenderState *s)
 
 		auto texEnvParams = []()
 		{
-			
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -188,8 +192,6 @@ void vtkMyShaderPass::Render(const vtkRenderState *s)
 
 		for (auto &t : textures)
 			uniforms->SetUniformi(t.name.c_str(), 1, &t.id);
-
-		uniforms->SetUniformi("depthSelectedF", 1, &textures[0].id);
 
 		this->RenderGeometry(s, false);	// Render opaque geometry first
 		this->RenderGeometry(s, true);	// Render translucent geometry
@@ -277,6 +279,7 @@ void vtkMyShaderPass::MyRenderDelegate(const vtkRenderState *s,
 		if (t.texture->GetWidth() != static_cast<unsigned int>(newWidth) ||
 			t.texture->GetHeight() != static_cast<unsigned int>(newHeight))
 		{
+			t.texture->SetGenerateMipmap(true);
 			t.texture->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
 		}
 	}
@@ -287,6 +290,7 @@ void vtkMyShaderPass::MyRenderDelegate(const vtkRenderState *s,
 		DepthTexture->SetRequireDepthBufferFloat(true);
 		DepthTexture->SetRequireTextureFloat(true);
 
+		DepthTexture->SetGenerateMipmap(true);
 		DepthTexture->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
 	}
 

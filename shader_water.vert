@@ -3,17 +3,21 @@
 	Water Shader : Rippling water shader
 *******************************************************************/
 
-#version 450 compatibility
+#version 440 compatibility
 
+// Output to fs
+out vec3 n;
+out vec3 v;
+out vec3 original_v;
+
+out vec4 vTexCoord;
+
+//--- Uniforms
 uniform float time = 0.0;
 uniform bool selected = false;
 uniform bool wiggle = false;
 
-smooth out vec3 n;
-smooth out vec3 v;
-smooth out vec3 original_v;
-
-// Wave Parameters
+//--- Wave Parameters
 const float pi = 3.141592653;
 float waterHeight = 0.0f;
 const int numWaves = 8;
@@ -31,6 +35,7 @@ const vec2 direction[] = vec2[](d, d, d, d, d, d, d, d);
 
 vec4 final_position;
 
+//------------------------ Wave Function -----------------------
 float wave(const in int i, const in float x, const in float y) 
 {
     float frequency = 2*pi/wavelength[i];
@@ -38,7 +43,7 @@ float wave(const in int i, const in float x, const in float y)
     float theta = dot(direction[i], vec2(x, y));
     return amplitude[i] * sin(theta * frequency + time * phase);
 }
-
+//------------------------ Wave Height -----------------------
 float waveHeight(const in float x, const in float y) 
 {
     float height = 0.0;
@@ -46,7 +51,7 @@ float waveHeight(const in float x, const in float y)
         height += wave(i, x, y);
     return height;
 }
-
+//------------------------ Water function ---------------------
 void water()
 {
 	vec4 pos = gl_Vertex;
@@ -54,60 +59,41 @@ void water()
 	
 	final_position = gl_ModelViewProjectionMatrix * (pos);
 }
+//---------- Interesting Barrel Distort/Deform ----------------
+vec4 Distort(vec4 p)
+{
+    vec2 v = p.xy / p.w;
 
+    // Convert to polar coords:
+    float theta  = atan(v.y,v.x);
+    float radius = length(v);
+
+    // Distort:
+	float Power = 1.0f;
+    radius = pow(radius, Power);
+
+    // Convert back to Cartesian:
+    v.x = radius * cos(theta);
+    v.y = radius * sin(theta);
+    p.xy = v.xy * p.w;
+    return p;
+}
+
+//********************* Main ************************
 void main()  
 {     
    	v = vec3(gl_ModelViewMatrix * gl_Vertex);
     n = normalize(gl_NormalMatrix * gl_Normal);
-
 	original_v = gl_Vertex.xyz;
 	
 	gl_FrontColor = gl_Color;
 	gl_BackColor = gl_Color;
-	gl_TexCoord[0] = gl_MultiTexCoord0;   
+	vTexCoord = gl_MultiTexCoord0;   
 
-	final_position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	final_position = gl_ModelViewProjectionMatrix * (gl_Vertex);
 	
 	if (selected == true && wiggle == true)
 		water();
-
-	vec4 newpos = gl_Vertex;
-	float rad = 7;
-	
-	/*if (gl_Vertex.x < rad * 3.14159265)
-	{
-		newpos.x = -gl_Vertex.y * sin(gl_Vertex.x / rad);
-		newpos.z = gl_Vertex.z;
-		newpos.y = gl_Vertex.y * cos(gl_Vertex.x / rad);
-		newpos.w = gl_Vertex.w;
-	}
-	else
-	{
-		newpos.x = -(gl_Vertex.x - rad * 3.14159265);
-		newpos.z = gl_Vertex.z;
-		newpos.y = -gl_Vertex.y;
-		newpos.w = gl_Vertex.w;	
-	}*/
-
-if (newpos.x < 0.5)
-{
-/*Let
-R be the radius at which length is preserved by the deformation.
-Points where x < Rπ are mapped to the curved region via (x',y')=
-(−y sin(x/R), y cos(x/R))*/
-	/*newpos.x = -gl_Vertex.y * sin(gl_Vertex.x / rad * -7);	
-	newpos.y = 0.0*gl_Vertex.y * cos(gl_Vertex.x / rad);*/
-}	
-else
-{
-	
-
-// (−(x−Rπ),−y)
-	//newpos.x = -(gl_Vertex.x - rad * 0.5);
-	//newpos.y = -gl_Vertex.y;
-	//newpos.y = gl_Vertex.y * cos
-}
 	
 	gl_Position = final_position ;
-	//gl_Position = gl_ModelViewProjectionMatrix * newpos;
 }

@@ -47,6 +47,7 @@ vtkMyImageProcessingPass::vtkMyImageProcessingPass()
 	vtkMyTextureObject capTexture;
 	capTexture.name = "sourceCap";
 
+	// Order matters (Index of COLOR_ATTACHMENT)
 	textures.push_back(ColourTexture);
 	textures.push_back(NormalTexture);
 	textures.push_back(capTexture);
@@ -363,7 +364,9 @@ void vtkMyImageProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 		if (t.texture->GetWidth() != static_cast<unsigned int>(newWidth) ||
 			t.texture->GetHeight() != static_cast<unsigned int>(newHeight))
 		{
+			t.texture->SetGenerateMipmap(true);
 			t.texture->Create2D(newWidth, newHeight, 4, VTK_UNSIGNED_CHAR, false);
+			
 		}
 	}
 
@@ -374,6 +377,7 @@ void vtkMyImageProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 		DepthTexture->SetRequireDepthBufferFloat(true);
 		DepthTexture->SetRequireTextureFloat(true);
 
+		DepthTexture->SetGenerateMipmap(true);
 		DepthTexture->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
 	}
 

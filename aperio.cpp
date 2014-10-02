@@ -244,7 +244,7 @@ void aperio::slot_afterShowWindow()
 
 	// Requires Depth from camera pass
 	vtkSmartPointer<vtkMyImageProcessingPass> ssaoP = vtkSmartPointer<vtkMyImageProcessingPass>::New();
-	ssaoP->setShaderFile("shader_ssao.vert", false);
+	ssaoP->setShaderFile("shader_pass.vert", false);
 	ssaoP->setShaderFile("shader_ssao.frag", true);
 	ssaoP->SetDelegatePass(cameraP);
 
@@ -258,6 +258,7 @@ void aperio::slot_afterShowWindow()
 	fxaaP->SetDelegatePass(ssaoP);
 
 	vtkSmartPointer<vtkMyImageProcessingPass> bloomP = vtkSmartPointer<vtkMyImageProcessingPass>::New();
+	bloomP->setShaderFile("shader_pass.vert", false);
 	bloomP->setShaderFile("shader_bloom.frag", true);
 	bloomP->SetDelegatePass(fxaaP);
 
@@ -418,7 +419,7 @@ void aperio::readFile(std::string filename)
 
 	//read in cutter texture
 	vtkSmartPointer<vtkJPEGReader> jpgReader = vtkSmartPointer<vtkJPEGReader>::New();
-	jpgReader->SetFileName("cutter8_gg.jpg");
+	jpgReader->SetFileName("cutter.jpg");
 	jpgReader->Update();
 
 	if (path.isEmpty())				// Set path if it is empty
@@ -1135,7 +1136,7 @@ void aperio::setSelectedMesh(std::vector<CustomMesh>::iterator &it)
 		mesh.selected = false;
 
 	selectedMesh = it;			// Set selectedMesh to mesh clicked
-
+	
 	if (it != meshes.end())
 	{
 		selectedMesh->selected = true;	// Set selected property to true
@@ -1149,6 +1150,11 @@ void aperio::setSelectedMesh(std::vector<CustomMesh>::iterator &it)
 
 		interactorstyle->GetOutlineActor()->GetProperty()->SetLineWidth(1.65);
 		interactorstyle->GetOutlineActor()->GetProperty()->SetOpacity(0.9);
+
+		// Update selected mesh colour
+		selectedColor[0] = it->color.GetRed();
+		selectedColor[1] = it->color.GetGreen();
+		selectedColor[2] = it->color.GetBlue();
 	}
 }
 //--------------------------------------------------------------------------------------
