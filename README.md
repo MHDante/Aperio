@@ -21,4 +21,4 @@ It can be used by medical professionals on anatomical data or even be extended f
 * Qt 5.3.1 (GUI), [qt-project.org](http://qt-project.org/) <br />
 * Open Asset Import Library (Mesh Loading), [assimp.sourceforge.net](http://assimp.sourceforge.net/) <br />
 * Carve CSG (Latest) (Boolean operations), [carve-csg.com](http://carve-csg.com/) <br />
-* Graphics card with GLSL Shaders/FBOs support (OpenGL 3.0 or higher)
+* Graphics card with GLSL Shaders/FBOs support (OpenGL 3.0 or higher) - [GLEW](http://glew.sourceforge.net/)
