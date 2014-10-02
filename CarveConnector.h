@@ -10,7 +10,7 @@
 #include <vtkCleanPolyData.h>
 #include <memory>
 
-using namespace std; 
+using namespace std;
 
 class CarveConnector
 {
@@ -46,7 +46,7 @@ public:
 	static vtkSmartPointer<vtkPolyData> meshSetToVTKPolyData(unique_ptr<carve::mesh::MeshSet<3> > &c);
 
 	//-------------------------------------------------------------------------------------------------------------
-	/// <summary> Converts vtkPolyData to Carve MeshSet 
+	/// <summary> Converts vtkPolyData to Carve MeshSet
 	/// </summary>
 	/// <param name="mesh">vtkPolyData to convert </param>
 	/// <returns>Resulting MeshSet in Carve format</returns>

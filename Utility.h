@@ -1,5 +1,5 @@
 // ***********************************************************************
-// Utility Functions - Contains general utility functions (conversions, etc.) 
+// Utility Functions - Contains general utility functions (conversions, etc.)
 //					 also contains common VTK actions like convert sources
 //					 to vtkActors, and build & return shader programs
 // ***********************************************************************
@@ -56,7 +56,7 @@ namespace Utility
 	/// <param name="vertex_and_frag">vertex and fragment shader filenames (nullstring is default, meaning none)</param>
 	//vtkSmartPointer<vtkShaderProgram2> buildShader(vtkRenderWindow *context, std::string vert = "", std::string frag = "");
 	vtkSmartPointer<vtkShaderProgram2> makeShader(vtkRenderWindow *context, std::string vert, std::string frag);
-
+	
 	/// <summary> VTK method to reload new vertex (0) or fragment shader (1) files in vtkShaderProgram2 object </summary>
 	/// <param name="vertex_and_frag">vertex and fragment shader filenames (nullstring is default, meaning none, so no reloads)</param>
 	void updateShader(vtkShaderProgram2* shaderProgram, std::string vert = "", std::string frag = "");
@@ -68,7 +68,7 @@ namespace Utility
 	CustomMesh& addMesh(aperio *a, vtkSmartPointer<vtkPolyData> source, int z, std::string groupname, vtkColor3f color, float opacity);
 
 	///-------------------------------------------------------------------------
-	/// <summary> Compute normals for a vtkPolyData source 
+	/// <summary> Compute normals for a vtkPolyData source
 	/// </summary>
 	vtkSmartPointer<vtkPolyData> computeNormals(vtkSmartPointer<vtkPolyData> source);
 

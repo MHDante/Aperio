@@ -142,9 +142,8 @@ vtkSmartPointer<vtkShaderProgram2> Utility::makeShader(vtkRenderWindow *context,
 	}
 	else
 	{
-		
 		std::cout << "Shader has errors.\n" << shaderProgram->GetLastLinkLog() << "\n";
-	}	
+	}
 	return shaderProgram;
 }
 //-------------------------------------------------------------------------------------------------------------------
@@ -266,7 +265,6 @@ void Utility::get_bounding_box_for_node(const aiScene* scene, const aiNode* nd, 
 	for (; n < nd->mNumMeshes; ++n) {
 		const aiMesh* mesh = scene->mMeshes[nd->mMeshes[n]];
 		for (t = 0; t < mesh->mNumVertices; ++t) {
-
 			aiVector3D tmp = mesh->mVertices[t];
 
 			min->x = aisgl_min(min->x, tmp.x);
@@ -286,7 +284,6 @@ void Utility::get_bounding_box_for_node(const aiScene* scene, const aiNode* nd, 
 //----------------------------------------------------------------------------------------------
 void Utility::get_bounding_box(const aiScene* scene, aiVector3D* min, aiVector3D* max)
 {
-
 	min->x = min->y = min->z = 1e10f;
 	max->x = max->y = max->z = -1e10f;
 	get_bounding_box_for_node(scene, scene->mRootNode, min, max);
@@ -349,14 +346,12 @@ vtkSmartPointer<vtkPolyData> Utility::smoothNormals(vtkSmartPointer<vtkPolyData>
 			sum.GetY() / normal_buffer[i].size(),
 			sum.GetZ() / normal_buffer[i].size());
 
-
 		points_normal->SetTuple3(i, sum.GetX(), sum.GetY(), sum.GetZ());
 	}
 	dataset->GetPointData()->SetNormals(points_normal);
 
 	//cleanup
 	delete[] normal_buffer;
-
 
 	return dataset;
 }

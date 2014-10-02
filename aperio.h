@@ -54,7 +54,6 @@ public:
 
 	MyPoint p1;
 	MyPoint p2;
-
 	vtkVector3f scale;
 
 	vtkSmartPointer<vtkActor> actor;								// Superquadric actor
@@ -85,11 +84,12 @@ struct CustomMesh
 
 	// Whether or not it is a generated mesh (cut piece) or original piece
 	bool generated;
+	
 	// Generated piece properties:
 	vtkVector3f snormal;	// Superquadric normal
 	vtkVector3f sforward;		// Superquadric up vector
 	vtkVector3f hingePivot; // Superquadric initial position is hinge
-
+	
 	float hingeAngle;
 	float hingeAmount;
 
@@ -108,19 +108,18 @@ public:
 	aperio(QWidget *parent = 0);
 	~aperio();
 
+#pragma region ~~UNIFORMS
+
 	// public access variables (mostly in shader as uniforms)
 	double mouse[3];				// Put in struct later	- on mouse move updated
 	double mouseNorm[3];			// Put in struct later - on mouse move updated
-
+	
 	bool wiggle;
 	float mouseSize;				// Recompute from bounds
 	float brushDivide;				// division factor for mouseSize
 	float brushSize;
 	bool previewer = true;
 	bool cap = true;
-	int toon;
-	float myexp;					// Superquadric roundness param
-	float myn;
 	int shadingnum;					// current shader (toon, phong, etc)
 
 	float pos1[3];					// position of superquad (pt1 and pt2)
@@ -135,6 +134,10 @@ public:
 
 	float wavetime;
 
+#pragma endregion
+
+#pragma region ~~VARIABLES
+
 	// Public variables
 	vtkSmartPointer<vtkSplineWidget2> splineWidget;
 
@@ -142,9 +145,7 @@ public:
 	vtkSmartPointer<vtkMyShaderPass> mainP;
 
 	float roundnessScale = 50.0;	// Superquadric roundness (divider)
-
-	// Shader programs
-	//vtkSmartPointer<vtkShaderProgram2> pgm;
+	float thicknessScale = 100.0;	// Superquadric roundness (divider) out of 1
 
 	// QT Window variables (preview and original size of window)
 	QRect _orig_size;
@@ -176,7 +177,12 @@ public:
 	vector<CustomMesh>::iterator selectedMesh;
 
 	vtkSmartPointer<MySuperquadricSource> superquad;
-	vtkSmartPointer<vtkMatrix4x4> transform;
+
+	// Custom timers
+	QTimer* timer_explode;
+	bool explode_out = true;
+
+#pragma endregion
 
 	friend class MyInteractorStyle;
 
@@ -202,6 +208,12 @@ private:
 	void slot_listitementered(QListWidgetItem * item)
 	{
 	}
+
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Magnifying glass button clicked
+	/// </summary>
+	void slot_btnExplode();
+
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when Magnifying glass button clicked
 	/// </summary>
@@ -237,6 +249,11 @@ private:
 	void slot_thetaSlider(int value);
 
 	// ------------------------------------------------------------------------
+	/// <summary> Slot called when Thickness Slider changed
+	/// </summary>
+	void slot_thicknessSlider(int value);
+
+	// ------------------------------------------------------------------------
 	/// <summary> Slot called when Toroidal checkbox checked
 	/// </summary>
 	void slot_chkToroid(bool checked);
@@ -262,6 +279,12 @@ private:
 	/// </summary>
 	/// <param name="i">value changed</param>
 	void slot_hingeSlider(int value);
+
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called when explode slider's value changed
+	/// </summary>
+	/// <param name="i">value changed</param>
+	void slot_explodeSlider(int value);
 
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when Hinge Amount changed in QLineEdit (textbox)
@@ -370,9 +393,15 @@ private:
 		// Update Shaders Periodically (so we can make real-time changes to shaders and reload) [Debugging Purposes!]
 		// Disable if graphics card heats up
 		//Utility::updateShader(pgm, "shader_water.vert", "shader.frag");
-		Utility::updateShader(preP->Program1, "shader0.vert", "shader0.frag");
+		Utility::updateShader(preP->Program1, "shader_water.vert", "shader0.frag");
 		Utility::updateShader(mainP->Program1, "shader_water.vert", "shader.frag");
 	}
+
+	// ------------------------------------------------------------------------
+	/// <summary> Slot called as a thread to perform explosion (fps rate)
+	/// </summary>
+	void slot_timer_explode();
+
 	// ------------------------------------------------------------------------
 	/// <summary> Slot called when File->Open clicked
 	/// </summary>

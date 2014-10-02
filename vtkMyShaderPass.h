@@ -52,7 +52,7 @@ public:
 	// Set/Get Delegate pass (called while rendering to FBO, then texture sent to new shader for processing)
 	vtkGetObjectMacro(DelegatePass, vtkRenderPass);
 	virtual void SetDelegatePass(vtkRenderPass *delegatePass);
-	
+
 	///<summary>My Custom delegate method that renders to FBO/Texture </summary>
 	void MyRenderDelegate(const vtkRenderState *s, int width, int height, int newWidth, int newHeight);
 

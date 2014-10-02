@@ -51,7 +51,7 @@ static void evalSuperquadric(double u, double v,
 MySuperquadricSource::MySuperquadricSource(int res)
 {
 	res = res < 4 ? 4 : res;
-	
+
 	this->AxisOfSymmetry = 1; // y-axis symmetry
 	this->Toroidal = 0;
 	this->Thickness = 0.3333;
@@ -175,7 +175,6 @@ int MySuperquadricSource::RequestData(
 	double texCoord[2];
 	double tmp;
 
-
 	dims[0] = this->Scale[0] * this->Size;
 	dims[1] = this->Scale[1] * this->Size;
 	dims[2] = this->Scale[2] * this->Size;
@@ -199,7 +198,7 @@ int MySuperquadricSource::RequestData(
 		phiLim[0] = -vtkMath::Pi() / 2.0;
 		phiLim[1] = vtkMath::Pi() / 2.0;
 
-		thetaLim[0] = -vtkMath::Pi();		
+		thetaLim[0] = -vtkMath::Pi();
 		thetaLim[1] = vtkMath::Pi();	// ThetaLim[1] will be used for wedges
 
 		alpha = 0.0;
@@ -339,7 +338,6 @@ int MySuperquadricSource::RequestData(
 					if (!this->Toroidal &&
 						((iq == 0 && i == 0) || (iq == (phiSegs - 1) && i == phiSubsegs)))
 					{
-
 						// we're at a pole:
 						// make sure the pole is at the same location for all evals
 						// (the superquadric evaluation is numerically unstable
@@ -410,7 +408,6 @@ int MySuperquadricSource::RequestData(
 	output->GetPointData()->SetTCoords(newTCoords);
 
 	//Utility::generateTexCoords(output);
-
 
 	newTCoords->Delete();
 

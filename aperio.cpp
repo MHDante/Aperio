@@ -73,7 +73,6 @@ using namespace std;
 
 #include <vtkBoxRepresentation.h>
 
-
 #include <vtkCubeSource.h>
 
 #include <vtkCylinderSource.h>
@@ -93,7 +92,6 @@ aperio::aperio(QWidget *parent)
 	QTimer::singleShot(0, this, SLOT(slot_afterShowWindow()));
 }
 
-
 ///---------------------------------------------------------------------------------------
 aperio::~aperio()
 {
@@ -106,12 +104,12 @@ void aperio::update_orig_size()
 	_orig_size.setWidth(ui.mainWidget->geometry().width());
 	_orig_size.setHeight(ui.mainWidget->geometry().height());
 }
+
 ///---------------------------------------------------------------------------------------
 void aperio::slot_afterShowWindow()
 {
-
 	update_orig_size();
-
+	
 	// Set up instance variables
 	fps = 45.0;
 	//std::string fname = "cube.obj";
@@ -131,7 +129,6 @@ void aperio::slot_afterShowWindow()
 	brushDivide = 15.0;
 
 	brushSize = 1.5;
-	myexp = 2;
 
 	// Default uniform variables
 	mouse[0] = 0;
@@ -139,13 +136,17 @@ void aperio::slot_afterShowWindow()
 	mouse[2] = 0;
 
 	wavetime = 0;
-	difftrans = ui.btnLight->text().compare("On") == 0 ? true: false;
+	difftrans = ui.btnLight->text().compare("On") == 0 ? true : false;
 	shininess = ui.shininessSlider->value();
 	darkness = (ui.darknessSlider->value() + 128) / 128.0f;
 
+	// Initially set invisible thickness Slider and label
+	ui.lblThickness->setVisible(false);
+	ui.thicknessSlider->setVisible(false);
+
 	QApplication::processEvents();
 
-	// Setup label 
+	// Setup label
 	status_label = new QLabel("Ready", this);
 	status_label->setStyleSheet("background-color: rgba(0,0,0,0);");
 	ui.statusBar->addWidget(status_label);
@@ -157,7 +158,7 @@ void aperio::slot_afterShowWindow()
 	//timer_instant->start();
 
 	QTimer* timer_fps = nullptr;		// FPS timer (executed using FPS speed)
-	timer_fps  = new QTimer(this);
+	timer_fps = new QTimer(this);
 	//timer_fps->setInterval(0);
 	timer_fps->setInterval(1000.0 / fps);
 	timer_fps->setTimerType(Qt::TimerType::PreciseTimer);
@@ -167,6 +168,13 @@ void aperio::slot_afterShowWindow()
 	timer_delay = new QTimer(this);
 	timer_delay->setInterval(1000.0 / 0.5);		// 7.5
 	timer_delay->start();
+
+	// ---- Custom Thread Timers
+
+	timer_explode = nullptr;	// Instantaneous timer (executed as fast as possible)
+	timer_explode = new QTimer(this);
+	timer_explode->setInterval(1000.0 / fps);
+	timer_explode->setTimerType(Qt::TimerType::PreciseTimer);
 
 	colorDialog = new QColorDialog(this);
 	colorDialog->setWindowTitle("Pick a color for the selected object.");
@@ -197,7 +205,7 @@ void aperio::slot_afterShowWindow()
 	vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
 	texture->InterpolateOn();
 	texture->SetInputData(pngReader->GetOutput());
-	
+
 	renderer->SetTexturedBackground(true);
 	renderer->SetBackgroundTexture(texture);
 
@@ -211,12 +219,12 @@ void aperio::slot_afterShowWindow()
 	ui.mainWidget->layout()->setMargin(2);
 	ui.mainWidget->layout()->addWidget(qv);
 
-	// Prepare all the rendering passes 
+	// Prepare all the rendering passes
 	preP = vtkSmartPointer<vtkMyPrePass>::New();
 	preP->initialize(this);
-	preP->setShaderFile("shader0.vert", false);
+	preP->setShaderFile("shader_water.vert", false);
 	preP->setShaderFile("shader0.frag", true);
-	
+
 	vtkSmartPointer<vtkCameraPass> precameraP = vtkSmartPointer<vtkCameraPass>::New();
 	precameraP->SetDelegatePass(preP);	// transforms prepass into camera coordinates
 
@@ -259,20 +267,21 @@ void aperio::slot_afterShowWindow()
 	vtkSmartPointer<QVTKInteractor> renderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
 
 	interactorstyle = vtkSmartPointer<MyInteractorStyle>::New();
-	interactorstyle->SetAutoAdjustCameraClippingRange(false);
+	//interactorstyle->SetAutoAdjustCameraClippingRange(false);
 	interactorstyle->initialize(this);
-	
+
 	renderWindowInteractor->SetInteractorStyle(interactorstyle);
 	renderWindowInteractor->Initialize();
-	
+
 	renderWindowInteractor->GetPickingManager()->EnabledOn();
 	renderWindowInteractor->GetPickingManager()->AddPicker(interactorstyle->cellPicker);
-	
+
 	qv->GetRenderWindow()->SetInteractor(renderWindowInteractor);
 
 	QApplication::processEvents();
 
 	// --- Initialize GLEW (After OpenGL context is set up!)
+	glewExperimental = GL_TRUE;
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
@@ -300,6 +309,10 @@ void aperio::slot_afterShowWindow()
 	connect(timer_instant, &QTimer::timeout, this, &aperio::slot_timeout_instant);
 	connect(timer_fps, &QTimer::timeout, this, &aperio::slot_timeout_fps);
 	connect(timer_delay, &QTimer::timeout, this, &aperio::slot_timeout_delay);
+
+	// ---- Custom Thread Timers
+	connect(timer_explode, &QTimer::timeout, this, &aperio::slot_timer_explode);
+
 	connect(ui.actionOpen, &QAction::triggered, this, &aperio::slot_open);
 	connect(ui.actionExit, &QAction::triggered, this, &aperio::slot_exit);
 
@@ -326,20 +339,24 @@ void aperio::slot_afterShowWindow()
 	connect(ui.btnHide, &QPushButton::clicked, this, &aperio::slot_btnHide);
 	connect(ui.btnGlass, &QPushButton::clicked, this, &aperio::slot_btnGlass);
 
+	connect(ui.btnExplode, &QPushButton::clicked, this, &aperio::slot_btnExplode);
+
 	// Superquadric options
 	connect(ui.phiSlider, &QSlider::valueChanged, this, &aperio::slot_phiSlider);
 	connect(ui.thetaSlider, &QSlider::valueChanged, this, &aperio::slot_thetaSlider);
+	connect(ui.thicknessSlider, &QSlider::valueChanged, this, &aperio::slot_thicknessSlider);
 	connect(ui.chkToroid, &QCheckBox::toggled, this, &aperio::slot_chkToroid);
 
 	// Transform sliders
 	connect(ui.hingeSlider, &QSlider::valueChanged, this, &aperio::slot_hingeSlider);
+	connect(ui.explodeSlider, &QSlider::valueChanged, this, &aperio::slot_explodeSlider);
 
 	// Transform Textboxes (QLineEdit)
 	connect(ui.txtHingeAmount, &QLineEdit::textChanged, this, &aperio::slot_txtHingeAmount);
 
 	// Transform buttons
 	//connect(ui.btnHinge, &QLabel::c, this, &aperio::slot_hingeSlider);
-	
+
 	readFile(fname);
 }
 // ------------------------------------------------------------------------
@@ -391,7 +408,6 @@ void aperio::readFile(std::string filename)
 	//vtkObject::GlobalWarningDisplayOff();	// dangerous (keep on for most part)
 
 	// Reset values for new file
-	toon = 0;
 	renderer->RemoveAllViewProps();	// Remove from renderer, clear listwidget, clear vectors
 
 	ui.listWidget->clear();
@@ -415,7 +431,7 @@ void aperio::readFile(std::string filename)
 	importer.SetPropertyInteger(AI_CONFIG_PP_SLM_VERTEX_LIMIT, 600000);
 	//importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
 	//Assimp::DefaultLogger::create("", Assimp::DefaultLogger::VERBOSE, aiDefaultLogStream_STDOUT);	// Log time
-	
+
 	QProgressDialog progress("Loading file. Please be patient...", "Abort", 0, 0, this);
 
 	QRect newPos = progress.geometry();
@@ -428,12 +444,12 @@ void aperio::readFile(std::string filename)
 	QApplication::processEvents();
 
 	const aiScene* scene = importer.ReadFile(filename,
-		aiProcess_JoinIdenticalVertices  |
-		aiProcess_Triangulate  |
-		aiProcess_SplitLargeMeshes 
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_Triangulate |
+		aiProcess_SplitLargeMeshes
 		//aiProcess_OptimizeMeshes |
 		//aiProcess_FindDegenerates |
-		//aiProcess_SortByPType 
+		//aiProcess_SortByPType
 		//aiProcess_FlipUVs
 		);
 
@@ -484,7 +500,7 @@ void aperio::readFile(std::string filename)
 		{
 			QString extra = QString("SplitMesh_") + QString::number(z);
 			groupname.Set(extra.toStdString().c_str());
-		}			
+		}
 		else
 			groupname.Set(scene->mRootNode->FindNode(filenameOnly.c_str())->mChildren[z]->mName.C_Str());
 
@@ -507,7 +523,6 @@ void aperio::readFile(std::string filename)
 				b = 192 / 255.0;
 
 				// 204, 134, 134
-
 			}
 			if (QString::compare(QString(groupname.C_Str()), QString("c_arteriae_coronari")) == 0)
 			{
@@ -574,11 +589,8 @@ void aperio::readFile(std::string filename)
 		feature->Update();
 		std::cout << setw(25) << groupname.C_Str() << setw(15) << "Boundaries: " << feature->GetOutput()->GetNumberOfPoints() << "\n";
 
-
 		nextMesh = CarveConnector::cleanVtkPolyData(nextMesh, false);
 		nextMesh = Utility::computeNormals(nextMesh);
-
-			
 
 		//nextMesh->BuildCells();
 		//nextMesh->BuildLinks();
@@ -589,7 +601,7 @@ void aperio::readFile(std::string filename)
 		fillHolesFilter->Update();
 
 		nextMesh = fillHolesFilter->GetOutput();*/
-		
+
 		Utility::addMesh(this, nextMesh, z, groupname.C_Str(), vtkColor3f(r, g, b), 1);
 		renderer->AddActor(meshes[z].actor);
 
@@ -619,14 +631,14 @@ void aperio::readFile(std::string filename)
 	class vtkMySplineRepresentation : public vtkSplineRepresentation
 	{
 	public:
-		void setTolerance()
-		{
-			this->HandlePicker->SetTolerance(0.0025);
-			this->LinePicker->SetTolerance(0.0025);
-		}
+	void setTolerance()
+	{
+	this->HandlePicker->SetTolerance(0.0025);
+	this->LinePicker->SetTolerance(0.0025);
+	}
 	};
 	vtkSmartPointer<vtkSplineRepresentation> splineRep = vtkSmartPointer<vtkSplineRepresentation>::New();
-	
+
 	double points[3] = { 2, 2, 2 };
 	splineRep->SetHandlePosition(0, points);
 	double points2[3] = { -2, 2, 2 };
@@ -635,32 +647,27 @@ void aperio::readFile(std::string filename)
 	static_cast<vtkMySplineRepresentation *>(splineRep.GetPointer())->setTolerance();
 
 	//splineRep->setTolerance();
-	
+
 	splineWidget->SetRepresentation(splineRep);
-	
+
 	//splineWidget->On();
-	
 
 	//boxWidget->CreateDefaultRepresentation();
 
 	//vtkSmartPointer<vtkBoxRepresentation> boxRepresentation = vtkSmartPointer<vtkBoxRepresentation>::New();
 	//boxWidget->SetRepresentation(boxRepresentation);
 	*/
-	
-	
 
 	//vtkWidgetRepresentation *boxRep = boxWidget->GetRepresentation();
 
 	//double bounds[] = { 0, 5, -0.5, 0.5, -0.5, 0.5 };
 	//boxRep->PlaceWidget(bounds);
 
-
-
-	// planeWidget is amazing	
+	// planeWidget is amazing
 	//vtkSmartPointer<vtkAxesTransformWidget> axesWidget = vtkSmartPointer<vtkAxesTransformWidget>::New();
 	//axesWidget->SetInteractor(renderer->GetRenderWindow()->GetInteractor());
 	//axesWidget->On();
-	
+
 	/*vtkSmartPointer<vtkSliderRepresentation3D> sliderRep = vtkSmartPointer<vtkSliderRepresentation3D>::New();
 	sliderRep->SetMinimumValue(3.0);
 	sliderRep->SetMaximumValue(50.0);
@@ -690,20 +697,34 @@ void aperio::readFile(std::string filename)
 	setSelectedMesh(meshes.end());	// Reset selectedMesh to nothing
 
 	// add mesh groupnames to listbox
-	for (int i = 0; i < meshes.size(); i++)
+	for (auto &mesh : meshes)
 	{
-		QListWidgetItem* item = new QListWidgetItem(meshes[i].name.c_str(), ui.listWidget);
+		QListWidgetItem* item = new QListWidgetItem(mesh.name.c_str(), ui.listWidget);
 
 		item->setCheckState(Qt::Checked);
 		ui.listWidget->addItem(item);
 		//ui.listWidget->itemAt(0, i)->setCheckState(Qt::Checked);
 	}
 	Utility::end_clock('a');
-
 }
+
+// **************************** Slots Region ***************************************************
+#pragma region ~~SLOTS
+
 //--------------------------------------------------------------------------------------
 void aperio::slot_chkToroid(bool checked)
 {
+	if (checked)
+	{
+		ui.lblThickness->setVisible(true);
+		ui.thicknessSlider->setVisible(true);
+	}
+	else
+	{
+		ui.lblThickness->setVisible(false);
+		ui.thicknessSlider->setVisible(false);
+	}
+
 	if (myelems.size() < 1)
 		return;
 
@@ -717,7 +738,7 @@ void aperio::slot_thetaSlider(int value)
 {
 	if (myelems.size() < 1)
 		return;
-
+	
 	int i = myelems.size() - 1;
 	myelems[i].source->SetThetaRoundness(value / roundnessScale);
 	myelems[i].source->Update();
@@ -734,7 +755,43 @@ void aperio::slot_phiSlider(int value)
 	myelems[i].source->Update();
 	myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
 }
+//--------------------------------------------------------------------------------------
+void aperio::slot_thicknessSlider(int value)
+{
+	if (myelems.size() < 1)
+		return;
 
+	int i = myelems.size() - 1;
+	myelems[i].source->SetThickness(value / thicknessScale);	// 0..1
+	myelems[i].source->Update();
+	myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
+}
+//--------------------------------------------------------------------------------------
+void aperio::slot_btnExplode()
+{
+	timer_explode->start();
+
+	if (ui.explodeSlider->value() < (ui.explodeSlider->maximum() / 2.0))
+		explode_out = true;
+	else
+		explode_out = false;
+}
+
+// Timers
+void aperio::slot_timer_explode()
+{
+	float delta = 10;
+	if (!explode_out)
+		delta = -delta;
+
+	ui.explodeSlider->setValue(ui.explodeSlider->value() + delta);
+
+	if (
+		(explode_out && ui.explodeSlider->value() >= ui.explodeSlider->maximum()) ||
+		(!explode_out && ui.explodeSlider->value() <= 0)
+		)
+		timer_explode->stop();
+}
 //--------------------------------------------------------------------------------------
 void aperio::slot_btnSlice()
 {
@@ -746,7 +803,6 @@ void aperio::slot_btnSlice()
 	int eselectedindex = myelems.size() - 1;
 	MyElem& elem = myelems[eselectedindex];
 
-
 	CarveConnector connector;
 	vtkSmartPointer<vtkPolyData> thepolydata(vtkPolyData::SafeDownCast(selectedMesh->actor->GetMapper()->GetInput()));
 	thepolydata = CarveConnector::cleanVtkPolyData(thepolydata, true);
@@ -754,7 +810,7 @@ void aperio::slot_btnSlice()
 	vtkSmartPointer<vtkPolyData> thepolydata2(vtkPolyData::SafeDownCast(elem.actor->GetMapper()->GetInput()));
 	thepolydata2 = CarveConnector::cleanVtkPolyData(thepolydata2, true);
 
-	// Make MeshSet from vtkPolyData	
+	// Make MeshSet from vtkPolyData
 
 	std::unique_ptr<carve::mesh::MeshSet<3> > first(CarveConnector::vtkPolyDataToMeshSet(thepolydata));
 	std::unique_ptr<carve::mesh::MeshSet<3> > second(CarveConnector::vtkPolyDataToMeshSet(thepolydata2));
@@ -762,22 +818,22 @@ void aperio::slot_btnSlice()
 
 	/*if (!first->isClosed())
 	{
-		std::cout << "The mesh you are trying to cut is NOT a manifold! (Either not closed, contains degenerate "
-			<< "points/lines/faces, duplicate points or edges with more than 2 adjacent faces - non-manifold). Please fix with an external modelling package.";
+	std::cout << "The mesh you are trying to cut is NOT a manifold! (Either not closed, contains degenerate "
+	<< "points/lines/faces, duplicate points or edges with more than 2 adjacent faces - non-manifold). Please fix with an external modelling package.";
 
-		// Remove superquadric from Renderer
-		renderer->RemoveActor(myelems[eselectedindex].actor);
+	// Remove superquadric from Renderer
+	renderer->RemoveActor(myelems[eselectedindex].actor);
 
-		// Probably should remove from list as well (myelems)
-		myelems.erase(myelems.end() - 1);
+	// Probably should remove from list as well (myelems)
+	myelems.erase(myelems.end() - 1);
 
-		return;
+	return;
 	}*/
 
 	//if (!first->isClosed())
 	//{
-		//std::cout << "Not a closed mesh! (not solid) so no edge classification . Using normal classification.\n";
-		//totriangulate = false;
+	//std::cout << "Not a closed mesh! (not solid) so no edge classification . Using normal classification.\n";
+	//totriangulate = false;
 	//}
 
 	std::unique_ptr<carve::mesh::MeshSet<3> > c(CarveConnector::perform(first, second, carve::csg::CSG::A_MINUS_B));
@@ -798,7 +854,7 @@ void aperio::slot_btnSlice()
 		selectedMesh->color.GetGreen(),
 		selectedMesh->color.GetBlue());
 
-	// Run through list and see if name with + already exists, while it exists, add another + 
+	// Run through list and see if name with + already exists, while it exists, add another +
 	// to generate unique name
 	std::stringstream ss;
 	ss << selectedMesh->name << "+";
@@ -808,7 +864,6 @@ void aperio::slot_btnSlice()
 	std::string name = ss.str();
 
 	float opacity = selectedMesh->opacity >= 1 ? 1 : selectedMesh->opacity * 0.5f;
-
 
 	// Create a mapper and actor
 	vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(this, dataset, color.GetRed(),
@@ -883,6 +938,219 @@ void aperio::slot_listitemclicked(int i)
 	std::string itemString = ui.listWidget->item(i)->text().toStdString();	// get new selectedMesh string from list
 	setSelectedMesh(getMeshByName(itemString));
 }
+
+//-------------------------------------------------------------------------------------------
+void aperio::slot_timeout_fps()
+{
+	if (GetAsyncKeyState(VK_ESCAPE) && this->isActiveWindow())
+	{
+		this->close();
+	}
+
+	// Increment wave-time in seconds for wiggle
+	wavetime = wavetime + 0.01275;
+	if (wavetime > 500)
+		wavetime = 0;
+
+	// ---- Control wiggle
+	if (ui.chkWiggle->isChecked())
+		wiggle = true;
+	else
+		wiggle = false;
+
+	if (GetAsyncKeyState(VK_CONTROL))
+		wiggle = false;
+
+	if (!pause)
+	{
+		qv->update();
+	}
+}
+//-------------------------------------------------------------------------------------
+void aperio::slot_chkDepthPeel(bool checked)
+{
+}
+//-------------------------------------------------------------------------------------
+void aperio::slot_chkCap(bool checked)
+{
+	cap = !cap;
+}
+//----------------------------------------------------------------------------------------------
+void aperio::slot_explodeSlider(int value)
+{
+	for (auto &mesh : meshes)
+	{
+		if (mesh.generated)
+		{
+			float explodeAmount = ui.txtExplodeAmount->text().toInt();
+
+			float currentAmount = (value / 100.0) * explodeAmount;
+
+			vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+			transform->PostMultiply();
+
+			/* // Rotate to current angle before hinging?
+			transform->Translate(-mesh.hingePivot.GetX(), -mesh.hingePivot.GetY(), -mesh.hingePivot.GetZ());
+			transform->RotateWXYZ(mesh.hingeAngle, mesh.sforward.GetX(), mesh.sforward.GetY(),
+			mesh.sforward.GetZ());
+			transform->Translate(mesh.hingePivot.GetX(), mesh.hingePivot.GetY(), mesh.hingePivot.GetZ());*/
+
+			transform->Translate(
+				currentAmount * mesh.snormal.GetX(),
+				currentAmount * mesh.snormal.GetY(),
+				currentAmount * mesh.snormal.GetZ());
+
+			mesh.actor->SetUserTransform(transform);
+		}
+	}
+	// Update highlight
+	if (selectedMesh != meshes.end())
+		interactorstyle->HighlightProp3D(selectedMesh->actor);
+
+	QApplication::processEvents();
+}
+
+//----------------------------------------------------------------------------------------------
+void aperio::slot_hingeSlider(int value)
+{
+	if (selectedMesh == meshes.end() || !selectedMesh->generated)	//	Make sure selected & generated mesh (Rather than original mesh)
+		return;
+
+	float angle = (value / 100.0) * ui.txtHingeAmount->text().toInt();
+
+	selectedMesh->hingeAngle = angle;
+	selectedMesh->hingeAmount = ui.txtHingeAmount->text().toInt();
+
+	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
+	transform->PostMultiply();
+	transform->Translate(-selectedMesh->hingePivot.GetX(), -selectedMesh->hingePivot.GetY(), -selectedMesh->hingePivot.GetZ());
+	transform->RotateWXYZ(angle, selectedMesh->sforward.GetX(), selectedMesh->sforward.GetY(),
+		selectedMesh->sforward.GetZ());
+	transform->Translate(selectedMesh->hingePivot.GetX(), selectedMesh->hingePivot.GetY(), selectedMesh->hingePivot.GetZ());
+
+	selectedMesh->actor->SetUserTransform(transform);
+
+	// Update highlight
+	interactorstyle->HighlightProp3D(selectedMesh->actor);
+
+	QApplication::processEvents();
+	//}
+}
+//-------------------------------------------------------------------------------
+void aperio::slot_btnHide()
+{
+	if (selectedMesh != meshes.end())
+	{
+		float newopacity;
+
+		if (selectedMesh->opacity == 0)
+		{
+			newopacity = 100;
+			//interactorstyle->HighlightProp3D(selectedMesh->actor);
+		}
+		else
+		{
+			newopacity = 0;
+			//interactorstyle->HighlightProp3D(nullptr);
+		}
+
+		selectedMesh->opacity = newopacity;
+		selectedMesh->actor->GetProperty()->SetOpacity(newopacity);
+		updateOpacitySliderAndList();
+	}
+}
+//-------------------------------------------------------------------------------------
+void aperio::slot_txtHingeAmount(const QString &string)
+{
+	if (selectedMesh == meshes.end() || !selectedMesh->generated)	//	Make sure selected & generated mesh (Rather than original mesh)
+		return;
+
+	selectedMesh->hingeAmount = ui.txtHingeAmount->text().toInt();
+}
+
+#pragma endregion
+// *******************************************************************************
+
+//-------------------------------------------------------------------------------------
+void aperio::updateOpacitySliderAndList()
+{
+	if (selectedMesh != meshes.end())
+	{
+		ui.opacitySlider->setValue(selectedMesh->opacity * 100);
+
+		ui.listWidget->clearSelection();	// unselect all previous selected items in list
+
+		if (selectedMesh != meshes.end())
+		{
+			auto item = getListItemByName(selectedMesh->name);
+
+			if (item)
+			{
+				item->setSelected(true);
+				ui.listWidget->scrollToItem(item);
+
+				// Update other sliders too (get hinging amount)
+				if (selectedMesh->generated)
+				{
+					float hingeAmount = selectedMesh->hingeAmount;
+					float hingeAngle = selectedMesh->hingeAngle;
+
+					ui.txtHingeAmount->setText(QString::number(hingeAmount));
+					ui.hingeSlider->setValue((hingeAngle / hingeAmount) * 100.0);
+
+					//interactorstyle->HighlightProp3D(NULL);
+					//interactorstyle->HighlightProp3D(selectedMesh->actor);
+
+					//vtkOutlineSource::SafeDownCast(interactorstyle->GetOutlineActor()->GetMapper()->GetInput())->Update();
+					//interactorstyle->GetOutlineActor()->highli
+					//interactorstyle->GetOutline()->SetInputData(selectedMesh->actor->GetMapper()->GetInputDataObject());
+
+					//interactorstyle->GetOutline()->SetInputData(selectedMesh->actor->GetMapper()->GetInput());
+					//interactorstyle->GetOutline()->Update();
+				}
+
+				vtkColor3f mycol = selectedMesh->color;
+				colorDialog->setCurrentColor(QColor(mycol.GetRed() * 255, mycol.GetGreen() * 255, mycol.GetBlue() * 255));
+
+				// Update check states in listbox
+
+				for (auto &mesh : meshes)
+				{
+					auto item = getListItemByName(mesh.name);
+
+					if (mesh.opacity <= 0)
+						item->setCheckState(Qt::Unchecked);
+					else
+						item->setCheckState(Qt::Checked);
+				}
+			}
+		}
+	}
+}
+//-----------------------------------------------------------------------------------------
+void aperio::setSelectedMesh(std::vector<CustomMesh>::iterator &it)
+{
+	// Reset all meshes' selection parameter to false
+	for (auto &mesh : meshes)
+		mesh.selected = false;
+
+	selectedMesh = it;			// Set selectedMesh to mesh clicked
+
+	if (it != meshes.end())
+	{
+		selectedMesh->selected = true;	// Set selected property to true
+		updateOpacitySliderAndList();	// Update list
+
+		// Remove previous highlight
+		interactorstyle->HighlightProp(NULL);
+
+		// Highlight new prop
+		interactorstyle->HighlightProp3D(selectedMesh->actor);
+
+		interactorstyle->GetOutlineActor()->GetProperty()->SetLineWidth(1.65);
+		interactorstyle->GetOutlineActor()->GetProperty()->SetOpacity(0.9);
+	}
+}
 //--------------------------------------------------------------------------------------
 vtkSmartPointer<vtkTransform> aperio::makeCompositeTransform(MyElem &elem)
 {
@@ -936,185 +1204,14 @@ vtkSmartPointer<vtkTransform> aperio::makeCompositeTransform(MyElem &elem)
 
 	return transform;
 }
-//-------------------------------------------------------------------------------------------
-void aperio::slot_timeout_fps()
-{
-	if (GetAsyncKeyState(VK_ESCAPE) && this->isActiveWindow())
-	{
-		this->close();
-	}
-
-	// Increment wave-time in seconds for wiggle
-	wavetime = wavetime + 0.01275;
-	if (wavetime > 500)
-		wavetime = 0;
-
-	// ---- Control wiggle
-	if (ui.chkWiggle->isChecked())
-		wiggle = true;
-	else
-		wiggle = false;
-
-	if (GetAsyncKeyState(VK_CONTROL))
-		wiggle = false;
-
-	if (!pause)
-	{
-		qv->update();
-	}
-		
-}
-//-------------------------------------------------------------------------------------
-void aperio::slot_chkDepthPeel(bool checked)
-{
-}
-//-------------------------------------------------------------------------------------
-void aperio::slot_chkCap(bool checked)
-{
-	cap = !cap;
-}
-//-------------------------------------------------------------------------------------
-void aperio::updateOpacitySliderAndList()
-{
-	if (selectedMesh != meshes.end())
-	{
-		ui.opacitySlider->setValue(selectedMesh->opacity * 100);
-
-		ui.listWidget->clearSelection();	// unselect all previous selected items in list
-
-		if (selectedMesh != meshes.end())
-		{
-			auto item = getListItemByName(selectedMesh->name);
-
-			if (item)
-			{
-				item->setSelected(true);
-				ui.listWidget->scrollToItem(item);
-
-				// Update other sliders too (get hinging amount)
-				if (selectedMesh->generated)
-				{
-					float hingeAmount = selectedMesh->hingeAmount;
-					float hingeAngle = selectedMesh->hingeAngle;
-
-					ui.txtHingeAmount->setText(QString::number(hingeAmount));
-					ui.hingeSlider->setValue((hingeAngle / hingeAmount) * 100.0);
-
-					//interactorstyle->HighlightProp3D(NULL);
-					//interactorstyle->HighlightProp3D(selectedMesh->actor);
-
-					//vtkOutlineSource::SafeDownCast(interactorstyle->GetOutlineActor()->GetMapper()->GetInput())->Update();
-					//interactorstyle->GetOutlineActor()->highli
-					//interactorstyle->GetOutline()->SetInputData(selectedMesh->actor->GetMapper()->GetInputDataObject());
-
-					//interactorstyle->GetOutline()->SetInputData(selectedMesh->actor->GetMapper()->GetInput());
-					//interactorstyle->GetOutline()->Update();
-				}
-
-				vtkColor3f mycol = selectedMesh->color;
-				colorDialog->setCurrentColor(QColor(mycol.GetRed() * 255, mycol.GetGreen() * 255, mycol.GetBlue() * 255));
-
-				// Update check states in listbox
-				for (int i = 0; i < meshes.size(); i++)
-				{
-					auto item = getListItemByName(meshes[i].name);
-
-					if (meshes[i].opacity <= 0)
-						item->setCheckState(Qt::Unchecked);
-					else
-						item->setCheckState(Qt::Checked);
-				}
-			}
-		}
-	}
-}
-//----------------------------------------------------------------------------------------------
-void aperio::slot_hingeSlider(int value)
-{
-	if (selectedMesh == meshes.end() || !selectedMesh->generated)	//	Make sure selected & generated mesh (Rather than original mesh)
-		return;
-
-	float angle = (value / 100.0) * ui.txtHingeAmount->text().toInt();
-	
-	selectedMesh->hingeAngle  = angle;
-	selectedMesh->hingeAmount = ui.txtHingeAmount->text().toInt();
-
-	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
-	transform->PostMultiply();
-	transform->Translate(-selectedMesh->hingePivot.GetX(), -selectedMesh->hingePivot.GetY(), -selectedMesh->hingePivot.GetZ());
-	transform->RotateWXYZ(angle, selectedMesh->sforward.GetX(), selectedMesh->sforward.GetY(),
-		selectedMesh->sforward.GetZ());
-	transform->Translate(selectedMesh->hingePivot.GetX(), selectedMesh->hingePivot.GetY(), selectedMesh->hingePivot.GetZ());
-
-	selectedMesh->actor->SetUserTransform(transform);
-
-	// Update highlight
-	interactorstyle->HighlightProp3D(selectedMesh->actor);
-
-	QApplication::processEvents();
-	//}
-}
-//-------------------------------------------------------------------------------
-void aperio::slot_btnHide()
-{
-	if (selectedMesh != meshes.end())
-	{
-		float newopacity;
-
-		if (selectedMesh->opacity == 0)
-		{
-			newopacity = 100;
-			//interactorstyle->HighlightProp3D(selectedMesh->actor);
-		}
-		else
-		{
-			newopacity = 0;
-			//interactorstyle->HighlightProp3D(nullptr);
-		}
-
-		selectedMesh->opacity = newopacity;
-		selectedMesh->actor->GetProperty()->SetOpacity(newopacity);
-		updateOpacitySliderAndList();
-	}
-}
-//-------------------------------------------------------------------------------------
-void aperio::slot_txtHingeAmount(const QString &string)
-{
-	if (selectedMesh == meshes.end() || !selectedMesh->generated)	//	Make sure selected & generated mesh (Rather than original mesh)
-		return;
-
-	selectedMesh->hingeAmount = ui.txtHingeAmount->text().toInt();
-}
-//-----------------------------------------------------------------------------------------
-void aperio::setSelectedMesh(std::vector<CustomMesh>::iterator &it)
-{
-	// Reset all meshes' selection parameter to false
-	for (int i = 0; i < meshes.size(); i++)
-		meshes[i].selected = false;
-
-	selectedMesh = it;			// Set selectedMesh to mesh clicked 
-
-	if (it != meshes.end())
-	{
-		selectedMesh->selected = true;	// Set selected property to true
-		updateOpacitySliderAndList();	// Update list
-
-		// Remove previous highlight
-		interactorstyle->HighlightProp(NULL);
-
-		// Highlight new prop
-		interactorstyle->HighlightProp3D(selectedMesh->actor);
-
-		interactorstyle->GetOutlineActor()->GetProperty()->SetLineWidth(1.65);
-		interactorstyle->GetOutlineActor()->GetProperty()->SetOpacity(0.9);
-	}
-}
 //--------------------------------------------------------------------------------------------------------------
 void aperio::resetClippingPlane()
 {
+	interactorstyle->SetAutoAdjustCameraClippingRange(false);
+
 	renderer->ResetCameraClippingRange();
 	double d[2];
 	renderer->GetActiveCamera()->GetClippingRange(d);
-	renderer->GetActiveCamera()->SetClippingRange(0.025, 7500);
+	renderer->GetActiveCamera()->SetClippingRange(0.05, 5000);
 	//renderer->GetActiveCamera()->SetClippingRange(0.05, d[1] + 1000.0);
 }

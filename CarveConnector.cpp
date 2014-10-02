@@ -7,7 +7,7 @@ using namespace carve::mesh;
 
 //------------------------------------------------------------------------------------
 CarveConnector::CarveConnector()
-{
+{	
 }
 //------------------------------------------------------------------------------------
 CarveConnector::~CarveConnector()
@@ -54,7 +54,6 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::makeCube(float size, const 
 }
 //----------------------------------------------------------------------------------------------------------------------------------------
 class HoleResolver : public carve::csg::CarveHoleResolver {
-
 	void removeDuplicatedFaces(std::vector<MeshSet<3>::face_t *> &faces) {
 		std::vector<MeshSet<3>::face_t *> out_faces;
 		std::vector<MeshSet<3>::face_t *> duplicated_faces;
@@ -73,7 +72,6 @@ class HoleResolver : public carve::csg::CarveHoleResolver {
 				if (cur_face->nEdges() == face->nEdges() &&
 					cur_face->edge->vert == face->edge->vert)
 				{
-
 					MeshSet<3>::edge_t *cur_edge = cur_face->edge,
 						*forward_edge = face->edge,
 						*backward_edge = face->edge;
@@ -179,7 +177,6 @@ vtkSmartPointer<vtkPolyData> CarveConnector::meshSetToVTKPolyData(unique_ptr<car
 	boost::unordered_map<MeshSet<3>::vertex_t*, uint> vertexToIndex_map;	// vertex index map
 	auto iter = c->vertex_storage.begin();
 	for (int k = 0; iter != c->vertex_storage.end(); ++k, ++iter) {
-
 		MeshSet<3>::vertex_t *vertex = &(*iter);
 
 		//points->SetPoint(k, vertex->v.x, vertex->v.y, vertex->v.z);
@@ -230,7 +227,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::vtkPolyDataToMeshSet(vtkSma
 		vertices[i] = carve::geom::VECTOR(p[0], p[1], p[2]);
 	}
 
-	// Then make MeshSet Faces 
+	// Then make MeshSet Faces
 	vtkSmartPointer<vtkCellArray> polys = thepolydata->GetPolys();
 	polys->InitTraversal();
 
@@ -255,7 +252,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::vtkPolyDataToMeshSet(vtkSma
 		//f[t++] = pts[2];
 
 		//if (n_pts > 3)
-			//f[t++] = pts[3];
+		//f[t++] = pts[3];
 		numfaces++;
 	}
 	// Construct MeshSet from vertices and faces
@@ -267,9 +264,9 @@ vtkSmartPointer<vtkPolyData> CarveConnector::cleanVtkPolyData(vtkSmartPointer<vt
 {
 	thepolydata->GetPointData()->SetTCoords(nullptr);
 	thepolydata->GetPointData()->SetNormals(nullptr);
-	
-	vtkSmartPointer<vtkPolyData> processed  = thepolydata;
-	
+
+	vtkSmartPointer<vtkPolyData> processed = thepolydata;
+
 	if (triangulate)
 	{
 		vtkSmartPointer<vtkTriangleFilter> filter = vtkSmartPointer<vtkTriangleFilter>::New();
@@ -293,7 +290,6 @@ vtkSmartPointer<vtkPolyData> CarveConnector::cleanVtkPolyData(vtkSmartPointer<vt
 	//clean->ConvertStripsToPolysOn();
 	clean->PointMergingOn();
 	clean->Update();
-
 
 	return vtkSmartPointer<vtkPolyData>(clean->GetOutput());
 }

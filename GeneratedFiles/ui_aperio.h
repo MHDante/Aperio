@@ -55,6 +55,8 @@ public:
     QSlider *thetaSlider;
     QLabel *label_7;
     QLabel *label_8;
+    QLabel *lblThickness;
+    QSlider *thicknessSlider;
     QWidget *tab;
     QCheckBox *chkCap;
     QCheckBox *chkDepthPeel;
@@ -466,7 +468,7 @@ public:
         tab_2->setObjectName(QStringLiteral("tab_2"));
         chkToroid = new QCheckBox(tab_2);
         chkToroid->setObjectName(QStringLiteral("chkToroid"));
-        chkToroid->setGeometry(QRect(100, 80, 81, 17));
+        chkToroid->setGeometry(QRect(20, 80, 81, 17));
         chkToroid->setAutoFillBackground(false);
         phiSlider = new QSlider(tab_2);
         phiSlider->setObjectName(QStringLiteral("phiSlider"));
@@ -492,6 +494,20 @@ public:
         label_8 = new QLabel(tab_2);
         label_8->setObjectName(QStringLiteral("label_8"));
         label_8->setGeometry(QRect(20, 50, 121, 16));
+        lblThickness = new QLabel(tab_2);
+        lblThickness->setObjectName(QStringLiteral("lblThickness"));
+        lblThickness->setGeometry(QRect(110, 80, 121, 16));
+        thicknessSlider = new QSlider(tab_2);
+        thicknessSlider->setObjectName(QStringLiteral("thicknessSlider"));
+        thicknessSlider->setEnabled(true);
+        thicknessSlider->setGeometry(QRect(180, 80, 91, 16));
+        thicknessSlider->setMinimum(1);
+        thicknessSlider->setMaximum(100);
+        thicknessSlider->setValue(40);
+        thicknessSlider->setOrientation(Qt::Horizontal);
+        thicknessSlider->setInvertedAppearance(false);
+        thicknessSlider->setInvertedControls(false);
+        thicknessSlider->setTickPosition(QSlider::NoTicks);
         tabWidget->addTab(tab_2, QString());
         tab = new QWidget();
         tab->setObjectName(QStringLiteral("tab"));
@@ -631,7 +647,7 @@ public:
 
         retranslateUi(aperioClass);
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(aperioClass);
@@ -677,6 +693,10 @@ public:
 #endif // QT_NO_TOOLTIP
         label_7->setText(QApplication::translate("aperioClass", "Phi Roundness", 0));
         label_8->setText(QApplication::translate("aperioClass", "Theta Roundness", 0));
+        lblThickness->setText(QApplication::translate("aperioClass", "Thickness", 0));
+#ifndef QT_NO_TOOLTIP
+        thicknessSlider->setToolTip(QString());
+#endif // QT_NO_TOOLTIP
         tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("aperioClass", "Superquad", 0));
         chkCap->setText(QApplication::translate("aperioClass", "Cap Hole in Previewer", 0));
         chkDepthPeel->setText(QApplication::translate("aperioClass", "Depth Peeling for Translucency", 0));
@@ -705,7 +725,7 @@ public:
 #ifndef QT_NO_TOOLTIP
         txtExplodeAmount->setToolTip(QApplication::translate("aperioClass", "Max Explosion Amount (units)", 0));
 #endif // QT_NO_TOOLTIP
-        txtExplodeAmount->setText(QApplication::translate("aperioClass", "10", 0));
+        txtExplodeAmount->setText(QApplication::translate("aperioClass", "2", 0));
         txtExplodeAmount->setPlaceholderText(QString());
 #ifndef QT_NO_TOOLTIP
         slideSlider->setToolTip(QApplication::translate("aperioClass", "Slide", 0));

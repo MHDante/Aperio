@@ -116,7 +116,6 @@ protected:
 private:
 	vtkMyBasePass(const vtkMyBasePass&);  // Not implemented.
 	void operator=(const vtkMyBasePass&);  // Not implemented.
-
 };
 
 #endif

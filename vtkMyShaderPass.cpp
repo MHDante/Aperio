@@ -164,7 +164,8 @@ void vtkMyShaderPass::Render(const vtkRenderState *s)
 
 		auto texEnvParams = []()
 		{
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -174,7 +175,7 @@ void vtkMyShaderPass::Render(const vtkRenderState *s)
 		for (auto &t : textures)
 		{
 			t.id = tu->Allocate();
-
+			
 			vtkgl::ActiveTexture(vtkgl::TEXTURE0 + t.id);
 			t.texture->Bind();
 			texEnvParams();
@@ -187,12 +188,11 @@ void vtkMyShaderPass::Render(const vtkRenderState *s)
 
 		for (auto &t : textures)
 			uniforms->SetUniformi(t.name.c_str(), 1, &t.id);
-	
+
 		uniforms->SetUniformi("depthSelectedF", 1, &textures[0].id);
-		
 
 		this->RenderGeometry(s, false);	// Render opaque geometry first
-		this->RenderGeometry(s, true);	// Render translucent geometry 
+		this->RenderGeometry(s, true);	// Render translucent geometry
 
 		// Cleanup
 		textures[0].texture->UnBind();
@@ -206,7 +206,7 @@ void vtkMyShaderPass::Render(const vtkRenderState *s)
 	{
 		//vtkWarningMacro(<< " no delegate.");
 		this->RenderGeometry(s, false);	// Render opaque geometry first
-		this->RenderGeometry(s, true);	// Render translucent geometry 
+		this->RenderGeometry(s, true);	// Render translucent geometry
 	}
 }
 
@@ -261,7 +261,6 @@ void vtkMyShaderPass::MyRenderDelegate(const vtkRenderState *s,
 		{
 			large = newHeight;
 			small = height;
-
 		}
 		double angle = vtkMath::RadiansFromDegrees(newCamera->GetViewAngle());
 
@@ -297,7 +296,7 @@ void vtkMyShaderPass::MyRenderDelegate(const vtkRenderState *s,
 
 	int num_textures = textures.size();
 	for (int i = 0; i < num_textures; i++)
-		FrameBufferObject->SetColorBuffer(i, textures[i].texture);		
+		FrameBufferObject->SetColorBuffer(i, textures[i].texture);
 
 	// Render into n attachments (indices)
 	unsigned int *indices = new unsigned int[num_textures];	// Make {0, 1, 2, etc }

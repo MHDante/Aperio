@@ -1,4 +1,4 @@
-// stdafx.h :   Include standard system/library files or includes that are used frequently, 
+// stdafx.h :   Include standard system/library files or includes that are used frequently,
 //				but changed infrequently.
 
 // ------- Can also go to project settings > c/c++ > advanced & have this file "Force included" in all files (or done manually)
@@ -22,7 +22,7 @@
 //------------ QT Includes ---------------------------------
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
-#include <QFileDialog> 
+#include <QFileDialog>
 #include <QStatusBar>
 #include <QLabel>
 #include <QResizeEvent>
@@ -32,14 +32,12 @@
 #include <QDebug>
 #include <QString>
 
-
 //------------ VTK Includes -----------------------
-
 
 //#define vtkRenderingCore_AUTOINIT 2(vtkInteractionStyle,vtkRenderingOpenGL)
 //#define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
 
-#include <vtkAutoInit.h> 
+#include <vtkAutoInit.h>
 VTK_MODULE_INIT(vtkInteractionStyle)
 VTK_MODULE_INIT(vtkRenderingOpenGL)
 
@@ -62,13 +60,13 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 
-#include <vtkFloatArray.h> 
+#include <vtkFloatArray.h>
 #include <vtkMath.h>
 #include <vtkVector.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkPointData.h>
-#include <vtkPolyDataCollection.h> 
+#include <vtkPolyDataCollection.h>
 
 #include <vtkPolygon.h>
 #include <vtkProperty.h>
@@ -126,4 +124,3 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 
 // VTK Debug leaks
 //#include <vtkDebugLeaks.h>
-

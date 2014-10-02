@@ -1,7 +1,7 @@
 // *******************************************************************************
-// Interactor Style - Interactor for QVTKWidget, includes keypresses, mouse 
+// Interactor Style - Interactor for QVTKWidget, includes keypresses, mouse
 //					  drags, any interaction on-screen (potentially multi-touch)
-//					  May split .cpp file 
+//					  May split .cpp file
 // *******************************************************************************
 
 #ifndef __MYINTERACTORSTYLE_H
@@ -49,7 +49,7 @@ public:
 	vtkSmartPointer<vtkActor> GetOutlineActor();
 
 	//--------------------------------------------------------------------------------------------------
-	/// <summary> Get Outline 
+	/// <summary> Get Outline
 	/// </summary>
 	vtkOutlineSource* GetOutline()
 	{
@@ -90,7 +90,7 @@ public:
 	virtual void OnChar() override;
 	//----------------------------------------------------------------------------
 
-	///<summary> Override the following with same code but removing Render() call to limit framerate 
+	///<summary> Override the following with same code but removing Render() call to limit framerate
 	///</summary>
 	virtual void Rotate() override;
 	//----------------------------------------------------------------------------

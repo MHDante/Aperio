@@ -118,7 +118,7 @@ public:
 	void SetXAxisOfSymmetry() { this->SetAxisOfSymmetry(0); }
 	void SetYAxisOfSymmetry() { this->SetAxisOfSymmetry(1); }
 	void SetZAxisOfSymmetry() { this->SetAxisOfSymmetry(2); }
-
+	
 	// Description:
 	// Set/Get whether or not the superquadric is toroidal (1) or ellipsoidal (0).
 	// Initial value is 0.

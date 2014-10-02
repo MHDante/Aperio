@@ -164,7 +164,10 @@ int vtkMyBasePass::RenderProp(vtkProp *p, const vtkRenderState *s, bool transluc
 	}
 	else
 	{
-		static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_all();
+		static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_back();
+		rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
+
+		static_cast<vtkMyOpenGLProperty *>(vtkOpenGLProperty::SafeDownCast(vtkActor::SafeDownCast(p)->GetProperty()))->show_front();
 		rendered = p->RenderFilteredOpaqueGeometry(s->GetRenderer(), s->GetRequiredKeys());
 	}
 	return rendered;
@@ -196,7 +199,6 @@ void vtkMyBasePass::setGlobalUniforms()
 	uniforms->SetUniformf("brushSize", 1, &a->brushSize);
 	uniforms->SetUniformit("previewer", 1, &a->previewer);
 	uniforms->SetUniformit("cap", 1, &a->cap);
-	uniforms->SetUniformf("myexp", 1, &a->myexp);
 	uniforms->SetUniformi("shadingnum", 1, &a->shadingnum);
 	uniforms->SetUniformi("source", 1, &source);
 	uniforms->SetUniformi("sourceBump", 1, &sourceBump);
@@ -218,9 +220,14 @@ void vtkMyBasePass::setGlobalUniforms()
 	}
 	float phi = a->getUI().phiSlider->value() / a->roundnessScale;
 	float theta = a->getUI().thetaSlider->value() / a->roundnessScale;
+	float thickness = a->getUI().thicknessSlider->value() / a->thicknessScale;
+
+	bool toroid = a->getUI().chkToroid->isChecked();
 
 	uniforms->SetUniformf("phi", 1, &phi);
 	uniforms->SetUniformf("theta", 1, &theta);
+	uniforms->SetUniformf("thickness", 1, &thickness);
+	uniforms->SetUniformit("toroid", 1, &toroid);
 
 	uniforms->SetUniformit("difftrans", 1, &a->difftrans);
 
@@ -232,20 +239,24 @@ void vtkMyBasePass::setGlobalUniforms()
 //-----------------------------------------------------------------------------
 void vtkMyBasePass::setPropUniforms(vtkProp *p)
 {
-	// Manually set uniforms for each actor
-	bool outline = false;
-	uniforms->SetUniformit("outline", 1, &outline);
-
 	// Find actor inside CustomMesh vector (using lambda to compare CustomMesh's actor pointer with vtkActor's pointer)
 	auto it = a->getMeshByActorRaw(vtkActor::SafeDownCast(p));
 
-	bool iselem = false;
+	// Default uniforms
+	bool outline = false;
+	uniforms->SetUniformit("outline", 1, &outline);
 
+	bool iselem = false;
+	uniforms->SetUniformit("iselem", 1, &iselem);			// False default (not an element)
+
+	bool selected = false;
+	uniforms->SetUniformit("selected", 1, &selected);
+
+	// Mesh
 	if (it != a->meshes.end())
 	{
 		// Found the CustomMesh object mapped to this actor (actor is a subclass of prop)
 		uniforms->SetUniformit("selected", 1, &it->selected);
-		uniforms->SetUniformit("iselem", 1, &iselem);			// False default (not an element)
 	}
 	else
 	{
@@ -265,7 +276,7 @@ void vtkMyBasePass::setPropUniforms(vtkProp *p)
 
 			if (p->GetPropertyKeys() && p->GetPropertyKeys()->Has(vtkMyBasePass::OUTLINEKEY()))
 			{
-				bool outline = true;
+				outline = true;
 				uniforms->SetUniformit("outline", 1, &outline);
 				glEnable(GL_LINE_SMOOTH);
 

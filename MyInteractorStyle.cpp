@@ -16,8 +16,10 @@
 #include <vtkMyShaderPass.h>
 #include <vtkPickingManager.h>
 
+#include <vtkMath.h>
+
 vtkStandardNewMacro(MyInteractorStyle);
- 
+
 //---------------------------------------------------------------------------------------------------------------
 MyInteractorStyle::MyInteractorStyle() : NumberOfClicks(0), ResetPixelDistance(5)
 {
@@ -25,7 +27,7 @@ MyInteractorStyle::MyInteractorStyle() : NumberOfClicks(0), ResetPixelDistance(5
 	this->PreviousPosition[1] = 0;
 
 	this->cellPicker = vtkSmartPointer<vtkCellPicker>::New();
-	//this->cellPicker->SetTolerance(0.0005);	
+	//this->cellPicker->SetTolerance(0.0005);
 
 	dragging = false;
 	creation = false;
@@ -50,10 +52,10 @@ void MyInteractorStyle::OnKeyPress()
 	// Show all
 	if (GetKeyState(VK_MENU) & 0x1000 && GetKeyState('H') & 0x1000)
 	{
-		for (int i = 0; i < a->meshes.size(); i++)
+		for (auto &mesh : a->meshes)
 		{
-			a->meshes[i].opacity = 1.0;
-			a->meshes[i].actor->GetProperty()->SetOpacity(1.0);
+			mesh.opacity = 1.0;
+			mesh.actor->GetProperty()->SetOpacity(1.0);
 		}
 		a->updateOpacitySliderAndList();
 	}
@@ -94,7 +96,7 @@ void MyInteractorStyle::OnKeyPress()
 
 		a->selectedMesh->actor->SetPosition(pos);
 	}
-	if (this->Interactor->GetKeyCode() == '3')	// Rotate around hinge	
+	if (this->Interactor->GetKeyCode() == '3')	// Rotate around hinge
 	{
 		a->slot_hingeSlider(128);
 	}
@@ -102,7 +104,7 @@ void MyInteractorStyle::OnKeyPress()
 	{
 		a->slot_btnSlice();
 	}
-	
+
 	float step = 1;
 
 	if (this->Interactor->GetKeyCode() == '+')	// bigger peek brush
@@ -110,7 +112,7 @@ void MyInteractorStyle::OnKeyPress()
 		//a->brushDivide--;
 
 		//if (a->brushSize + step <= 50)
-			a->brushSize += step;
+		a->brushSize += step;
 
 		this->OnMouseMove();
 	}
@@ -127,71 +129,7 @@ void MyInteractorStyle::OnKeyPress()
 	{
 		a->slot_btnGlass();
 	}
-	if (this->Interactor->GetKeyCode() == 'c')	// change roundness (-phi)
-	{
-		float change = 0.1;
-
-		if (a->myn - change >= 0)
-			a->myn -= change;
-
-		//a->superquad->SetPhiRoundness(a->myn);
-		//a->superquad->Update();
-
-		/*int i = a->myelems.size() - 1;
-		a->myelems[i].source->SetPhiRoundness(a->myn);
-		a->myelems[i].source->Update();
-		a->myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
-		*/
-	}
-	if (this->Interactor->GetKeyCode() == 'v')	// change roundness (phi)
-	{
-		float change = 0.1;
-
-		if (a->myn + change <= 20)
-			a->myn += change;
-
-		//a->superquad->SetPhiRoundness(a->myn);
-		//a->superquad->Update();
-
-		/*int i = a->myelems.size() - 1;
-		a->myelems[i].source->SetPhiRoundness(a->myn);
-		a->myelems[i].source->Update();
-		a->myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
-		*/
-	}
-	if (this->Interactor->GetKeyCode() == 'z')	// change roundness (-theta)
-	{
-		float change = 0.1;
-
-		if (a->myexp - change >= 0)
-			a->myexp -= change;
-
-		//a->superquad->SetThetaRoundness(a->myexp);
-		//a->superquad->Update();
-
-		/*int i = a->myelems.size() - 1;
-		a->myelems[i].source->SetThetaRoundness(a->myexp);
-		a->myelems[i].source->Update();
-		a->myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
-		*/
-	}
-	if (this->Interactor->GetKeyCode() == 'x')	// change roundness (theta)
-	{
-		float change = 0.1;
-
-		if (a->myexp + change <= 20)
-			a->myexp += change;
-
-		//a->superquad->SetThetaRoundness(a->myexp);
-		//a->superquad->Update();
-
-		/*int i = a->myelems.size() - 1;
-		a->myelems[i].source->SetThetaRoundness(a->myexp);
-		a->myelems[i].source->Update();
-		a->myelems[i].transformFilter->Update();		// Must update transformfilter for transforms to show
-		*/
-	}
-	if (this->Interactor->GetKeyCode() == 's')	// Create toroidal superquad 
+	if (this->Interactor->GetKeyCode() == 's')	// Create toroidal superquad
 	{
 		if (!a->superquad)
 		{
@@ -205,7 +143,7 @@ void MyInteractorStyle::OnKeyPress()
 
 			a->superquad->SetPhiRoundness(0.5);
 			//a->superquad->SetThickness(0.43);
-			a->superquad->SetThetaRoundness(a->myexp);
+			a->superquad->SetThetaRoundness(2);
 
 			a->superquad->SetCenter(a->mouse[0], a->mouse[1], a->mouse[2]);
 
@@ -225,6 +163,26 @@ void MyInteractorStyle::OnKeyPress()
 
 	float thestep = 0.05;
 
+	//------------------------- Test
+	if (this->Interactor->GetKeyCode() == 'a' && a->myelems.size() > 0)	// Resize last superquad placed
+	{		
+		int i = a->myelems.size() - 1;
+		MyElem &elem = a->myelems.at(i);
+
+		float p1[] = { elem.p1.point.GetX(), elem.p1.point.GetY(), elem.p1.point.GetZ() };
+		float p2[] = { elem.p2.point.GetX(), elem.p2.point.GetY(), elem.p2.point.GetZ() };
+
+		elem.p1.point.Set(p1[0] + 0.1, p1[1], p1[2]);
+		
+		// Also update p1's normal (elem.p1.normal - based on world point underneath x, y, z)
+		 
+		float distance = sqrtf(vtkMath::Distance2BetweenPoints(p1, p2));
+		elem.scale.SetX(distance);
+		
+		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
+		elem.transformFilter->Update();	// Must update transform filter for updates to show
+	}
+
 	//------------- Last superquad --------------------------------------------------------------------------
 	if (this->Interactor->GetKeyCode() == 'u' && a->myelems.size() > 0)	// Resize last superquad placed
 	{
@@ -241,10 +199,10 @@ void MyInteractorStyle::OnKeyPress()
 		vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
 		double elements1[16] = {
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 0.9, 0,
-			0, 0, 0, 1
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 0.9, 0,
+		0, 0, 0, 1
 		};
 		transform->PreMultiply();
 		transform->Concatenate(elements1);
@@ -266,10 +224,10 @@ void MyInteractorStyle::OnKeyPress()
 		vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
 		double elements1[16] = {
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1.1, 0,
-			0, 0, 0, 1
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1.1, 0,
+		0, 0, 0, 1
 		};
 		transform->PreMultiply();
 		transform->Concatenate(elements1);
@@ -301,15 +259,14 @@ void MyInteractorStyle::OnKeyPress()
 		elem.transformFilter->SetTransform(a->makeCompositeTransform(elem));
 		elem.transformFilter->Update();	// Must update transform filter for updates to show
 
-
 		/*int i = a->myelems.size() - 1;
 		vtkTransform* transform = vtkTransform::SafeDownCast(a->myelems.at(i).transformFilter->GetTransform());
 
 		double elements1[16] = {
-			1, 0, 0, 0,
-			0, 0.9, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1
+		1, 0, 0, 0,
+		0, 0.9, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
 		};
 		transform->PreMultiply();
 		transform->Concatenate(elements1);
@@ -334,7 +291,7 @@ void MyInteractorStyle::OnMouseMove()
 
 	cellPicker->Pick(x, y, 0,  // always zero.
 		this->Interactor->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-	
+
 	cellPicker->GetPickPosition(a->mouse);
 	cellPicker->GetPickNormal(a->mouseNorm);
 
@@ -400,7 +357,7 @@ void MyInteractorStyle::OnLeftButtonDown()
 			if (it != a->meshes.end())
 			{
 				// if dbl clicked mesh, set it as selected (update slider/list, etc.)
-				a->setSelectedMesh(it);	// Update selectedMesh to one clicked 
+				a->setSelectedMesh(it);	// Update selectedMesh to one clicked
 			}
 		}
 		this->NumberOfClicks = 0;
@@ -523,6 +480,7 @@ void MyInteractorStyle::OnLeftButtonUp()
 		//superquad->SetThickness(5);
 		superquad->SetPhiRoundness(a->ui.phiSlider->value() / a->roundnessScale);
 		superquad->SetThetaRoundness(a->ui.thetaSlider->value() / a->roundnessScale);
+		superquad->SetThickness(a->ui.thicknessSlider->value() / a->thicknessScale);
 		superquad->Update();
 
 		//a->transform = vtkSmartPointer<vtkMatrix4x4>::New();
@@ -535,7 +493,7 @@ void MyInteractorStyle::OnLeftButtonUp()
 		transformFilter->Update();
 
 		// TODO: superquad opacity
-		elem.actor = Utility::sourceToActor(a, transformFilter->GetOutput(), 1.0, 1.0, 1.0, 0.25);
+		elem.actor = Utility::sourceToActor(a, transformFilter->GetOutput(), 1.0, 1.0, 1.0, 0.2);
 		elem.actor->PickableOff();
 
 		elem.actor->SetUserMatrix(vtkSmartPointer<vtkMatrix4x4>::New());
@@ -630,10 +588,10 @@ void MyInteractorStyle::OnChar()
 		break;
 	case 'r':
 	case 'R':
-/*		this->FindPokedRenderer(rwi->GetEventPosition()[0],
-			rwi->GetEventPosition()[1]);
-		this->CurrentRenderer->ResetCamera();
-		rwi->Render();*/
+		/*		this->FindPokedRenderer(rwi->GetEventPosition()[0],
+					rwi->GetEventPosition()[1]);
+					this->CurrentRenderer->ResetCamera();
+					rwi->Render();*/
 		break;
 	}
 }
@@ -801,7 +759,6 @@ vtkSmartPointer<vtkActor> MyInteractorStyle::GetOutlineActor()
 	vtkSmartPointer<vtkInformation> information = vtkSmartPointer<vtkInformation>::New();
 	information->Set(vtkMyBasePass::OUTLINEKEY(), 0);	// dummy value
 	OutlineActor->SetPropertyKeys(information);
-	
+
 	return OutlineActor;
 }
-

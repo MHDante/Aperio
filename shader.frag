@@ -21,7 +21,7 @@ uniform bool outline = false;
 uniform bool iselem = false;
 
 uniform bool selected = false;
-uniform bool previewer = false;
+uniform bool previewer = true;
 uniform bool difftrans = true;
 
 uniform vec3 mouse = vec3(0, 0, 0);
@@ -44,6 +44,8 @@ uniform vec3 scale = vec3(0, 0, 0);
 
 uniform float phi = 0.0;
 uniform float theta = 0.0;
+uniform float thickness = 0.4;
+uniform bool toroid = false;
 
 uniform int elemssize;
 
@@ -132,36 +134,48 @@ void phongLighting(vec3 n, int shininess)
 		
 		tex = vec3(1, 1, 1);
 		
+		// different opacities for front and back faces
+		float op = 0;
+		if (gl_FrontFacing)
+			op = 0.1;
+		else
+			op = 0.2;
+		
 		final_color = vec4(		
 		1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
 		(Idiff.rgb + vec3(0.35,0.35,0.35)) * tex ) - 0.0 * Iamb.xyz
-		//, 1.0) ;
-		,0.25);		
+		, op) ;
+		//, 0.2);		
 	}
 	
 	if (cap && iselem && !gl_FrontFacing)
 	{
 		vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
 
-		float d_selectedF = texture2D(depthSelectedF, texpos).r;
-		float d_selected = texture2D(depthSelected, texpos).r;
-		float d_SQ = texture2D(depthSQ, texpos).r;
+		vec4 d_selectedF = texture2D(depthSelectedF, texpos);
+		vec4 d_selected = texture2D(depthSelected, texpos);
+		vec4 d_SQ = texture2D(depthSQ, texpos);
 	
-		//if (d_SQ > d_selectedF && d_SQ < d_selected)
-		if (d_SQ > d_selectedF && d_SQ < d_selected)
+		// If front face discarded (empty hole) BUT
+		// also backface must be present AND
+		// superquad's back is closer than back of selec
+		
+		if (d_selectedF.a <= 0 && d_selected.a > 0
+		&& d_SQ.r <= d_selected.r)
 		{
-			final_color = vec4(		
+		final_color = vec4(		
 			1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * (
-		(Idiff.rgb - vec3(0.1,0.1,0.1))) - 0.0 * 	Iamb.xyz
+		(Idiff.rgb + vec3(0.1, 0, 0) - 0*vec3(0.1,0.1,0.1))) - 0.0 * 	Iamb.xyz
 			,1.0);
 			
 			// Capping Mask for SSAO shader
 			gl_FragData[2] = vec4(1, 1, 1, 1);
-		}	
-		
-		//if (d_SQ > d_selected)
-			//final_color = vec4(1, 1, 1, 1);
+		}
 	}
+	
+	vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
+	//final_color = texture2D(depthSQ, texpos);
+	
 	
 }
 
@@ -176,6 +190,55 @@ void toon(vec3 n)
 	float intensity = max(dot(n, normalize(L)), 0.0);
 	vec3 diffuse = gl_Color.rgb * floor(intensity * levels) * scaleFactor;
 	final_color = gl_Color / 20.0f + vec4(diffuse, gl_Color.a);
+}
+
+// ----- Superquad code
+void superquad()
+{
+	float dist = distance(pos1, pos2);
+	vec3 poss = original_v - (pos1 + pos2) / 2.0;
+		
+	// Rotation matrix
+	vec3 right = normalize(pos2 - pos1);	
+	//vec3 forward = normalize((norm1 + norm2) / 2.0);
+	//vec3 up = normalize(cross(forward, right));
+
+	vec3 up = normalize((norm1 + norm2) / 2.0);
+	vec3 forward = normalize(cross(right, up));
+
+	mat3 rotMat = mat3(
+	right, up, forward
+	);
+	// right, up, forward (original)
+	
+	float val = 0;
+	
+	if (toroid)
+	{
+		float alpha = 1.0 / thickness;		
+		vec3 newscale = scale / (alpha + 1.0);
+		
+		poss =  inverse(rotMat) *( poss) / (newscale * 0.5);
+
+		float tval = pow((pow(abs(poss.z), 2.0/theta) + pow(abs(poss.x), 2.0/theta)), theta/2.0);
+		val  = pow(abs(tval - alpha), 2.0/phi) + pow(abs(poss.y), 2.0/phi) - 1.0;
+	}
+	else
+	{
+		poss =  inverse(rotMat) *( poss) / (scale * 0.5);
+		val = pow((pow(abs(poss.z), 2.0/theta) + pow(abs(poss.x), 2.0/theta)), theta/phi) + pow(abs(poss.y),2.0/phi) - 1.0;
+	}
+	
+	if (selected)	// if selected
+	{
+		if (val < 0 && elemssize > 0)
+		{
+			if (previewer)
+				discard;
+			else
+				final_color = final_color * 1.5;
+		}
+	}
 }
 
 // ************-------- Main function --------***************//
@@ -201,35 +264,7 @@ void main()
 	vec4 mouseV = gl_ModelViewMatrix * vec4(vec3(mouse), 1);
 	//vec4 mouseV = vec4(vec3(mouse), 1);
 	
-	float dist = distance(pos1, pos2);
-	vec3 poss = original_v - (pos1 + pos2) / 2.0;
-		
-	// Rotation matrix
-	vec3 right = normalize(pos2 - pos1);	
-	//vec3 forward = normalize((norm1 + norm2) / 2.0);
-	//vec3 up = normalize(cross(forward, right));
-
-	vec3 up = normalize((norm1 + norm2) / 2.0);
-	vec3 forward = normalize(cross(right, up));
-
-	mat3 rotMat = mat3(
-	right, up, forward
-	);
-	// right, up, forward (original)
-
-	poss =  inverse(rotMat) *( poss) / (scale * 0.5);
-	
-    float val = pow((pow(abs(poss.z), 2.0/theta) + pow(abs(poss.x), 2.0/theta)), theta/phi) + pow(abs(poss.y),2.0/phi) - 1.0;
-	
-	if (selected)	// if selected
-	{
-		if (val < 0 && elemssize > 0)
-		{
-			if (previewer)
-				discard;
-			else
-				final_color = final_color * 1.5;
-		}
+	superquad();
 		/*float minDist = brushSize;		
 		if (previewer)
 		{
@@ -244,8 +279,7 @@ void main()
 				//float dd = d / (1.5 * minDist);
 				//final_color = vec4(1, 0.7, 0.4,  dd - 0.55);
 			}
-		}*/
-	}
+		}*/		
 	gl_FragData[0] = final_color;
 		
 	if (outline == true)

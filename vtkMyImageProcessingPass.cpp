@@ -191,10 +191,10 @@ void vtkMyImageProcessingPass::Render(const vtkRenderState *s)
 		}
 
 		vtkTextureUnitManager *tu = static_cast<vtkOpenGLRenderWindow *>(r->GetRenderWindow())->GetTextureUnitManager();
-		
+
 		auto texEnvParams = []()
 		{
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -204,11 +204,11 @@ void vtkMyImageProcessingPass::Render(const vtkRenderState *s)
 		{
 			t.id = tu->Allocate();
 
-			vtkgl::ActiveTexture(vtkgl::TEXTURE0 + t.id);
-			t.texture->Bind();			
+			vtkgl::ActiveTexture(vtkgl::TEXTURE0 + t.id);		
+			t.texture->Bind();
 			texEnvParams();
 		}
-		
+
 		int id0 = tu->Allocate();	// For depth
 
 		vtkgl::ActiveTexture(vtkgl::TEXTURE0 + id0);
@@ -269,7 +269,7 @@ void vtkMyImageProcessingPass::Render(const vtkRenderState *s)
 		{
 			vtkErrorMacro(<< this->Program1->GetLastValidateLog());
 		}
-		
+
 		// Prepare blitting
 		glDisable(GL_ALPHA_TEST);
 		glDisable(GL_BLEND);
@@ -286,7 +286,7 @@ void vtkMyImageProcessingPass::Render(const vtkRenderState *s)
 
 		for (auto &t : textures)
 			tu->Free(t.id);
-		
+
 		tu->Free(id0);
 
 		this->Program1->Restore();
@@ -348,7 +348,6 @@ void vtkMyImageProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 		{
 			large = newHeight;
 			small = height;
-
 		}
 		double angle = vtkMath::RadiansFromDegrees(newCamera->GetViewAngle());
 
@@ -377,7 +376,6 @@ void vtkMyImageProcessingPass::MyRenderDelegate(const vtkRenderState *s,
 
 		DepthTexture->Create2D(newWidth, newHeight, 1, VTK_VOID, false);
 	}
-
 
 	// Set color attachments
 	FrameBufferObject->SetNumberOfRenderTargets(textures.size());

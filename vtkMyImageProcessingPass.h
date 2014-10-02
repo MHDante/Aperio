@@ -71,7 +71,7 @@ protected:
 	// Description:
 	// Graphics resources.
 	vtkSmartPointer<vtkFrameBufferObject> FrameBufferObject;
-	
+
 	vtkSmartPointer<vtkTextureObject> DepthTexture;
 
 	vtkSmartPointer<vtkRenderPass> DelegatePass;	// Delegate pass
