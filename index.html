@@ -71,7 +71,7 @@ relationships between parts of the 3D system. </p>
 </li>
 <li>Carve CSG (Latest) (Boolean operations), <a href="http://carve-csg.com/">carve-csg.com</a> <br>
 </li>
-<li>Graphics card with GLSL Shaders/FBOs support (OpenGL 3.0 or higher)</li>
+<li>Graphics card with GLSL Shaders/FBOs support (OpenGL 3.0 or higher) - GLEW <a href="http://glew.sourceforge.net/">glew.sourceforge.net</a> </li>
 </ul><h1>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h1>
 
@@ -100,15 +100,17 @@ relationships between parts of the 3D system. </p>
 <p>It is also recommend to install Visual Studio Add-in 1.2.3 for Qt5 to work with Qt projects in Visual Studio. (From the same webpage)</p>
 </blockquote>
 
-<p><code>2.</code> Copy carve from <code>carve.zip</code> to <code>C:\Program Files (x86)\carve\</code></p>
+<p><code>2.</code> Unzip GLEW from <a href="http://glew.sourceforge.net">glew.sourceforge.net</a> to <code>C:\Program Files (x86)\glew-1.11.0\</code></p>
 
-<p><code>3.</code> Copy Assimp from <code>Assimp.zip</code> to <code>C:\Program Files (x86)\Assimp\</code></p>
+<p><code>3.</code> Copy carve from <code>carve.zip</code> to <code>C:\Program Files (x86)\carve\</code></p>
 
-<p><code>4.</code> Copy VTK folder from <code>VTK.zip</code> to <code>C:\Program Files (x86)\VTK\</code></p>
+<p><code>4.</code> Copy Assimp from <code>Assimp.zip</code> to <code>C:\Program Files (x86)\Assimp\</code></p>
 
-<p><code>5.</code> The OBJ files are optional and can be placed anywhere.</p>
+<p><code>5.</code> Copy VTK folder from <code>VTK.zip</code> to <code>C:\Program Files (x86)\VTK\</code></p>
 
-<p><code>6.</code> Press <code>WindowsKey + R</code> to open Run command, and type <code>sysdm.cpl</code> to open system environment variables 
+<p><code>6.</code> The OBJ files are optional and can be placed anywhere.</p>
+
+<p><code>7.</code> Press <code>WindowsKey + R</code> to open Run command, and type <code>sysdm.cpl</code> to open system environment variables 
 Go to Advanced &gt; Environment variables and make a new User Variable, <code>PATH</code> or if it already exists, 
 prepend the following path to it : 
 <code>C:\Program Files (x86)\VTK\bin\RelWithDebInfo;C:\Qt\Qt5.3.1\5.3\msvc2013_opengl\bin;C:\Program Files (x86)\Assimp\bin;</code>
@@ -116,7 +118,7 @@ prepend the following path to it :
 
 <p>You might also need to add an environment variable, QTDIR with the value, <code>C:\Qt\Qt5.3.1\5.3\msvc2013_opengl</code></p>
 
-<p><code>7.</code> You can now run the visual studio solution! (Set configuration from <code>Debug</code> to <code>RelWithDebInfo</code>)</p>
+<p><code>8.</code> You can now run the visual studio solution! (Set configuration from <code>Debug</code> to <code>RelWithDebInfo</code>)</p>
 
 <h2>
 <a name="troubleshooting" class="anchor" href="#troubleshooting"><span class="octicon octicon-link"></span></a>Troubleshooting</h2>
