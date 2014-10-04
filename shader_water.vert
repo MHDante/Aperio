@@ -69,7 +69,8 @@ vec4 Distort(vec4 p)
     float radius = length(v);
 
     // Distort:
-	float Power = 1.0f;
+	//float Power = mod(time, 1.0) * 1f;
+	float Power =  1f;
     radius = pow(radius, Power);
 
     // Convert back to Cartesian:
@@ -94,6 +95,8 @@ void main()
 	
 	if (selected == true && wiggle == true)
 		water();
+	
+	final_position = gl_ModelViewProjectionMatrix * Distort(gl_Vertex);
 	
 	gl_Position = final_position ;
 }

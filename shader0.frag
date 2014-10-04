@@ -97,8 +97,8 @@ void main()
 	if (!gl_FrontFacing)
 		newN = -newN;
 
-	superquad();	
-	
+		
+	superquad();
 	//float d = gl_FragCoord.z;
 	float d = LinearizeDepth(gl_FragCoord.z);
 

@@ -182,7 +182,7 @@ void phongLighting(vec3 n, int shininess)
 		//d_SQ.r <= d_selected.r &&
 		//d_SQ.r <= d_selected.r &&
 		//&& d_selectedF.a > 0
-		if (d_SQ.r > d_selectedF.r)		
+		if (d_selectedF.r >= 1)		
 		{
 			final_color = vec4(		
 			1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * ((Idiff2.rgb + vec3(0.15, 0, 0) )) - 0.0 * Iamb.xyz
@@ -195,7 +195,7 @@ void phongLighting(vec3 n, int shininess)
 	
 	//--- Test display of textures read from Pre-pass
 	vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
-	//final_color = texture2D(depthSelectedFN, texpos);
+	//final_color = texture2D(depthSelectedF, texpos);
 }
 
 //---------------- Toon Shader -----------------------------------
