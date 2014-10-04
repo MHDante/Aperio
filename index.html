@@ -65,7 +65,7 @@ relationships between parts of the 3D system. </p>
 </li>
 <li>Visualization Toolkit 6.1.0 (algorithms and rendering), <a href="http://www.vtk.org/">www.vtk.org</a> <br>
 </li>
-<li>Qt 5.3.1 (GUI), <a href="http://qt-project.org/">qt-project.org</a> <br>
+<li>Qt 5.3.2 (GUI), <a href="http://qt-project.org/">qt-project.org</a> <br>
 </li>
 <li>Open Asset Import Library (Mesh Loading), <a href="http://assimp.sourceforge.net/">assimp.sourceforge.net</a> <br>
 </li>
@@ -81,7 +81,7 @@ relationships between parts of the 3D system. </p>
 <a name="precompiled-libraries-links" class="anchor" href="#precompiled-libraries-links"><span class="octicon octicon-link"></span></a>Precompiled Libraries (Links)</h2>
 
 <ul>
-<li>QT 5.3.1 - <a href="http://qt-project.org">qt-project.org</a> <br>
+<li>QT 5.3.2 - <a href="http://qt-project.org">qt-project.org</a> <br>
 </li>
 <li>Carve (Nightly) - <a href="https://drive.google.com/file/d/0B-BzwPAV7QvwdXM5c0FjRmhkcjg">drive.google.com/file/d/0B-BzwPAV7QvwdXM5c0FjRmhkcjg</a><br>
 </li>
@@ -94,7 +94,10 @@ relationships between parts of the 3D system. </p>
 </ul><h2>
 <a name="steps" class="anchor" href="#steps"><span class="octicon octicon-link"></span></a>Steps</h2>
 
-<p><code>1.</code> Install QT 5.3.1 from <a href="http://qt-project.org">qt-project.org</a> (recommended version: qt-opensource-windows-x86-msvc2013_opengl-5.3.1)</p>
+<p><code>1.</code> Install QT 5.3.2 (32-bit) from <a href="http://qt-project.org">qt-project.org</a> (recommended version:
+Qt 5.3.2 for Windows 32-bit (VS 2013, OpenGL, 559 MB) 
+[qt-opensource-windows-x86-msvc2013_opengl-5.3.2.exe])
+</p>
 
 <blockquote>
 <p>It is also recommend to install Visual Studio Add-in 1.2.3 for Qt5 to work with Qt projects in Visual Studio. (From the same webpage)</p>
@@ -113,10 +116,10 @@ relationships between parts of the 3D system. </p>
 <p><code>7.</code> Press <code>WindowsKey + R</code> to open Run command, and type <code>sysdm.cpl</code> to open system environment variables 
 Go to Advanced &gt; Environment variables and make a new User Variable, <code>PATH</code> or if it already exists, 
 prepend the following path to it : 
-<code>C:\Program Files (x86)\VTK\bin\RelWithDebInfo;C:\Qt\Qt5.3.1\5.3\msvc2013_opengl\bin;C:\Program Files (x86)\Assimp\bin;C:\Program Files (x86)\glew-1.11.0\bin\Release\Win32;</code>
+<code>C:\Program Files (x86)\VTK\bin\RelWithDebInfo;C:\Qt\Qt5.3.2\5.3\msvc2013_opengl\bin;C:\Program Files (x86)\Assimp\bin;C:\Program Files (x86)\glew-1.11.0\bin\Release\Win32;</code>
 (no spaces between semicolons)</p>
 
-<p>You might also need to add an environment variable, QTDIR with the value, <code>C:\Qt\Qt5.3.1\5.3\msvc2013_opengl</code></p>
+<p>You might also need to add an environment variable, QTDIR with the value, <code>C:\Qt\Qt5.3.2\5.3\msvc2013_opengl</code></p>
 
 <p><code>8.</code> You can now run the visual studio solution! (Set configuration from <code>Debug</code> to <code>RelWithDebInfo</code>)</p>
 
@@ -125,7 +128,7 @@ prepend the following path to it :
 
 <p>(Important) By default, Visual Studio uses the <code>Debug</code> Heap which is rather slow. To turn this off,  Press <code>WindowsKey + R</code> to open Run command, and type <code>sysdm.cpl</code> to open system environment variables Go to advanced &gt; Environment variables and make a new System Variable, <code>_NO_DEBUG_HEAP</code> and set it to <code>1</code></p>
 
-<p>You may also need to add a version of QT to the QT plugin - Go to the QT5 menu &gt; Qt Options &gt; in the <code>Qt Versions</code> tab, click Add &gt; Set path to <code>C:\Qt\Qt5.3.1\5.3\msvc2013_opengl</code> and click <code>Ok</code></p>
+<p>You may also need to add a version of QT to the QT plugin - Go to the QT5 menu &gt; Qt Options &gt; in the <code>Qt Versions</code> tab, click Add &gt; Set path to <code>C:\Qt\Qt5.3.2\5.3\msvc2013_opengl</code> and click <code>Ok</code></p>
 
 <h3>
 <a name="optional-tools" class="anchor" href="#optional-tools"><span class="octicon octicon-link"></span></a>Optional Tools</h3>
