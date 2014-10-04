@@ -26,13 +26,13 @@ uniform vec2 frameBufSize;
 uniform mat4 projMat;
 mat4 iprojMat = inverse(projMat);
 
-bool onlyAO = false;
+bool onlyAO =false;
 
-float zNear = 0.1;
-float zFar = 800;
+float zNear = 0.001;
+float zFar = 2;
 float cameraCoef = 2;
 
-float distanceThreshold = 0.0009;
+float distanceThreshold = 5;
 vec2 filterRadius = vec2(10.0 / frameBufSize.x, 10.0 / frameBufSize.y);
 
 const int sample_count = 16;			// 40 is good (16 won't slow)
@@ -60,10 +60,19 @@ float linearizeDepth(const in float depth)
 	return (cameraCoef * zNear) / (zFar + zNear - depth * (zFar - zNear));
 }
 
+float UnpackFloat8bitRGB(vec3 pack) {
+    return dot(pack, vec3(1.0, 1.0 / 255.0, 1.0 / 65025.0));
+}
+
 vec3 calculatePosition(const in vec2 coord)
 {
-	float depth = texture(sourceDepth, coord).r;
+	vec4 d = texture(sourceDepth, coord);
+	
+	float depth = UnpackFloat8bitRGB(d.rgb);	
 	depth = linearizeDepth(depth);
+  
+	if (d.a <= 0)
+    depth = 1.0;
 
 	vec4 pos = iprojMat * vec4(coord.x * 2 - 1, coord.y * 2 - 1, depth * 2 - 1, 1);	
 	pos /= pos.w;
@@ -125,5 +134,5 @@ void main()
 		if (texture2D(sourceCap, vUv).r >= 1) 
 			oColor = texture(source, vUv);
 	}	
-	//oColor = texture(sourceCap, vUv);
+	//oColor = texture(sourceCap, vUv);			
 }

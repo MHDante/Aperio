@@ -1069,5 +1069,4 @@ void main(void)
         0.0f,									// FxaaFloat fxaaConsoleEdgeThresholdMin,
         FxaaFloat4(0.0f, 0.0f, 0.0f, 0.0f)		// FxaaFloat fxaaConsole360ConstDir,
     );	
-	//oColor = texture2D(source, vTexCoord.st);
 }

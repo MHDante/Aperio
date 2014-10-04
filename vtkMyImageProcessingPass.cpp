@@ -44,12 +44,16 @@ vtkMyImageProcessingPass::vtkMyImageProcessingPass()
 	vtkMyTextureObject NormalTexture;
 	NormalTexture.name = "sourceNormal";
 
+	vtkMyTextureObject depthTexture;
+	depthTexture.name = "sourceDepth";
+
 	vtkMyTextureObject capTexture;
 	capTexture.name = "sourceCap";
 
 	// Order matters (Index of COLOR_ATTACHMENT)
 	textures.push_back(ColourTexture);
 	textures.push_back(NormalTexture);
+	textures.push_back(depthTexture);
 	textures.push_back(capTexture);
 }
 // ----------------------------------------------------------------------------
@@ -226,12 +230,12 @@ void vtkMyImageProcessingPass::Render(const vtkRenderState *s)
 		for (auto &t : textures)
 			var->SetUniformi(t.name.c_str(), 1, &t.id);
 
-		var->SetUniformi("sourceDepth", 1, &id0);
+		//var->SetUniformi("sourceDepth", 1, &textures[textures.size() - 2].id);
 
-		/*float d[2];
+		float d[2];
 		d[0] = r->GetActiveCamera()->GetClippingRange()[0];
 		d[1] = r->GetActiveCamera()->GetClippingRange()[1];
-		var->SetUniformf("clipping", 2, d);*/
+		var->SetUniformf("clipping", 2, d);
 
 		// --- Get projection matrix (for accurate eye positions in SSAO)
 		double aspect[2];

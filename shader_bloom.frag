@@ -16,7 +16,7 @@ in vec4 vTexCoord;
  
 //---- Constants
 const float BRIGHT_PASS_THRESHOLD = 0.5;	// 0.5 
-const float BRIGHT_PASS_OFFSET = 2.5;		// 0.8
+const float BRIGHT_PASS_OFFSET = 3.5;		// 0.8
  
 const float blurclamp = 0.003;	// 0.003
 const float bias = 0.01;		// 0.01

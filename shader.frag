@@ -15,7 +15,8 @@ in vec4 vTexCoord;
 // Outputs
 layout(location = 0) out vec4 oColor;
 layout(location = 1) out vec4 oNormal;
-layout(location = 2) out vec4 oCapMask;
+layout(location = 2) out vec4 oDepth;
+layout(location = 3) out vec4 oCapMask;
 
 //--- Uniforms
 uniform vec2 frameBufSize = vec2(800, 600);
@@ -24,7 +25,6 @@ uniform vec2 frameBufSize = vec2(800, 600);
 uniform sampler2D depthSelectedF;
 uniform sampler2D depthSelected;
 uniform sampler2D depthSQ;
-uniform sampler2D depthSelectedFN;
 
 uniform bool cap = true;
 
@@ -83,7 +83,29 @@ vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color)
 	float ndotl = max(0.0, dot(L, n));
 	return  light_color * pow(ndotl, k);
 }
-
+//------------------------------------------------
+float linearizeDepth(const in float depth) 
+{
+	float zNear = 1f;
+	float zFar = 100.0f;
+	return (2.0 * zNear) / (zFar + zNear - depth * (zFar - zNear));
+}
+//------------------------------------------------
+vec3 PackFloat8bitRGB(float val) {
+    vec3 pack = vec3(1.0, 255.0, 65025.0) * val;
+    pack = fract(pack);
+    pack -= vec3(pack.yz / 255.0, 0.0);
+    return pack;
+}
+//------------------------------------------------
+float UnpackFloat8bitRGB(vec3 pack) {
+    return dot(pack, vec3(1.0, 1.0 / 255.0, 1.0 / 65025.0));
+}
+//------------------------------------------------
+float getDepth(sampler2D sampler, vec2 uv)
+{
+	return linearizeDepth(UnpackFloat8bitRGB(texture(sampler, uv).rgb));
+}
 //---------------- Phong lighting (Directional) ----------------------
 void phongLighting(vec3 n, int shininess)
 {
@@ -167,35 +189,36 @@ void phongLighting(vec3 n, int shininess)
 	if (cap && iselem && !gl_FrontFacing)
 	{
 		vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
-
-		vec4 d_selectedF = texture2D(depthSelectedF, texpos);
-		vec4 d_selected = texture2D(depthSelected, texpos);
-		vec4 d_SQ = texture2D(depthSQ, texpos);
-	
-		// If front face discarded (empty hole) BUT
-		// also backface must be present AND
-		// superquad's back is closer than back of selec
 		
-		/*if (d_selectedF.a <= 0 //&& d_selected.a > 0
-		&& d_SQ.r <= d_selected.r)*/
-		//d_selectedF.a >= 1 //&& d_selected.a > 0
-		//d_SQ.r <= d_selected.r &&
-		//d_SQ.r <= d_selected.r &&
-		//&& d_selectedF.a > 0
-		if (d_selectedF.r >= 1)		
+		vec4 v_selectedF = texture2D(depthSelectedF, texpos);
+		vec4 v_selected = texture2D(depthSelected, texpos);
+		vec4 v_SQ = texture2D(depthSQ, texpos);
+		
+		float d_selectedF = getDepth(depthSelectedF, texpos);
+		float d_selected = getDepth(depthSelected, texpos);
+		float d_SQ = getDepth(depthSQ, texpos);
+				
+		if (iselem && 
+		(v_selectedF.r >= 1.0 && d_SQ < d_selected)
+		)
 		{
-			final_color = vec4(		
+			//final_color = vec4(1, 1, 0, 1);
+						final_color = vec4(		
 			1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * ((Idiff2.rgb + vec3(0.15, 0, 0) )) - 0.0 * Iamb.xyz
 			,1.0);
 
 			// Capping Mask for SSAO shader
 			oCapMask = vec4(1, 1, 1, 1);
+
 		}
 	}
 	
 	//--- Test display of textures read from Pre-pass
 	vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
-	//final_color = texture2D(depthSelectedF, texpos);
+	
+	//final_color = vec4(vec3(d_selectedF), 1);
+	
+
 }
 
 //---------------- Toon Shader -----------------------------------
@@ -258,7 +281,6 @@ void superquad()
 		}
 	}
 }
-
 //******************* Main **************************************
 void main()
 {
@@ -285,9 +307,14 @@ void main()
 
 	oColor = final_color;		
 	if (outline == true)
+	{
+		oCapMask = vec4(1, 1, 1, 1);
 		oColor = vec4(1.0, 0.5, 0, gl_Color.a);
+	}
 	
 	// Encode normals to second texture (sourceNormal)
 	vec3 encodedN = newN * 0.5 + 0.5;
 	oNormal = vec4(encodedN, 1);
+	
+	oDepth = vec4(PackFloat8bitRGB(gl_FragCoord.z), 1);
 }

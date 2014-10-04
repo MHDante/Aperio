@@ -55,14 +55,10 @@ vtkMyShaderPass::vtkMyShaderPass()
 	vtkMyTextureObject depthSQ;
 	depthSQ.name = "depthSQ";
 
-	vtkMyTextureObject depthSelectedFN;
-	depthSelectedFN.name = "depthSelectedFN";
-
 	// Order matters (Index of COLOR_ATTACHMENT)
 	textures.push_back(depthSelectedF);
 	textures.push_back(depthSelected);
 	textures.push_back(depthSQ);
-	textures.push_back(depthSelectedFN);
 }
 // ----------------------------------------------------------------------------
 vtkMyShaderPass::~vtkMyShaderPass()

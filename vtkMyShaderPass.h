@@ -55,7 +55,7 @@ public:
 
 	///<summary>My Custom delegate method that renders to FBO/Texture </summary>
 	void MyRenderDelegate(const vtkRenderState *s, int width, int height, int newWidth, int newHeight);
-
+	
 protected:
 	// Description:
 	// Default constructor.

@@ -14,9 +14,10 @@ smooth in vec3 original_v;
 layout(location = 0) out vec4 o_depthSelectedF;
 layout(location = 1) out vec4 o_depthSelected;
 layout(location = 2) out vec4 o_depthSQ;
-layout(location = 3) out vec4 o_depthSelectedFN;
 
 // Uniforms
+uniform vec2 frameBufSize;
+
 uniform bool selected = false;
 uniform bool iselem = false;
 
@@ -34,15 +35,21 @@ uniform bool toroid = false;
 
 uniform int elemssize;
 
+//------------------------------------------------
+vec3 PackFloat8bitRGB(float val) {
+    vec3 pack = vec3(1.0, 255.0, 65025.0) * val;
+    pack = fract(pack);
+    pack -= vec3(pack.yz / 255.0, 0.0);
+    return pack;
+}
 //------------ Linearize Depth ------------------------
 float LinearizeDepth(float depth)
 {
-  float n = 1; // camera z near
-  float f =750.0; // camera z far
+  float n = 0.1; // camera z near
+  float f = 1000.0; // camera z far
   float z = depth;
   return (2.0 * n) / (f + n - z * (f - n));	
 }
-
 //------------ Draw Superquad (discard) -----------------
 void superquad()
 {
@@ -97,21 +104,21 @@ void main()
 	if (!gl_FrontFacing)
 		newN = -newN;
 
-		
-	superquad();
 	//float d = gl_FragCoord.z;
-	float d = LinearizeDepth(gl_FragCoord.z);
+	vec3 d = PackFloat8bitRGB(gl_FragCoord.z);
 
+	superquad();
+		
 	if (selected)
 	{
 		o_depthSelectedF = vec4(1, 1, 1, 1);
 
 		if (gl_FrontFacing)
-		{
-			o_depthSelectedF = vec4(d, d, d, 1);
+		{			
+			o_depthSelectedF = vec4(d, 1);
 		}
 		else
-			o_depthSelected = vec4(d, d, d, 1);
+			o_depthSelected = vec4(d, 1);
 	}
 	
 	if (iselem)
@@ -119,9 +126,7 @@ void main()
 		if (gl_FrontFacing)
 			discard;
 		else
-			o_depthSQ = vec4(d, d, d, 1);
+			o_depthSQ = vec4(d, 1);
 	}	
-	
-	o_depthSelectedFN = vec4(1, 1, 0, 1);
 }
 

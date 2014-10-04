@@ -103,7 +103,7 @@ struct CustomMesh
 class aperio : public QMainWindow
 {
 	Q_OBJECT
-
+		
 public:
 	aperio(QWidget *parent = 0);
 	~aperio();
@@ -112,7 +112,7 @@ public:
 
 	// public access variables (mostly in shader as uniforms)
 	double mouse[3];				// Put in struct later	- on mouse move updated
-	double mouseNorm[3];			// Put in struct later - on mouse move updated
+	double mouseNorm[3];			// GL_COLOR_ATTACHMENT0Put in struct later - on mouse move updated
 	
 	bool wiggle;
 	float mouseSize;				// Recompute from bounds
