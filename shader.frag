@@ -25,6 +25,7 @@ uniform vec2 frameBufSize = vec2(800, 600);
 uniform sampler2D depthSelectedF;
 uniform sampler2D depthSelected;
 uniform sampler2D depthSQ;
+uniform sampler2D matcap;
 
 uniform bool cap = true;
 
@@ -77,6 +78,8 @@ vec4 final_color = vec4(1, 1, 1, 1);
 
 const float PI = 3.141592653;
 
+vec3 newN;
+
 //---------------- Minnaert limb darkening diffuse term --------------
 vec3 minnaert(vec3 L, vec3 n, float k, vec3 light_color) 
 {
@@ -120,7 +123,7 @@ void phongLighting(vec3 n, int shininess)
 	float att = 0.8;
 	vec3 diffuseTranslucency = att * light_specular.rgb
 		* vec3(_DiffuseTranslucentColor)
-		* max(0.0, dot(L + vec3(0.0, -0.0, 0.0), -n));
+		* max(0.0, dot(L, -n));
 
 	//--- Minnaert for darker diffuse (moon shading)
 	float roughness = darkness; // minnaert roughness  1.5 default (1.0 is lambert)
@@ -138,8 +141,7 @@ void phongLighting(vec3 n, int shininess)
 
 	// Special Idiff2 for Superquad's backface
 	vec4 Idiff2 = vec4(0, 0, 0, 0);		
-	Idiff2 += vec4(minnaert(L, n, roughness, light_color), 0);
-	Idiff2 = vec4(Idiff2.rgb * selectedColor.rgb, 1.0);	
+	Idiff2 += vec4(minnaert(L, n, roughness, light_color* selectedColor ), 0);
 	Idiff2 += vec4(minnaert(L2, n, roughness, light_color2), 0);	
 	Idiff2 = clamp(Idiff2, 0.0, 1.0);
 	
@@ -164,7 +166,7 @@ void phongLighting(vec3 n, int shininess)
 	vec3 myspecular = (PI / 4.0f) * specular_term * cosine_term * fresnel_term * visibility_term * light_specular.rgb;
 	myspecular = clamp(myspecular, 0, 1);
 
-	//---- Final color	
+	//---- Final color
 	final_color = vec4(myspecular +  int(difftrans) * diffuseTranslucency + 1.0*Idiff.xyz + Iamb.xyz, gl_Color.a);
 	
 	//--- Superquad color
@@ -203,8 +205,8 @@ void phongLighting(vec3 n, int shininess)
 		)
 		{
 			//final_color = vec4(1, 1, 0, 1);
-						final_color = vec4(		
-			1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * ((Idiff2.rgb + vec3(0.15, 0, 0) )) - 0.0 * Iamb.xyz
+			final_color = vec4(		
+			1*myspecular +  0.8* int(difftrans) * diffuseTranslucency + 1.0 * ((Idiff2.rgb +  vec3(0.15, 0, 0) )) + 0.0 * Iamb.xyz
 			,1.0);
 
 			// Capping Mask for SSAO shader
@@ -216,6 +218,8 @@ void phongLighting(vec3 n, int shininess)
 	//--- Test display of textures read from Pre-pass
 	vec2 texpos = vec2(gl_FragCoord.x / frameBufSize.x, gl_FragCoord.y / frameBufSize.y);	
 	
+	float d_selectedF = getDepth(depthSelectedF, texpos);
+
 	//final_color = vec4(vec3(d_selectedF), 1);
 	
 
@@ -284,7 +288,7 @@ void superquad()
 //******************* Main **************************************
 void main()
 {
-	vec3 newN = n;
+	newN = n;
 	
 	if (!gl_FrontFacing)
 		newN = -newN;
@@ -306,6 +310,25 @@ void main()
 	superquad();
 
 	oColor = final_color;		
+	
+	if (!iselem)
+	{
+	// SEM (matcap)
+	vec3 r = normalize(reflect(v, newN));	
+	float m = 2. * sqrt(pow(r.x, 2.) + pow(r.y, 2.) + pow(r.z + 1., 2.) );	
+	
+	vec2 vN = r.xy / m + .5;
+	vec3 bases = texture(matcap, vN).rgb;	
+	//vec3 final = mix(bases, final_color.rgb, 0.0);
+	vec3 final = mix(bases, final_color.rgb, 0.85);
+	
+	oColor = vec4(final, gl_Color.a);
+	//oColor = vec4(bases * gl_Color.rgb, gl_Color.a);
+	//oColor = vec4(bases, gl_Color.a);
+	}
+
+	
+	// Outline
 	if (outline == true)
 	{
 		oCapMask = vec4(1, 1, 1, 1);

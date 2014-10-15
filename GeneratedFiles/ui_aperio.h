@@ -362,6 +362,7 @@ public:
         mainWidget->setGeometry(QRect(20, 160, 841, 361));
         mainWidget->setCursor(QCursor(Qt::ArrowCursor));
         mainWidget->setMouseTracking(true);
+        mainWidget->setFocusPolicy(Qt::NoFocus);
         shininessSlider = new QSlider(centralWidget);
         shininessSlider->setObjectName(QStringLiteral("shininessSlider"));
         shininessSlider->setEnabled(true);

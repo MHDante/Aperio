@@ -325,6 +325,9 @@ background: #82766A;
     <property name="mouseTracking">
      <bool>true</bool>
     </property>
+    <property name="focusPolicy">
+     <enum>Qt::NoFocus</enum>
+    </property>
    </widget>
    <widget class="QSlider" name="shininessSlider">
     <property name="enabled">

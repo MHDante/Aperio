@@ -169,6 +169,28 @@ void aperio::slot_afterShowWindow()
 	timer_delay->setInterval(1000.0 / 0.5);		// 7.5
 	timer_delay->start();
 
+	// Load texture (matcap)
+
+	// Read the image which will be the texture
+	vtkSmartPointer<vtkJPEGReader> jPEGReader = vtkSmartPointer<vtkJPEGReader>::New();
+	//jPEGReader->SetFileName("mat8.jpg");
+	jPEGReader->SetFileName("mat12.jpg");
+	jPEGReader->Update();
+
+	/*vtkSmartPointer<vtkPNGReader> jPEGReader = vtkSmartPointer<vtkPNGReader>::New();
+	jPEGReader->SetFileName("mat4.png");
+	jPEGReader->Update();*/
+
+	
+	texture = vtkSmartPointer<vtkTexture>::New();
+	texture->SetInterpolate(true);
+	texture->EdgeClampOn();
+	texture->RepeatOff();
+	texture->SetQualityTo32Bit();
+	
+	texture->SetInputData(jPEGReader->GetOutput());
+
+
 	// ---- Custom Thread Timers
 
 	timer_explode = nullptr;	// Instantaneous timer (executed as fast as possible)
@@ -208,6 +230,9 @@ void aperio::slot_afterShowWindow()
 
 	renderer->SetTexturedBackground(true);
 	renderer->SetBackgroundTexture(texture);
+	//renderer->SetBackground(0.8, 0.8, 0.8);
+	//renderer->SetBackground(1, 1, 1);
+
 
 	renderWindow->AddRenderer(renderer);
 
@@ -266,6 +291,8 @@ void aperio::slot_afterShowWindow()
 
 	// Render window interactor
 	vtkSmartPointer<QVTKInteractor> renderWindowInteractor = vtkSmartPointer<QVTKInteractor>::New();
+
+	//renderWindowInteractor->set
 
 	interactorstyle = vtkSmartPointer<MyInteractorStyle>::New();
 	//interactorstyle->SetAutoAdjustCameraClippingRange(false);
@@ -604,7 +631,9 @@ void aperio::readFile(std::string filename)
 		nextMesh = fillHolesFilter->GetOutput();*/
 
 		Utility::addMesh(this, nextMesh, z, groupname.C_Str(), vtkColor3f(r, g, b), 1);
+
 		renderer->AddActor(meshes[z].actor);
+
 
 		//renderer->AddActor(Utility::sourceToActor(this, nextMesh, 1, 1, 1, 1));
 
@@ -948,6 +977,33 @@ void aperio::slot_timeout_fps()
 		this->close();
 	}
 
+
+	if (GetKeyState(VK_RETURN) & 0x1000 && this->isActiveWindow())
+	{
+		std::string file = ui.txtSearchText->text().toStdString();
+
+		if (file.length() > 4)
+		{
+			vtkSmartPointer<vtkImageData> imageData;
+
+			if (file.substr(file.length() - 4) == ".jpg")
+			{
+				vtkSmartPointer<vtkJPEGReader> jPEGReader = vtkSmartPointer<vtkJPEGReader>::New();
+				jPEGReader->SetFileName(file.c_str());
+				jPEGReader->Update();
+				imageData = jPEGReader->GetOutput();
+			}
+			else
+			{
+				vtkSmartPointer<vtkPNGReader> pngReader = vtkSmartPointer<vtkPNGReader>::New();
+				pngReader->SetFileName(file.c_str());
+				pngReader->Update();
+				imageData = pngReader->GetOutput();
+			}
+			texture->SetInputData(imageData);
+		}
+	}
+
 	// Increment wave-time in seconds for wiggle
 	wavetime = wavetime + 0.01275;
 	if (wavetime > 500)
@@ -979,10 +1035,14 @@ void aperio::slot_chkCap(bool checked)
 //----------------------------------------------------------------------------------------------
 void aperio::slot_explodeSlider(int value)
 {
+	std::cout << "---\n";
 	for (auto &mesh : meshes)
 	{
 		if (mesh.generated)
 		{
+			std::cout << mesh.name << "\n";
+
+
 			float explodeAmount = ui.txtExplodeAmount->text().toInt();
 
 			float currentAmount = (value / 100.0) * explodeAmount;
@@ -1218,6 +1278,6 @@ void aperio::resetClippingPlane()
 	renderer->ResetCameraClippingRange();
 	double d[2];
 	renderer->GetActiveCamera()->GetClippingRange(d);
-	renderer->GetActiveCamera()->SetClippingRange(0.05, 5000);
+	renderer->GetActiveCamera()->SetClippingRange(0.1, 1000);
 	//renderer->GetActiveCamera()->SetClippingRange(0.05, d[1] + 1000.0);
 }

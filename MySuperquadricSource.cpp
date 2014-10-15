@@ -39,14 +39,6 @@ in "Graphics Gems III", David Kirk, ed., Academic Press, 1992.
 
 vtkStandardNewMacro(MySuperquadricSource);
 
-static void evalSuperquadric(double u, double v,
-	double du, double dv,
-	double e, double n,
-	double dims[3],
-	double alpha,
-	double xyz[3],
-	double nrm[3]);
-
 // Description:
 MySuperquadricSource::MySuperquadricSource(int res)
 {
@@ -471,7 +463,7 @@ static double sf(double w, double m)
 	return sgn*pow(sgn*s, m);
 }
 
-static void evalSuperquadric(double theta, double phi,  // parametric coords
+void evalSuperquadric(double theta, double phi,  // parametric coords
 	double dtheta, double dphi, // offsets for normals
 	double rtheta, double rphi,  // roundness params
 	double dims[3],     // x, y, z dimensions

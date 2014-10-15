@@ -260,7 +260,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::vtkPolyDataToMeshSet(vtkSma
 	return first;
 }
 //---------------------------------------------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> CarveConnector::cleanVtkPolyData(vtkSmartPointer<vtkPolyData> &thepolydata, bool triangulate)
+vtkSmartPointer<vtkPolyData> CarveConnector::cleanVtkPolyData(vtkSmartPointer<vtkPolyData>& thepolydata, bool triangulate)
 {
 	thepolydata->GetPointData()->SetTCoords(nullptr);
 	thepolydata->GetPointData()->SetNormals(nullptr);

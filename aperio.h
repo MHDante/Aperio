@@ -146,6 +146,8 @@ public:
 	vtkSmartPointer<vtkMyPrePass> preP;
 	vtkSmartPointer<vtkMyShaderPass> mainP;
 
+	vtkSmartPointer<vtkTexture> texture;
+
 	float roundnessScale = 50.0;	// Superquadric roundness (divider)
 	float thicknessScale = 100.0;	// Superquadric roundness (divider) out of 1
 

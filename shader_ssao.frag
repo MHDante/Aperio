@@ -28,8 +28,10 @@ mat4 iprojMat = inverse(projMat);
 
 bool onlyAO =false;
 
-float zNear = 0.001;
-float zFar = 2;
+//float zNear = 0.001;
+//float zFar = 2;
+float zNear = 0.1;
+float zFar = 800;
 float cameraCoef = 2;
 
 float distanceThreshold = 5;

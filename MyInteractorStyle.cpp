@@ -16,7 +16,11 @@
 #include <vtkMyShaderPass.h>
 #include <vtkPickingManager.h>
 
+#include <vtkIntersectionPolyDataFilter.h>
+#include <vtkCubeSource.h>
 #include <vtkMath.h>
+
+#include "MySuperquadricSource.h"
 
 vtkStandardNewMacro(MyInteractorStyle);
 
@@ -100,6 +104,84 @@ void MyInteractorStyle::OnKeyPress()
 	{
 		a->slot_hingeSlider(128);
 	}
+	if (this->Interactor->GetKeyCode() == 'k' && a->myelems.size() > 0)	// Slide
+	{
+		int i = a->myelems.size() - 1;
+		MyElem &elem = a->myelems.at(i);
+
+		vtkPolyData *first_temp = vtkPolyData::SafeDownCast(elem.actor->GetMapper()->GetInput());
+		vtkPolyData *second_temp = vtkPolyData::SafeDownCast(a->selectedMesh->actor->GetMapper()->GetInput());
+
+		vtkSmartPointer<vtkTriangleFilter> first_tri = vtkSmartPointer<vtkTriangleFilter>::New();
+		first_tri->SetInputData(first_temp);
+		first_tri->Update();
+
+		vtkSmartPointer<vtkTriangleFilter> second_tri = vtkSmartPointer<vtkTriangleFilter>::New();
+		second_tri->SetInputData(second_temp);
+		second_tri->Update();
+
+
+		vtkPolyData * first = first_tri->GetOutput();
+		vtkPolyData * second = second_tri->GetOutput();
+
+
+		vtkSmartPointer<vtkIntersectionPolyDataFilter> inters = vtkSmartPointer<vtkIntersectionPolyDataFilter>::New();
+		inters->GlobalWarningDisplayOff();	// jacobi error (suppressing)
+		inters->SetInputData(0, first);
+		inters->SetInputData(1, second);
+		inters->Update();
+		inters->GlobalWarningDisplayOn();
+
+		std::cout << inters->GetOutput()->GetNumberOfPoints();
+
+		vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(a, inters->GetOutput(), 1, 1, 1, 1);
+		actor->GetProperty()->SetLineWidth(3);
+		a->renderer->AddActor(actor);
+		//vtkSmartPointer<vtkActor> actor2 = Utility::sourceToActor(a, sss->GetOutput(), 1, 1, 1, 1);
+		//a->renderer->AddActor(actor2);
+		//vtkSmartPointer<vtkActor> actor3 = Utility::sourceToActor(a, ccc->GetOutput(), 1, 1, 1, 1);
+		//a->renderer->AddActor(actor3);
+
+		//std::cout << vtkPolyData::SafeDownCast(elem.actor->GetMapper()->GetInput())->GetNumberOfCells();
+		
+	}
+	if (this->Interactor->GetKeyCode() == 'j' && a->myelems.size() > 0)	// Slide
+	{
+		int i = a->myelems.size() - 1;
+		MyElem &elem = a->myelems.at(i);
+
+		//Ellipsoidal
+		double phiLim[2];
+		double thetaLim[2];
+
+		phiLim[0] = -vtkMath::Pi() / 2.0;
+		phiLim[1] = vtkMath::Pi() / 2.0;
+
+		thetaLim[0] = -vtkMath::Pi();
+		thetaLim[1] = vtkMath::Pi();
+
+		double dims[3] = { 0.5, 0.5, 0.5 };
+
+		// try eval superquad
+		for (float u = phiLim[0]; u < phiLim[1]; u += (phiLim[1] - phiLim[0]) / 10)
+			for (float v = thetaLim[0]; v < thetaLim[1]; v += (thetaLim[1] - thetaLim[0]) / 10)
+			{
+				double pt[3];
+				double nv[3];
+
+				evalSuperquadric(v, u,
+					(thetaLim[1] - thetaLim[0]) / 10, (phiLim[1] - phiLim[0]) / 10,
+				1, 1,
+				dims, 0.0, pt, nv);
+
+				std::cout << pt[0] << "\n";
+			}
+
+		
+
+
+	}
+
 	if (this->Interactor->GetKeyCode() == 'l')	// Hinge
 	{
 		a->slot_btnSlice();
@@ -129,7 +211,7 @@ void MyInteractorStyle::OnKeyPress()
 	{
 		a->slot_btnGlass();
 	}
-	if (this->Interactor->GetKeyCode() == 's')	// Create toroidal superquad
+	if (this->Interactor->GetKeyCode() == 'S')	// Create toroidal superquad
 	{
 		if (!a->superquad)
 		{
@@ -164,6 +246,52 @@ void MyInteractorStyle::OnKeyPress()
 	float thestep = 0.05;
 
 	//------------------------- Test
+	if (this->Interactor->GetKeyCode() == 's' && a->myelems.size() > 0)	// Resize last superquad placed
+	{
+		int i = a->myelems.size() - 1;
+		MyElem &elem = a->myelems.at(i);
+		
+		float pi = 3.141592654;
+		float step = pi / 180.0;
+
+		double dims[3] = {
+			elem.scale.GetX()*0.5, 
+			elem.scale.GetY()*0.5, 
+			elem.scale.GetZ()*0.5
+		};
+
+		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+
+		for (float t = -pi; t < pi; t += step)
+		{
+			double pt[3];
+			double nm[3];
+
+			evalSuperquadric(t, 0, 0.0, 0.0, elem.source->GetThetaRoundness(),
+				elem.source->GetPhiRoundness(), dims, 0.0, pt, nm);
+
+			std::cout << "\n" << pt[0] << "," << pt[1] << "," << pt[2] << "\n";
+
+			points->InsertNextPoint(pt[0], pt[1], pt[2]);
+		}
+
+		vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
+
+		for (unsigned int i = 0; i < points->GetNumberOfPoints(); i++)
+		{
+			vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+			line->GetPointIds()->SetId(0, i);
+			line->GetPointIds()->SetId(1, i + 1);
+			lines->InsertNextCell(line);
+		}
+
+		vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
+		poly->SetPoints(points);
+		poly->SetLines(lines);
+		
+		vtkSmartPointer<vtkActor> actor = Utility::sourceToActor(a, poly, 1, 1, 1, 1);
+		a->renderer->AddActor(actor);
+	}
 	if (this->Interactor->GetKeyCode() == 'a' && a->myelems.size() > 0)	// Resize last superquad placed
 	{		
 		int i = a->myelems.size() - 1;

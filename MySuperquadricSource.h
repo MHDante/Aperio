@@ -53,6 +53,14 @@ PURPOSE.  See the above copyright notice for more information.
 #define VTK_MIN_SUPERQUADRIC_THICKNESS  1e-4
 #define VTK_MIN_SUPERQUADRIC_ROUNDNESS  1e-24
 
+void evalSuperquadric(double u, double v,
+	double du, double dv,
+	double e, double n,
+	double dims[3],
+	double alpha,
+	double xyz[3],
+	double nrm[3]);
+
 class MySuperquadricSource : public vtkPolyDataAlgorithm
 {
 public:

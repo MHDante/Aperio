@@ -192,6 +192,7 @@ void vtkMyBasePass::setGlobalUniforms()
 	float mousepos[3] = { a->mouse[0], a->mouse[1], a->mouse[2] };
 	int source = 0;		// potential source texture
 	int sourceBump = 1;		// potential source texture
+	int matcap = 3;		// potential source texture
 
 	uniforms->SetUniformit("wiggle", 1, &a->wiggle);
 	uniforms->SetUniformf("mouse", 3, mousepos);
@@ -202,7 +203,8 @@ void vtkMyBasePass::setGlobalUniforms()
 	uniforms->SetUniformi("shadingnum", 1, &a->shadingnum);
 	uniforms->SetUniformi("source", 1, &source);
 	uniforms->SetUniformi("sourceBump", 1, &sourceBump);
-	
+	uniforms->SetUniformi("matcap", 1, &matcap);
+
 	uniforms->SetUniformf("selectedColor", 3, a->selectedColor);	// Access any time previous color
 
 	int elemssize = a->myelems.size();

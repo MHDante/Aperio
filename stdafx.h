@@ -63,6 +63,7 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 #include <vtkFloatArray.h>
 #include <vtkMath.h>
 #include <vtkVector.h>
+#include <vtkLine.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkPointData.h>
