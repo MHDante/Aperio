@@ -1,10 +1,10 @@
-# <img src="https://raw2.github.com/eternallite/aperio/master/about_orig.png" valign="bottom" />Aperio  
+# <img src="https://raw.githubusercontent.com/eternallite/Aperio/master/about_orig.png" valign="bottom" />Aperio  
 
 Project site: [eternallite.github.io/Aperio](http://eternallite.github.io/Aperio)
 
-<img src="https://raw2.github.com/eternallite/aperio/master/screenshot_small.png" width="227px;" />
-<img src="https://raw2.github.com/eternallite/aperio/master/screenshot_small2.png" width="227px;" />
-<img src="https://raw2.github.com/eternallite/aperio/master/screenshot_small3.png" width="227px;" />
+<img src="https://raw.githubusercontent.com/eternallite/Aperio/master/screenshot_small.png" width="227px;" />
+<img src="https://raw.githubusercontent.com/eternallite/Aperio/master/screenshot_small2.png" width="227px;" />
+<img src="https://raw.githubusercontent.com/eternallite/Aperio/master/screenshot_small3.png" width="227px;" />
 
 Aperio is a 3D anatomical or other mesh browser using slidable superquadrics that can be stretched and placed onto surfaces as a way of marking up areas to be illustratively manipulated (transformed or deformed in a manner for the purpose of illustration and understanding).
 
