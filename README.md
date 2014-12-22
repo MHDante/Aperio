@@ -1,7 +1,8 @@
 # <img src="https://raw.githubusercontent.com/eternallite/Aperio/master/about_orig.png" valign="bottom" />Aperio  
 
 
-Demo Video: [www.youtube.com/watch?v=wdhQHhCtf2M](https://www.youtube.com/watch?v=wdhQHhCtf2M)
+Demo Video: 
+<iframe width="854" height="510" src="//www.youtube.com/embed/wdhQHhCtf2M" frameborder="0" allowfullscreen></iframe>
 
 Project site: [eternallite.github.io/Aperio](http://eternallite.github.io/Aperio)
 
