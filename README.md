@@ -11,7 +11,7 @@ Project site: [eternallite.github.io/Aperio](http://eternallite.github.io/Aperio
 
 Aperio is a 3D surface mesh browser using slidable superquadric-shaped tools that can be stretched and planted onto surfaces as a way of marking up areas to be illustratively manipulated (transformed or deformed in a manner for the purpose of illustration and understanding).
 
-The marked areas can be cut, peeled or the tools themselves can act as the explosion paths. Superquadrics are defined by both implicit and parametric equations and are easily deformable (bendable, twistable, etc.) making them ideal for creating flexible shapes and paths.
+The marked areas can be cut, peeled or the tools themselves can act as explosion paths. Superquadrics are defined by both implicit and parametric equations and are easily deformable (bendable, twistable, etc.) making them ideal for creating flexible shapes and paths.
 
 The goal is to develop an intuitive and immediate exploration system using slidable tools (in the form of superquadrics) that lends itself to visual affordance (i.e. users can easily and intuitively combine tools such that they can perform various actions). It is primarily created for users who have little to no prior 3D modeling experience and just want to break apart a complicated system for the goal of better understanding relationships between parts of the 3D system.
 
