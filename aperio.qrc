@@ -1,0 +1,29 @@
+<RCC>
+  <qresource prefix="aperio">
+    <file>plant.png</file>
+    <file>tools.png</file>
+    <file>phi.png</file>
+    <file>theta.png</file>
+    <file>hand.png</file>
+    <file>hand2.png</file>
+    <file>ribbons.png</file>
+    <file>cookie.png</file>
+    <file>restore.png</file>
+    <file>brush.png</file>
+    <file>sliding.png</file>
+    <file>sliding2.png</file>
+    <file>sliding3.png</file>
+    <file>glass.png</file>
+    <file>glass2.png</file>
+    <file>flashlight2.png</file>
+    <file>flashlight.png</file>
+    <file>hide.png</file>
+    <file>explode.png</file>
+    <file>slice.png</file>
+    <file>rough.png</file>
+    <file>shiny.png</file>
+    <file>hinge.png</file>
+    <file>checked_list.png</file>
+    <file>unchecked_list.png</file>
+  </qresource>
+</RCC>
