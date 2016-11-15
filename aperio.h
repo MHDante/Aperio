@@ -30,9 +30,9 @@ class vtkMyDepthPeelingPass;
 #include <QColorDialog>
 
 // VTK Includes
-#include <QVTKWidget.h>
-#include <vtkPlaneSource.h>
-#include "vtkSplineWidget2.h"
+#include <vtk/QVTKWidget.h>
+#include <vtk/vtkPlaneSource.h>
+#include <vtk/vtkSplineWidget2.h>
 
 //--------------------- Custom Entity Classes ----------------------------
 class MyPoint

@@ -30,8 +30,8 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include "vtkMyBasePass.h"
 
-#include <vtkRenderingOpenGLModule.h> // For export macro
-#include "vtkRenderPass.h"
+#include <vtk/vtkRenderingOpenGLModule.h> // For export macro
+#include <vtk/vtkRenderPass.h>
 
 class vtkTextureObject;			// pimpl
 class vtkFrameBufferObject;

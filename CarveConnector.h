@@ -7,7 +7,7 @@
 #define CARVE_CONNECTOR_H
 
 // VTK Includes
-#include <vtkCleanPolyData.h>
+#include <vtk/vtkCleanPolyData.h>
 #include <memory>
 
 class aperio;

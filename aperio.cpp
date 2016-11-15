@@ -3,11 +3,11 @@
 // QT Includes
 #include <QLayout>
 #include <QDesktopWidget>
-#include <QVTKWidget.h>
+#include <vtk/QVTKWidget.h>
 
 // VTK includes
-#include <vtkSphereSource.h>
-#include <vtkOBBTree.h>
+#include <vtk/vtkSphereSource.h>
+#include <vtk/vtkOBBTree.h>
 
 // Custom
 #include "CarveConnector.h"
@@ -19,63 +19,63 @@
 #include "vtkMyImageProcessingPass.h"
 
 // More VTK
-#include <vtkLightsPass.h>
-#include <vtkCameraPass.h>
-#include <vtkDefaultPass.h>
-#include <vtkSequencePass.h>
-#include <vtkRenderPassCollection.h>
-#include <vtkGaussianBlurPass.h>
-#include <vtkSobelGradientMagnitudePass.h>
-#include <vtkPolyDataConnectivityFilter.h>
-#include <vtkOpaquePass.h>
-#include <vtkTranslucentPass.h>
-#include <vtkClearZPass.h>
+#include <vtk/vtkLightsPass.h>
+#include <vtk/vtkCameraPass.h>
+#include <vtk/vtkDefaultPass.h>
+#include <vtk/vtkSequencePass.h>
+#include <vtk/vtkRenderPassCollection.h>
+#include <vtk/vtkGaussianBlurPass.h>
+#include <vtk/vtkSobelGradientMagnitudePass.h>
+#include <vtk/vtkPolyDataConnectivityFilter.h>
+#include <vtk/vtkOpaquePass.h>
+#include <vtk/vtkTranslucentPass.h>
+#include <vtk/vtkClearZPass.h>
 
-#include <vtkRenderPass.h>
-#include <vtkLight.h>
+#include <vtk/vtkRenderPass.h>
+#include <vtk/vtkLight.h>
 
-#include <vtkDoubleArray.h>
-#include <vtkOutlineSource.h>
+#include <vtk/vtkDoubleArray.h>
+#include <vtk/vtkOutlineSource.h>
 
 #include "aperio.h"
 
 // Include widgets
-#include <vtkAffineWidget.h>
-#include <vtkAffineRepresentation2D.h>
+#include <vtk/vtkAffineWidget.h>
+#include <vtk/vtkAffineRepresentation2D.h>
 
-#include <vtkParametricEllipsoid.h>
-#include <vtkParametricFunctionSource.h>
+#include <vtk/vtkParametricEllipsoid.h>
+#include <vtk/vtkParametricFunctionSource.h>
 
-#include <vtkPlaneWidget.h>
-#include <vtkBoxWidget.h>
-#include <vtkBoxWidget2.h>
-#include <vtkAngleWidget.h>
-#include <vtkAxesTransformWidget.h>
-#include <vtkBorderWidget.h>
-#include <vtkButtonWidget.h>
-#include <vtkCenteredSliderWidget.h>
-#include <vtkContourWidget.h>
-#include <vtkHandleWidget.h>
-#include <vtkHoverWidget.h>
-#include <vtkLineWidget2.h>
-#include <vtkParallelopipedWidget.h>
-#include <vtkResliceCursorWidget.h>
-#include <vtkResliceCursorWidget.h>
-#include <vtkSliderWidget.h>
-#include <vtkSphereWidget2.h>
-#include <vtkSplineWidget2.h>
-#include <vtkSplineWidget.h>
-#include <vtkTensorProbeWidget.h>
-#include <vtkSliderWidget.h>
+#include <vtk/vtkPlaneWidget.h>
+#include <vtk/vtkBoxWidget.h>
+#include <vtk/vtkBoxWidget2.h>
+#include <vtk/vtkAngleWidget.h>
+#include <vtk/vtkAxesTransformWidget.h>
+#include <vtk/vtkBorderWidget.h>
+#include <vtk/vtkButtonWidget.h>
+#include <vtk/vtkCenteredSliderWidget.h>
+#include <vtk/vtkContourWidget.h>
+#include <vtk/vtkHandleWidget.h>
+#include <vtk/vtkHoverWidget.h>
+#include <vtk/vtkLineWidget2.h>
+#include <vtk/vtkParallelopipedWidget.h>
+#include <vtk/vtkResliceCursorWidget.h>
+#include <vtk/vtkResliceCursorWidget.h>
+#include <vtk/vtkSliderWidget.h>
+#include <vtk/vtkSphereWidget2.h>
+#include <vtk/vtkSplineWidget2.h>
+#include <vtk/vtkSplineWidget.h>
+#include <vtk/vtkTensorProbeWidget.h>
+#include <vtk/vtkSliderWidget.h>
 
-#include <vtkBoxRepresentation.h>
+#include <vtk/vtkBoxRepresentation.h>
 
-#include <vtkCubeSource.h>
+#include <vtk/vtkCubeSource.h>
 
-#include <vtkCylinderSource.h>
-#include <vtkSliderRepresentation3D.h>
-#include <vtkPickingManager.h>
-#include <vtkSplineRepresentation.h>
+#include <vtk/vtkCylinderSource.h>
+#include <vtk/vtkSliderRepresentation3D.h>
+#include <vtk/vtkPickingManager.h>
+#include <vtk/vtkSplineRepresentation.h>
 
 float aperio::RING_PERCENT = 1.0;// 0.90f; // 0.85
 
@@ -2991,7 +2991,7 @@ void aperio::addElem(weak_ptr<MyElem> it)
 
 	makeOutline(actualElem);
 
-	auto transformCallback = [=](vtkObject* caller, long unsigned int eventId, void* clientData, void* callData)
+	auto transformCallback = [](vtkObject* caller, long unsigned int eventId, void* clientData, void* callData)
 	{
 		aperio *a = static_cast<aperio *>(clientData);
 		vtkTransformPolyDataFilter* trans = vtkTransformPolyDataFilter::SafeDownCast(caller);
@@ -3024,7 +3024,7 @@ void aperio::addElem(weak_ptr<MyElem> it)
 		}
 	};
 
-	auto sourceCallback = [=](vtkObject* caller, long unsigned int eventId, void* clientData, void* callData)
+	auto sourceCallback = [](vtkObject* caller, long unsigned int eventId, void* clientData, void* callData)
 	{
 		aperio *a = static_cast<aperio *>(clientData);
 		MySuperquadricSource* source = MySuperquadricSource::SafeDownCast(caller);

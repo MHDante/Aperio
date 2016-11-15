@@ -12,7 +12,7 @@
 #include "aperio.h"
 #include "MyInteractorStyle.h"
 
-#include <vtkTextureUnitManager.h>
+#include <vtk/vtkTextureUnitManager.h>
 
 // Utility Variables -------------------------------------------------------------------------
 namespace Utility

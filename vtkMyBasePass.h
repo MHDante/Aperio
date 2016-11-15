@@ -21,10 +21,10 @@ PURPOSE.  See the above copyright notice for more information.
 #ifndef __vtkMyBasePass_h
 #define __vtkMyBasePass_h
 
-#include "vtkRenderingOpenGLModule.h" // For export macro
-#include "vtkRenderPass.h"
+#include "vtk/vtkRenderingOpenGLModule.h" // For export macro
+#include "vtk/vtkRenderPass.h"
 
-#include "vtkInformationIntegerKey.h"
+#include "vtk/vtkInformationIntegerKey.h"
 
 class vtkOpenGLRenderWindow;
 class vtkDefaultPassLayerList; // Pimpl

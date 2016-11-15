@@ -8,17 +8,15 @@
 #include "CarveConnector.h"
 
 // VTK Includes
-#include <vtkQuad.h>
-#include <vtkAppendPolyData.h>
-#include <vtkSphereSource.h>
-
-#include <vtkOutlineSource.h>
-#include <vtkMyShaderPass.h>
-#include <vtkPickingManager.h>
-
-#include <vtkIntersectionPolyDataFilter.h>
-#include <vtkCubeSource.h>
-#include <vtkMath.h>
+#include <vtk/vtkQuad.h>
+#include <vtk/vtkAppendPolyData.h>
+#include <vtk/vtkSphereSource.h>
+#include <vtk/vtkOutlineSource.h>
+#include "vtkMyShaderPass.h"
+#include <vtk/vtkPickingManager.h>
+#include <vtk/vtkIntersectionPolyDataFilter.h>
+#include <vtk/vtkCubeSource.h>
+#include <vtk/vtkMath.h>
 
 #include "MySuperquadricSource.h"
 

@@ -22,15 +22,15 @@ in "Graphics Gems III", David Kirk, ed., Academic Press, 1992.
 */
 #include "MySuperquadricSource.h"
 
-#include <vtkCellArray.h>
-#include <vtkFloatArray.h>
-#include <vtkMath.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
+#include <vtk/vtkCellArray.h>
+#include <vtk/vtkFloatArray.h>
+#include <vtk/vtkMath.h>
+#include <vtk/vtkInformation.h>
+#include <vtk/vtkInformationVector.h>
+#include <vtk/vtkObjectFactory.h>
+#include <vtk/vtkPointData.h>
+#include <vtk/vtkPoints.h>
+#include <vtk/vtkPolyData.h>
 
 #include <math.h>
 

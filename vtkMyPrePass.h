@@ -22,8 +22,8 @@ PURPOSE.  See the above copyright notice for more information.
 #define __vtkMyPrePass_h
 
 #include "vtkMyBasePass.h"
-#include "vtkRenderingOpenGLModule.h" // For export macro
-#include "vtkRenderPass.h"
+#include <vtk/vtkRenderingOpenGLModule.h> // For export macro
+#include <vtk/vtkRenderPass.h>
 
 class vtkOpenGLRenderWindow;
 class vtkDefaultPassLayerList; // Pimpl

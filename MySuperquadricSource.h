@@ -46,8 +46,8 @@ PURPOSE.  See the above copyright notice for more information.
 #ifndef __MySuperquadricSource_h
 #define __MySuperquadricSource_h
 
-#include <vtkFiltersSourcesModule.h> // For export macro
-#include <vtkPolyDataAlgorithm.h>
+#include <vtk/vtkFiltersSourcesModule.h> // For export macro
+#include <vtk/vtkPolyDataAlgorithm.h>
 
 #define VTK_MAX_SUPERQUADRIC_RESOLUTION 1024
 #define VTK_MIN_SUPERQUADRIC_THICKNESS  1e-4

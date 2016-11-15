@@ -1,3 +1,9 @@
+#Keeping Libraries in project folder
+lib/
+bin/
+include/
+objs/
+
 #################
 ## Eclipse
 #################
@@ -40,7 +46,6 @@ local.properties
 *.suo
 *.user
 *.sln.docstates
-
 # Build results
 
 [Dd]ebug/
@@ -55,6 +60,8 @@ build/
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
 
+
+*.VC.db
 *_i.c
 *_p.c
 *.ilk
@@ -218,3 +225,4 @@ pip-log.txt
 # Custom files
 OpenGL32.dll
 *.mtl
+*VC.opendb

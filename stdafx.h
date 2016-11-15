@@ -51,109 +51,109 @@ using std::make_shared;
 //#define vtkRenderingCore_AUTOINIT 2(vtkInteractionStyle,vtkRenderingOpenGL)
 //#define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
 
-#include <vtkAutoInit.h>
+#include <vtk/vtkAutoInit.h>
 VTK_MODULE_INIT(vtkInteractionStyle)
 VTK_MODULE_INIT(vtkRenderingOpenGL)
 
-#include <vtkCallbackCommand.h>
+#include <vtk/vtkCallbackCommand.h>
 
-#include <vtkInformation.h>
-#include <vtkSmartPointer.h>
-#include <vtkNew.h>
-#include <vtkPolyData.h>
+#include <vtk/vtkInformation.h>
+#include <vtk/vtkSmartPointer.h>
+#include <vtk/vtkNew.h>
+#include <vtk/vtkPolyData.h>
 
-#include <vtkColor.h>
+#include <vtk/vtkColor.h>
 
-#include <vtkPolyDataMapper.h>
-#include <vtkRenderWindow.h>
-#include "vtkCamera.h"
+#include <vtk/vtkPolyDataMapper.h>
+#include <vtk/vtkRenderWindow.h>
+#include "vtk/vtkCamera.h"
 
-#include <vtkOBJReader.h>
-#include <vtkJPEGReader.h>
-#include <vtkPNGReader.h>
-#include <vtkImageData.h>
+#include <vtk/vtkOBJReader.h>
+#include <vtk/vtkJPEGReader.h>
+#include <vtk/vtkPNGReader.h>
+#include <vtk/vtkImageData.h>
 
-#include <vtkFillHolesFilter.h>
+#include <vtk/vtkFillHolesFilter.h>
 
-#include <vtkCellArray.h>
-#include <vtkCellData.h>
-#include <vtkPolyLine.h>
+#include <vtk/vtkCellArray.h>
+#include <vtk/vtkCellData.h>
+#include <vtk/vtkPolyLine.h>
 
-#include <vtkConnectivityFilter.h>
-#include <vtkPolyDataConnectivityFilter.h>
-#include <vtkClipPolyData.h>
-#include <vtkPlane.h>
+#include <vtk/vtkConnectivityFilter.h>
+#include <vtk/vtkPolyDataConnectivityFilter.h>
+#include <vtk/vtkClipPolyData.h>
+#include <vtk/vtkPlane.h>
 
-#include <vtkVectorOperators.h>
-#include <vtkFloatArray.h>
-#include <vtkMath.h>
-#include <vtkVector.h>
-#include <vtkLine.h>
+#include <vtk/vtkVectorOperators.h>
+#include <vtk/vtkFloatArray.h>
+#include <vtk/vtkMath.h>
+#include <vtk/vtkVector.h>
+#include <vtk/vtkLine.h>
 
-#include <vtkObjectFactory.h>
-#include <vtkPointData.h>
-#include <vtkPolyDataCollection.h>
+#include <vtk/vtkObjectFactory.h>
+#include <vtk/vtkPointData.h>
+#include <vtk/vtkPolyDataCollection.h>
 
-#include <vtkPolygon.h>
-#include <vtkProperty.h>
-#include <vtkPolyDataNormals.h>
+#include <vtk/vtkPolygon.h>
+#include <vtk/vtkProperty.h>
+#include <vtk/vtkPolyDataNormals.h>
 
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkTriangleFilter.h>
-#include <vtkStripper.h>
+#include <vtk/vtkTransform.h>
+#include <vtk/vtkTransformPolyDataFilter.h>
+#include <vtk/vtkTriangleFilter.h>
+#include <vtk/vtkStripper.h>
 
-#include <vtkTubeFilter.h>
-#include <vtkRibbonFilter.h>
-#include <vtkRendererCollection.h>
+#include <vtk/vtkTubeFilter.h>
+#include <vtk/vtkRibbonFilter.h>
+#include <vtk/vtkRendererCollection.h>
 
-#include <vtkCellPicker.h>
-#include <vtkCellLocator.h>
+#include <vtk/vtkCellPicker.h>
+#include <vtk/vtkCellLocator.h>
 
-#include <vtkLightCollection.h>
+#include <vtk/vtkLightCollection.h>
 
 // OpenGL-VTK
-#include <vtkgl.h>
-#include <vtkOpenGLRenderWindow.h>
-#include <vtkOpenGLRenderer.h>
-#include <vtkOpenGLProperty.h>
-#include <vtkOpenGLTexture.h>
-#include <vtkOpenGLPolyDataMapper.h>
-#include <vtkShaderProgram2.h>
-#include <vtkShader2.h>
-#include <vtkShader2Collection.h>
+#include <vtk/vtkgl.h>
+#include <vtk/vtkOpenGLRenderWindow.h>
+#include <vtk/vtkOpenGLRenderer.h>
+#include <vtk/vtkOpenGLProperty.h>
+#include <vtk/vtkOpenGLTexture.h>
+#include <vtk/vtkOpenGLPolyDataMapper.h>
+#include <vtk/vtkShaderProgram2.h>
+#include <vtk/vtkShader2.h>
+#include <vtk/vtkShader2Collection.h>
 
-#include <vtkDepthPeelingPass.h>
-#include <vtkOverlayPass.h>
-#include <vtkRenderPassCollection.h>
-#include <vtkSmoothPolyDataFilter.h>
+#include <vtk/vtkDepthPeelingPass.h>
+#include <vtk/vtkOverlayPass.h>
+#include <vtk/vtkRenderPassCollection.h>
+#include <vtk/vtkSmoothPolyDataFilter.h>
 
-#include <vtkTexturedActor2D.h>
-#include <vtkImageActor.h>
-#include <vtkImageMapper.h>
-#include <vtkProperty2D.h>
-#include <vtkImageData.h>
+#include <vtk/vtkTexturedActor2D.h>
+#include <vtk/vtkImageActor.h>
+#include <vtk/vtkImageMapper.h>
+#include <vtk/vtkProperty2D.h>
+#include <vtk/vtkImageData.h>
 
-#include <vtkUniformVariables.h>
-#include <vtkDoubleArray.h>
+#include <vtk/vtkUniformVariables.h>
+#include <vtk/vtkDoubleArray.h>
 
-#include <vtkTextureMapToSphere.h>
-#include <vtkTextureMapToCylinder.h>
-#include <vtkTextureMapToPlane.h>
-#include <vtkProjectedTexture.h>
+#include <vtk/vtkTextureMapToSphere.h>
+#include <vtk/vtkTextureMapToCylinder.h>
+#include <vtk/vtkTextureMapToPlane.h>
+#include <vtk/vtkProjectedTexture.h>
 
-#include <vtkTriangle.h>
-#include <vtkSphereSource.h>
-#include <vtkFeatureEdges.h>
-#include <vtkIntersectionPolyDataFilter.h>
-#include <vtkCenterOfMass.h>
-#include <vtkOctreePointLocator.h>
+#include <vtk/vtkTriangle.h>
+#include <vtk/vtkSphereSource.h>
+#include <vtk/vtkFeatureEdges.h>
+#include <vtk/vtkIntersectionPolyDataFilter.h>
+#include <vtk/vtkCenterOfMass.h>
+#include <vtk/vtkOctreePointLocator.h>
 
-#include <vtkFileOutputWindow.h>
-#include <vtkPropPicker.h>
+#include <vtk/vtkFileOutputWindow.h>
+#include <vtk/vtkPropPicker.h>
 
-#include <vtkOBBTree.h>
-#include <QVTKInteractorAdapter.h>
+#include <vtk/vtkOBBTree.h>
+#include <vtk/QVTKInteractorAdapter.h>
 
 // Assimp
 #include <assimp/Importer.hpp>      // C++ importer interface
@@ -162,4 +162,4 @@ VTK_MODULE_INIT(vtkRenderingOpenGL)
 #include <assimp/DefaultLogger.hpp>
 
 // VTK Debug leaks
-//#include <vtkDebugLeaks.h>
+//#include <vtk/vtkDebugLeaks.h>

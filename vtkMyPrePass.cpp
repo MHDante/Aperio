@@ -17,11 +17,11 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include "vtkMyPrePass.h"
 
-#include <vtkObjectFactory.h>
+#include <vtk/vtkObjectFactory.h>
 #include <cassert>
-#include <vtkRenderState.h>
-#include <vtkProp.h>
-#include <vtkRenderer.h>
+#include <vtk/vtkRenderState.h>
+#include <vtk/vtkProp.h>
+#include <vtk/vtkRenderer.h>
 
 #include "aperio.h"
 

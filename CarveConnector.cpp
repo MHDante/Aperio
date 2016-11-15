@@ -155,7 +155,7 @@ unique_ptr<carve::mesh::MeshSet<3> > CarveConnector::perform(aperio* ap, unique_
 	return c;
 }
 //----------------------------------------------------------------------------------------------------------------------------------------
-static bool Carve_checkDegeneratedFace(boost::unordered_map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map, MeshSet<3>::face_t *face)
+static bool Carve_checkDegeneratedFace(std::unordered_map<MeshSet<3>::vertex_t*, uint> *vertexToIndex_map, MeshSet<3>::face_t *face)
 {
 	/* only tris for now */
 	if (face->n_edges == 3) {
@@ -177,7 +177,7 @@ vtkSmartPointer<vtkPolyData> CarveConnector::meshSetToVTKPolyData(unique_ptr<car
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 	points->SetNumberOfPoints(c->vertex_storage.size());	// allocate memory
 
-	boost::unordered_map<MeshSet<3>::vertex_t*, uint> vertexToIndex_map;	// vertex index map
+	std::unordered_map<MeshSet<3>::vertex_t*, uint> vertexToIndex_map;	// vertex index map
 	auto iter = c->vertex_storage.begin();
 	for (int k = 0; iter != c->vertex_storage.end(); ++k, ++iter) {
 		MeshSet<3>::vertex_t *vertex = &(*iter);

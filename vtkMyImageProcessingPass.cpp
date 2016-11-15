@@ -17,19 +17,19 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include "vtkMyImageProcessingPass.h"
 
-#include <vtkObjectFactory.h>
+#include <vtk/vtkObjectFactory.h>
 #include <assert.h>
-#include <vtkRenderState.h>
-#include <vtkRenderer.h>
-#include <vtkgl.h>
-#include <vtkFrameBufferObject.h>
-#include <vtkTextureObject.h>
-#include <vtkShaderProgram2.h>
-#include <vtkShader2.h>
-#include <vtkShader2Collection.h>
-#include <vtkUniformVariables.h>
-#include <vtkOpenGLRenderWindow.h>
-#include <vtkTextureUnitManager.h>
+#include <vtk/vtkRenderState.h>
+#include <vtk/vtkRenderer.h>
+#include <vtk/vtkgl.h>
+#include <vtk/vtkFrameBufferObject.h>
+#include <vtk/vtkTextureObject.h>
+#include <vtk/vtkShaderProgram2.h>
+#include <vtk/vtkShader2.h>
+#include <vtk/vtkShader2Collection.h>
+#include <vtk/vtkUniformVariables.h>
+#include <vtk/vtkOpenGLRenderWindow.h>
+#include <vtk/vtkTextureUnitManager.h>
 
 vtkStandardNewMacro(vtkMyImageProcessingPass);
 

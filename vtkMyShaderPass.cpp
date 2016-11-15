@@ -15,13 +15,13 @@
 //
 //=========================================================================*/
 //
-#include <vtkObjectFactory.h>
-#include <vtkLight.h>
-#include <vtkLightCollection.h>
-#include <vtkRenderState.h>
-#include <vtkObject.h>
+#include <vtk/vtkObjectFactory.h>
+#include <vtk/vtkLight.h>
+#include <vtk/vtkLightCollection.h>
+#include <vtk/vtkRenderState.h>
+#include <vtk/vtkObject.h>
 
-#include <vtkUniformVariables.h>
+#include <vtk/vtkUniformVariables.h>
 #include <assert.h>
 
 // Custom
@@ -29,10 +29,10 @@
 #include "vtkMyShaderPass.h"
 
 // VTK
-#include <vtkShader2Collection.h>
-#include <vtkFrameBufferObject.h>
-#include <vtkTextureObject.h>
-#include <vtkTextureUnitManager.h>
+#include <vtk/vtkShader2Collection.h>
+#include <vtk/vtkFrameBufferObject.h>
+#include <vtk/vtkTextureObject.h>
+#include <vtk/vtkTextureUnitManager.h>
 
 vtkStandardNewMacro(vtkMyShaderPass);
 

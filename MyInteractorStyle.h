@@ -8,7 +8,7 @@
 #define __MYINTERACTORSTYLE_H
 
 // Inherits from
-#include "vtkInteractorStyleTrackballCamera.h"
+#include <vtk/vtkInteractorStyleTrackballCamera.h>
 
 class aperio;	// Forward declarations
 

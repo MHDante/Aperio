@@ -132,4 +132,7 @@
   <ItemGroup>
     <ResourceCompile Include="Aperio.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="bin\Debug\vtkCommonColor-6.1.dll" />
+  </ItemGroup>
 </Project>
