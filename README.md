@@ -25,3 +25,10 @@ It can be used by medical professionals on anatomical data or for visualizing an
 * Open Asset Import Library (Mesh Loading), [assimp.sourceforge.net](http://assimp.sourceforge.net/) <br />
 * Carve CSG (Latest) (Boolean operations), [carve-csg.com](http://carve-csg.com/) <br />
 * Graphics card with GLSL Shaders/FBOs support (OpenGL 3.2 or higher), [glew.sourceforge.net](http://glew.sourceforge.net/)
+
+## Dependencies Package
+
+This package contains all of the above dependencies other than Qt.
+
+Unzip onto Solution folder:
+http://mhdante.com/assets.zip
